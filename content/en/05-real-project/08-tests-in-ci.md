@@ -42,7 +42,7 @@ A **job** is a group of steps on one machine. This machine runs Linux, not Windo
 The steps run in order:
 
 1. `actions/checkout@v4` downloads your code.
-2. `pnpm/action-setup@v4` installs pnpm, version 10.
+2. `pnpm/action-setup@v4` installs pnpm. It reads the version from the `packageManager` line of `package.json`.
 3. `actions/setup-node@v4` installs Node 24 and caches the pnpm downloads.
 4. `pnpm install --frozen-lockfile` installs the packages. It fails if `pnpm-lock.yaml` does not match `package.json`.
 5. `pnpm typecheck` checks the types.

@@ -42,7 +42,7 @@ Un **job** (trabajo) es un grupo de pasos en una máquina. Esta máquina usa Lin
 Los pasos se ejecutan en orden:
 
 1. `actions/checkout@v4` descarga tu código.
-2. `pnpm/action-setup@v4` instala pnpm, versión 10.
+2. `pnpm/action-setup@v4` instala pnpm. Lee la versión de la línea `packageManager` de `package.json`.
 3. `actions/setup-node@v4` instala Node 24 y guarda en caché las descargas de pnpm.
 4. `pnpm install --frozen-lockfile` instala los paquetes. Falla si `pnpm-lock.yaml` no coincide con `package.json`.
 5. `pnpm typecheck` revisa los tipos.
