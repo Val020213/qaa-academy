@@ -1,0 +1,27 @@
+{
+  "name": "practice-shop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "QA Shop back office: a small Next.js app to practise end-to-end testing",
+  "scripts": {
+    "dev": "next dev --port 5190",
+    "build": "next build",
+    "start": "next start --port 5190",
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed"
+  },
+  "dependencies": {
+    "next": "16.3.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.59.1",
+    "@types/node": "^24.19.1",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3"
+  }
+}

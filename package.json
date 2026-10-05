@@ -1,0 +1,33 @@
+{
+  "name": "qaa-academy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Internal course: from manual QA to QA Automation with TypeScript and Playwright",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed",
+    "e2e:report": "playwright show-report",
+    "shop:dev": "pnpm --filter practice-shop dev",
+    "shop:e2e": "pnpm --filter practice-shop e2e",
+    "shop:e2e:ui": "pnpm --filter practice-shop e2e:ui"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@playwright/test": "1.59.1",
+    "@types/node": "^24.19.1",
+    "highlight.js": "^11.12.0",
+    "marked": "^18.0.14",
+    "typescript": "5.9.3",
+    "vite": "8.0.16"
+  }
+}

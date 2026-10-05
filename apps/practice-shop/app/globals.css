@@ -1,0 +1,77 @@
+:root {
+  --bg: #f6f6f4;
+  --surface: #ffffff;
+  --border: #e2e2dd;
+  --text: #1c1c1a;
+  --muted: #6b6b66;
+  --accent: #2f5fd0;
+  --danger: #b3261e;
+  --ok: #1f7a4d;
+  --radius: 10px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
+h1 { margin: 0 0 4px; font-size: 1.6rem; }
+h2 { margin: 0 0 6px; font-size: 1.15rem; }
+a { color: var(--accent); }
+code { background: #eeeeea; padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+.muted { color: var(--muted); margin: 0 0 16px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+
+.site-header { display: flex; align-items: center; gap: 28px; height: 56px; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.brand { font-weight: 700; color: var(--text); text-decoration: none; }
+.site-header nav { display: flex; gap: 6px; flex: 1; }
+.site-header nav a { padding: 6px 12px; border-radius: 6px; color: var(--muted); text-decoration: none; }
+.site-header nav a.active { background: #e9eefb; color: var(--accent); font-weight: 600; }
+.user { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; }
+
+.content { max-width: 1040px; margin: 0 auto; padding: 28px 24px 64px; }
+.page-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+
+.login-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.login-card { width: 100%; max-width: 380px; }
+.hint { margin: 16px 0 0; font-size: 0.85rem; color: var(--muted); }
+
+.form { display: grid; gap: 14px; max-width: 460px; }
+label { display: grid; gap: 4px; font-size: 0.88rem; font-weight: 600; }
+input, select { width: 100%; padding: 8px 10px; font: inherit; color: var(--text); background: #fff; border: 1px solid var(--border); border-radius: 8px; }
+.field-error { color: var(--danger); font-weight: 400; }
+
+.button { display: inline-block; padding: 8px 16px; font: inherit; font-weight: 600; color: #fff; background: var(--accent); border: 1px solid transparent; border-radius: 8px; text-decoration: none; cursor: pointer; }
+.button:disabled { opacity: 0.5; cursor: not-allowed; }
+.button-secondary { color: var(--text); background: #fff; border-color: var(--border); }
+.button-danger { background: var(--danger); }
+.link-button { padding: 0; font: inherit; color: var(--accent); background: none; border: none; text-decoration: underline; cursor: pointer; }
+.link-button.danger { color: var(--danger); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.actions { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+.toolbar { display: flex; gap: 14px; margin-bottom: 16px; }
+.toolbar label { width: 240px; }
+
+.alert { margin: 0 0 16px; padding: 10px 14px; border-radius: 8px; font-size: 0.94rem; }
+.alert-error { color: var(--danger); background: #fbeceb; }
+.alert-ok { color: var(--ok); background: #e7f4ed; }
+
+.table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.table th, .table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.93rem; }
+.table th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.table .number { text-align: right; font-variant-numeric: tabular-nums; }
+.row-actions { display: flex; gap: 14px; }
+.empty { padding: 20px 0; text-align: center; }
+.pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; font-size: 0.92rem; }
+
+.badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; background: #eeeeea; color: var(--muted); }
+.badge-active, .badge-paid, .badge-shipped { background: #e7f4ed; color: var(--ok); }
+.badge-pending, .badge-draft { background: #fdf3dc; color: #8a5a00; }
+.badge-cancelled, .badge-archived { background: #f1f1ee; color: var(--muted); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.stats .muted { margin: 0; }
+.stat { margin: 4px 0 0; font-size: 1.8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgb(0 0 0 / 0.35); }
+.dialog { width: 100%; max-width: 400px; }
