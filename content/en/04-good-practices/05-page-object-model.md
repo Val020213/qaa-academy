@@ -1,7 +1,7 @@
 ---
 title: The Page Object Model
 summary: Read the products Page Object, use it in a spec, and learn the rules and limits of the pattern.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -108,6 +108,67 @@ A Page Object is a tool, not a rule for everything. It does not help in these ca
 - It hides too much. If `deleteAndCheck` clicks and asserts, the spec no longer shows what is checked.
 - A small flow like login. A helper function such as `fillLoginForm` in `auth.spec.ts` is enough.
 
+## Go deeper
+
+### Why a locator made early still works late
+
+The constructor of `ProductsPage` creates many locators. You may worry that they find elements too early, before the page is ready. They do not find anything yet. A **locator** is a recipe: "the element with this test id". Playwright follows the recipe only when you act or assert, and it follows it again each time.
+
+```ts
+const product = await createProduct(request)
+const products = new ProductsPage(page)
+const row = products.row(product.id)
+
+await products.goto()
+await expect(row).toBeVisible()
+```
+
+The variable `row` exists before the page opens. It still works, because the search happens at the `expect` line, with the page as it is at that moment. Some older tools return a found element, and that element becomes stale when the page changes. A Playwright locator cannot go stale.
+
+### A common wrong idea: a Page Object removes all test changes
+
+People say a Page Object protects tests from UI changes. It only moves the change to one place. If a developer renames `products-search`, you edit one line. If a developer adds a new required step to delete, such as a reason field, the `delete` method changes, and a test that checks the dialog text may also change. The benefit is real but small and local. This is DRY: the locator is written once.
+
+### How it shows up in QA work: a second Page Object
+
+Imagine that the create tests and a new validation spec both use the product form. That is two specs on one view, so rule 3 says a Page Object is now worth it. This one is not in the shop. You can add it as `apps/practice-shop/e2e/lib/pages/product-form.page.ts`:
+
+```ts
+import type { Locator, Page } from "../test"
+
+// Page Object for the product form. Locators and actions only, no assertions.
+export class ProductFormPage {
+  readonly name: Locator
+  readonly sku: Locator
+  readonly price: Locator
+  readonly stock: Locator
+  readonly save: Locator
+  readonly nameError: Locator
+
+  constructor(page: Page) {
+    this.name = page.getByTestId("product-name")
+    this.sku = page.getByTestId("product-sku")
+    this.price = page.getByTestId("product-price")
+    this.stock = page.getByTestId("product-stock")
+    this.save = page.getByTestId("product-save")
+    this.nameError = page.getByTestId("product-name-error")
+  }
+
+  async fill(values: { name?: string; sku?: string; price?: string; stock?: string }) {
+    if (values.name !== undefined) await this.name.fill(values.name)
+    if (values.sku !== undefined) await this.sku.fill(values.sku)
+    if (values.price !== undefined) await this.price.fill(values.price)
+    if (values.stock !== undefined) await this.stock.fill(values.stock)
+  }
+}
+```
+
+A spec then reads `await form.fill({ name: "ab" })`, `await form.save.click()` and `await expect(form.nameError).toBeVisible()`.
+
+### A trade-off
+
+Every Page Object is more code to read and keep. The `fill` method accepts partial values, so a test can set only the field it cares about. But if you make `fill` take 12 options with flags, you have built a second, hidden test. Keep actions small and named for what a user does.
+
 ## Practice
 
 1. Open `apps/practice-shop/e2e/lib/pages/products.page.ts`. Find the three methods that take a product id.
@@ -185,6 +246,47 @@ When only one spec uses the page, or when the page changes all the time.
 It needs a product id to build the locator. A method can take a value.
 
 </details>
+
+5. The test below creates `row` before it opens the page. Does it work? Explain why.
+
+```ts
+const product = await createProduct(request)
+const products = new ProductsPage(page)
+const row = products.row(product.id)
+
+await products.goto()
+await expect(row).toBeVisible()
+```
+
+<details><summary>Answer</summary>
+
+It works. `row(...)` returns a locator, which is only a recipe. Playwright searches for the element when `expect` runs, after the page has opened, and it searches again while it waits. The order of creating the locator does not matter. Creating the product before `goto` matters, because the list loads once when the page opens.
+
+</details>
+
+6. A teammate adds the method `deleteAndCheckGone(id)` to `ProductsPage`. It deletes the product and asserts that the row is gone. Is this better than `delete(id)` followed by an `expect` in the spec? Give two reasons.
+
+<details><summary>Answer</summary>
+
+It is worse. First, the assertion is hidden, so a reader of the spec does not see what the test checks. Second, the Page Object now decides what is correct, so the method cannot be reused in a test that expects the delete to fail, such as one for a viewer. Keep the action in the Page Object and the assertion in the spec.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the Single Responsibility Principle, and does a page object with 40 methods break it?**
+   - Search for: `single responsibility principle explained`
+   - A good answer explains: the principle in one sentence, and how you could split a large page object.
+
+2. **What is a component object, and when is it better than one large page object?**
+   - Search for: `page object component object pattern test automation`
+   - A good answer explains: what a component is, such as a menu or a dialog, and why sharing it between pages helps.
+
+3. **Why do some testers say a page object should not contain assertions, while others disagree?**
+   - Search for: `page object assertions Martin Fowler PageObject`
+   - A good answer explains: the argument on each side, and which rule your team follows.
 
 ## Next step
 

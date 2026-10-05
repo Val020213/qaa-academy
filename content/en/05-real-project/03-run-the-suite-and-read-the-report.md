@@ -1,7 +1,7 @@
 ---
 title: Run the suite and read the report
 summary: Run all tests, one file or one test, use UI mode, and open the report and the trace of a failed test.
-duration: 35 min
+duration: 50 min
 ---
 
 ## Goal
@@ -125,6 +125,42 @@ Now undo your change. Check with `git status` that `orders.spec.ts` is not liste
 
 > **Careful:** Always undo a deliberate break. A forgotten change will fail the whole team's build.
 
+## Go deeper
+
+### Why the failing test waits 5 seconds
+
+When you wrote `payed`, the test did not fail at once. Playwright checks the page again and again until the text matches or time runs out. The config sets `expect: { timeout: 5_000 }`. This is **auto-retrying**. It is why you do not need `waitForTimeout`. The page may need a moment to update, and Playwright waits only as long as needed.
+
+The cost is that a real failure takes 5 seconds to show. That is a good trade. A fixed wait of 5 seconds would slow every passing test.
+
+### A wrong idea: "a red test means a bug in the app"
+
+A failing test has at least four possible causes:
+
+1. The app has a bug. This is the one you hope to find.
+2. The test is wrong. For example, a typo like `payed`.
+3. The data is not what the test expects.
+4. The environment is slow or broken.
+
+Read the trace before you decide. Only cause 1 is a bug report. The others are repairs to your own work. Reporting a test mistake as an app bug costs a developer's time and your credibility.
+
+### How it shows up in real QA automation work
+
+A teammate says: "the test passes on my machine but fails when I run the whole suite." Run the single test, then the whole file:
+
+```bash
+pnpm --filter practice-shop e2e e2e/orders/orders.spec.ts -g "paid"
+pnpm --filter practice-shop e2e e2e/orders/orders.spec.ts
+```
+
+If it passes alone and fails with the others, tests share data. Another test changed something first. That is not random. It is a clue. A good habit: when a test fails, first change one thing, such as running it alone, and watch what changes.
+
+### The trade-off of recording traces
+
+A trace helps a lot, but it uses disk space and time. The config uses `retain-on-failure`: record always, keep only failures. Another option is `on-first-retry`, which records only when a test runs again. That is cheaper, but you see nothing from the first failure. The shop is small, so it chooses more information.
+
+The `-g` option is also a small DRY idea: you do not write a new script for each test. One command, one option, many uses.
+
 ## Practice
 
 1. Run `pnpm shop:e2e` and check that you see `17 passed`.
@@ -166,6 +202,38 @@ It records every test and keeps the trace only for tests that fail.
 The value it expected and the value it received.
 
 </details>
+
+5. You change `toHaveText("paid")` to `toHaveText("payed")` and run the test. About how long does it take to fail, and why is it not instant?
+
+<details><summary>Answer</summary>
+
+About 5 seconds, plus the time to open the page. The `expect` timeout in the config is 5 seconds. Playwright checks again and again during that time, in case the text changes. Only when the time ends does it report the failure.
+
+</details>
+
+6. A test passes when you run it alone with `-g`, but fails in the full run. Give two likely causes.
+
+<details><summary>Answer</summary>
+
+Another test may change the data first, for example it marks the same order as paid. The test may also depend on a state that only exists when it runs first, such as a fresh server. Both causes come from shared data or order, not from the app.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is a flaky test, and what are the most common causes?**
+   - Search for: `flaky tests causes test automation`
+   - A good answer explains: at least three causes, such as timing, shared data and environment, and why flaky tests hurt a team
+
+2. **What does the Playwright trace viewer show in its Actions, Network and Console tabs?**
+   - Search for: `playwright trace viewer actions network console`
+   - A good answer explains: what each tab shows and how to use them to find the cause of a failure
+
+3. **What is a process exit code, and how does a CI system use it to decide pass or fail?**
+   - Search for: `process exit code 0 non-zero ci`
+   - A good answer explains: that 0 means success and other numbers mean failure, and that the test command returns a non-zero code when tests fail
 
 ## Next step
 

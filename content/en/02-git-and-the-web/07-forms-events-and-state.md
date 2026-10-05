@@ -1,7 +1,7 @@
 ---
 title: Forms, events and state
 summary: Understand inputs, events and state, and see what a reload keeps or loses in memory, localStorage and cookies.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -86,6 +86,58 @@ Playwright gives each test a fresh browser context, with no cookies and an empty
 
 When you test by hand, your browser keeps state. If a bug appears only for you, clear cookies and `localStorage` and try again.
 
+## Go deeper
+
+### Why it works this way: events need a listener
+
+An event does nothing by itself. It only does something if code is listening. The code is attached after the page loads. In the shop, the server first sends plain HTML, and then the React code "wakes up" in the browser. This is called **hydration**. Before it ends, the page looks ready, but no code listens to the click.
+
+That is why `auth.spec.ts` in the shop has a comment: a click before React is ready sends the form the old way, and the page reloads. A test that is too fast does the right action at the wrong moment.
+
+### A common wrong idea: "setting a value is the same as typing"
+
+In the Console you can write `input.value = "a@b.test"`. The text appears in the field. But the browser does not fire the `input` event, so code that listens for it does not know. A real user typing fires the event on every key. Playwright `fill` does fire the right events, and this is why you use it, and not a script that sets the value.
+
+### How it shows up in real QA work: a retry loop written once
+
+The shop tests have a problem from hydration: text typed too early can be erased. The team solved it with a loop that types, checks the value, and tries again:
+
+```ts
+import { expect } from "../lib/test"
+import type { Page } from "../lib/test"
+
+async function fillLoginForm(page: Page, email: string, password: string) {
+  await expect(async () => {
+    await page.getByTestId("login-email").fill(email)
+    await page.getByTestId("login-password").fill(password)
+    await expect(page.getByTestId("login-email")).toHaveValue(email)
+    await expect(page.getByTestId("login-password")).toHaveValue(password)
+  }).toPass()
+}
+```
+
+This is the function from `apps/practice-shop/e2e/auth/auth.spec.ts`. It is an example of **DRY**: the five steps are written once, and each test calls `fillLoginForm`. The same loop also appears in `global.setup.ts`. Two copies is a small cost. A reviewer could ask if both should use one shared helper. That is fair. But the test itself must still read as a clear story: "fill the form, click, see the error".
+
+### A check you can write: a clean start
+
+Playwright gives every test a new context. You can prove it:
+
+```ts
+import { expect, test } from "./lib/test"
+
+test("a new test starts with an empty localStorage", async ({ page }) => {
+  await page.goto("/")
+
+  const saved = await page.evaluate(() =>
+    localStorage.getItem("qaa-academy:completed")
+  )
+
+  expect(saved).toBeNull()
+})
+```
+
+The function inside `page.evaluate` runs in the page, not in the test. It reads the key where this course saves completed lessons. `null` means nothing is stored.
+
 ## Practice
 
 1. Start the course site with `pnpm dev`. Open `http://localhost:5180/#/practice`, and press `F12`.
@@ -104,7 +156,7 @@ document.querySelector('[data-testid="login-email"]').getAttribute("value")
 4. In section 2, add the cases "One" and "Two". Press `F5` to reload. The list is empty. The data was in memory.
 5. Open this lesson in the course. Click **Mark as completed**.
 6. In DevTools, open the **Application** panel. Open **Local storage**, then `http://localhost:5180`. Find the key `qaa-academy:completed`. Read its value. It is a list of lesson paths.
-7. Press `F5`. The button still says **Completed ✓**. Click it again to undo.
+7. Press `F5`. The button still says **Completed**. Click it again to undo.
 8. Start the shop with `pnpm shop:dev`. Open `http://localhost:5190` and sign in as `admin@qa-shop.test` with `Admin123!`.
 9. In the **Application** panel, open **Cookies**, then `http://localhost:5190`. Find `shop_session`. Press `F5`. You are still signed in.
 10. Delete the `shop_session` cookie in DevTools. Press `F5`. What happens?
@@ -143,6 +195,38 @@ In memory. Memory is lost on reload.
 A cookie stays in the browser. If one test leaves it behind, the next test may start already signed in.
 
 </details>
+
+5. In your normal browser you mark a lesson as completed. Then you run the Playwright test above. Why does it still find `null`?
+
+<details>
+<summary>Answer</summary>
+
+Playwright does not use your normal browser profile. It opens a new, empty browser context for each test. That context has no cookies and an empty `localStorage`. So your completed lessons are not there. This is what keeps tests independent.
+
+</details>
+
+6. A shop test does `page.goto("/login")`, fills the two fields and clicks `login-submit` at once. Sometimes the fields are empty after the click, and the page has reloaded. What is the most likely cause?
+
+<details>
+<summary>Answer</summary>
+
+The test acted before the page was hydrated. The server HTML was visible, but React was not listening yet. The typed text can be erased, and a click can send the form the old way, which reloads the page. The fix in the repository is to type, check the value and try again until it stays.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between `localStorage` and `sessionStorage`?**
+   - Search for: `localStorage vs sessionStorage MDN`
+   - A good answer explains: how long each one lasts, and how they behave with many tabs.
+2. **What do the cookie flags `HttpOnly`, `Secure` and `SameSite` do?**
+   - Search for: `cookie HttpOnly Secure SameSite MDN`
+   - A good answer explains: each flag in one sentence, and what attack each one helps to prevent.
+3. **Why does Playwright start every test with a new browser context, and what is `storageState` for?**
+   - Search for: `playwright browser context isolation storage state`
+   - A good answer explains: what a context contains, why isolation helps reliable tests, and how a saved session avoids signing in again.
 
 ## Next step
 

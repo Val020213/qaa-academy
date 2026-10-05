@@ -1,7 +1,7 @@
 ---
 title: Tour of the e2e folder
 summary: Learn what every file in the shop's test suite is for, and how one test run flows from the config to the report.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -102,6 +102,49 @@ Two folders appear in `apps/practice-shop`:
 
 Both are ignored by Git. Each new run replaces them.
 
+## Go deeper
+
+### Why setup is a project, not a normal test
+
+The `chromium` project says `dependencies: ["setup"]`. Playwright runs the `setup` project first and waits. If it fails, Playwright skips the rest and tells you so. You see one clear failure, not seventeen confusing ones.
+
+The setup test must start with an empty session. The config shows `storageState: { cookies: [], origins: [] }` for `setup`. If it loaded `admin.json`, it would look for a file that its own run is about to create.
+
+### A wrong idea: "the Page Object should check things too"
+
+Beginners often put assertions inside a Page Object, such as `expectRowVisible()`. It looks tidy. But then the Page Object decides what is correct, and one page cannot serve two tests that expect different results. In this suite, `ProductsPage` only knows where things are and how to click them. The spec says what must be true. The test still reads like a story.
+
+### How it shows up in real QA automation work
+
+Without saved sessions, each test would sign in through the page:
+
+```ts
+import { test } from "../lib/test"
+import { ADMIN } from "../lib/fixtures/api-client"
+
+test.use({ storageState: { cookies: [], origins: [] } })
+
+test("a test that signs in by itself", async ({ page }) => {
+  await page.goto("/login")
+  await page.getByTestId("login-email").fill(ADMIN.email)
+  await page.getByTestId("login-password").fill(ADMIN.password)
+  await page.getByTestId("login-submit").click()
+  // ... now the real test starts
+})
+```
+
+The `test.use` line starts the test signed out. Without it, the saved admin session would send `/login` to the dashboard, and the form would never appear.
+
+With 17 tests, you would repeat these four lines 17 times, and add a few seconds to each test. The suite writes the login once in `global.setup.ts` and saves the cookies. This is the idea called **DRY**: Don't Repeat Yourself. A fact lives in one place. If the login page changes, you fix the setup file for all these tests. The auth spec tests the login page itself, so it has its own login steps and needs the same update. You studied DRY earlier in the course. The same idea applies to `baseURL` in the config: the address of the shop is written once, so tests write `page.goto("/products")`.
+
+### The trade-off of `workers: 1`
+
+A **worker** is a process that runs tests. With one worker, tests run one after another. That is slower. The reason is shared state: all tests change the same in-memory data. With many workers, two tests could mark order 1005 as paid at the same time and break each other.
+
+Teams that need speed solve it differently. Each worker gets its own data or its own server. That costs more set-up. For a small shop, slow and stable is the better choice.
+
+Also remember that readability still matters more than removing every repetition. A test that shows its own steps is easier to read than one that hides them.
+
 ## Practice
 
 1. Open `apps/practice-shop/e2e/README.md` and read the "Conventions" section.
@@ -143,6 +186,38 @@ In the `orders` folder, for example `e2e/orders/`.
 It holds a private session that changes on every run. It must not be shared.
 
 </details>
+
+5. Suppose you change `workers: 1` to `workers: 4`. Two tests use order 1005: one marks it paid, one checks it is pending. What could happen, and why?
+
+<details><summary>Answer</summary>
+
+The tests could run at the same moment. If the first one marks the order paid before the second one checks, the second fails with `paid` instead of `pending`. The failure would not happen every time. It depends on timing, so it is a flaky test. The cause is shared data, not a bug in the app.
+
+</details>
+
+6. You delete the file `e2e/.auth/admin.json` and run `pnpm shop:e2e`. Does the suite fail? Why?
+
+<details><summary>Answer</summary>
+
+No. The `setup` project runs first and signs in again, and it saves a new `admin.json`. Only then do the other tests start. The file is created by the run, so it is safe to delete.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is a Page Object in test automation, and what should it not contain?**
+   - Search for: `page object model pattern playwright`
+   - A good answer explains: that a Page Object holds locators and actions for a page, and why many teams keep assertions in the test
+
+2. **How does Playwright reuse a signed-in session between tests?**
+   - Search for: `playwright authentication storageState`
+   - A good answer explains: what is saved in the storage state file, and why it makes tests faster
+
+3. **What is a cookie, and how does a website use it to remember that you are signed in?**
+   - Search for: `http cookie session login how it works`
+   - A good answer explains: what the browser stores and sends back, and why a saved cookie can sign a test in
 
 ## Next step
 

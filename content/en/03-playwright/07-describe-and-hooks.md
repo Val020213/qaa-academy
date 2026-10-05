@@ -1,7 +1,7 @@
 ---
 title: Describe, hooks and isolation
 summary: Group tests with describe, share set-up with beforeEach, use only, skip and fixme with care, and name tests well.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -105,6 +105,81 @@ A good name says the situation and the result. Use the name of the group for the
 
 One test checks one behaviour. If the name needs the word "and" many times, split the test.
 
+## Go deeper
+
+### Why hooks run in a fixed order
+
+Playwright runs hooks in a clear order. A `beforeEach` outside a group runs first. Then the `beforeEach` inside the group runs. Then the test.
+
+```ts
+import { test } from "./lib/test"
+
+test.beforeEach(async () => {
+  console.log("outer beforeEach")
+})
+
+test.describe("login", () => {
+  test.beforeEach(async () => {
+    console.log("inner beforeEach")
+  })
+
+  test("shows the form", async () => {
+    console.log("test body")
+  })
+})
+```
+
+The terminal shows the three lines in this order: `outer beforeEach`, `inner beforeEach`, `test body`. So the outer hook is the right place for steps that every test needs, such as opening the page.
+
+### A common wrong idea: "I can share a variable between tests"
+
+A beginner writes this to avoid repeating a step. It is a bad example:
+
+```ts
+let caseWasAdded = false
+
+test("adds a case", async ({ page }) => {
+  // ...adds a case in the page
+  caseWasAdded = true
+})
+
+test("uses the added case", async ({ page }) => {
+  expect(caseWasAdded).toBe(true)
+})
+```
+
+This works only by luck. With `fullyParallel`, Playwright runs tests in several workers. Each worker is a separate process with its own copy of the file and its own variables. The second test can run in a worker where the first test never ran. It can also run first. The variable is `false`, and the test fails.
+
+Isolation is not a rule to annoy you. It is the reason tests can run in parallel. A test that needs data creates it for itself.
+
+### A trade-off: do not hide the story in a hook
+
+`beforeEach` is DRY: the steps are written once. But a hook that does too much hides what the test is about. Compare:
+
+```ts
+import { expect, test, type Page } from "./lib/test"
+
+async function addCase(page: Page, title: string): Promise<void> {
+  await page.getByTestId("cases-input").fill(title)
+  await page.getByTestId("cases-add").click()
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.goto("/#/practice")
+})
+
+test("deleting a case updates the counter", async ({ page }) => {
+  await addCase(page, "Check the login")
+  await page.getByTestId("cases-delete-1").click()
+
+  await expect(page.getByTestId("cases-counter")).toHaveText("0 of 0 passed")
+})
+```
+
+Opening the page is the same for every test, so it goes in the hook. Adding a case is a step of this test, so it stays in the test, as a call to a function with a clear name. The reader sees the full story without scrolling up.
+
+Use a hook for things every test in the group needs. Use a function for steps that only some tests need. Fixtures, in module 4, are the next step for shared set-up.
+
 ## Practice
 
 1. Open `e2e/exercises/03-playwright/07-describe-and-hooks.spec.ts`. The groups and hooks are already there.
@@ -153,6 +228,44 @@ It makes the run skip all other tests, and the result looks green. In CI, `forbi
 Both skip the test. `fixme` says the test should work but is broken or not finished.
 
 </details>
+
+5. The `beforeEach` of a group fails because `page.goto` cannot reach the site. What happens to the tests in that group?
+
+<details><summary>Answer</summary>
+
+Each test in the group fails, and the body of the test does not run. A failed hook counts as a failure of the test. This is useful: you see one clear error, and not many confusing ones. It also shows that a hook must only contain set-up steps that really must work.
+
+</details>
+
+6. This hook has a bug. What is it, and why can it be hard to see?
+
+```ts
+test.beforeEach(async ({ page }) => {
+  page.goto("/#/practice")
+})
+```
+
+<details><summary>Answer</summary>
+
+There is no `await` before `page.goto`. The hook ends before the page is open. The navigation runs on its own, and later steps can start too early. The test often still works, because later steps wait for their elements, but that is luck. If the address is wrong, the test can fail with a navigation error, but it can also fail later with a message about a missing element, not about the real cause.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What do "setup" and "teardown" mean in automated testing?**
+   - Search for: `test setup teardown pattern`
+   - A good answer explains: what each one does and why a test should leave things as it found them, and how this compares to `beforeEach` and `afterEach`.
+
+2. **Why are order-dependent tests a problem for a QA team?**
+   - Search for: `order dependent tests flaky test independence`
+   - A good answer explains: what an order-dependent test is, how it breaks when tests run in parallel or in another order, and how to fix it.
+
+3. **What does `test.describe.configure({ mode: "serial" })` do in Playwright, and why does the documentation recommend against it?**
+   - Search for: `playwright serial mode describe configure`
+   - A good answer explains: how serial mode changes the way tests run, what happens when one test fails, and why independent tests are better.
 
 ## Next step
 

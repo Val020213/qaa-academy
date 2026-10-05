@@ -1,7 +1,7 @@
 ---
 title: Actions
 summary: Do what a user does with goto, click, fill, press, check, selectOption and clear, and learn how Playwright waits.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -118,6 +118,72 @@ test("signs in with the test credentials", async ({ page }) => {
 
 Read it as a manual test case: open the page, type the email, type the password, click Sign in, check the welcome message.
 
+## Go deeper
+
+### Why fill is not the same as typing
+
+When a person types, the browser gets one key event for each key. `fill` does not do this. It puts the whole text in the field at once and tells the page that the value changed.
+
+For most forms this is enough, and it is fast. But some pages react to each key, for example a search box that shows suggestions after every letter. For such a field, use `pressSequentially`. It presses the keys one by one:
+
+```ts
+await page.getByTestId("cases-input").pressSequentially("Login", { delay: 100 })
+```
+
+The `delay` is the time in milliseconds between two keys. Use this only when `fill` does not trigger the behaviour you want to test.
+
+### A common wrong idea: "force fixes a click that does not work"
+
+Sometimes a click waits and then fails because another element covers the button. A beginner finds the option `force: true`:
+
+```ts
+await page.getByTestId("report-load").click({ force: true })
+```
+
+`force` skips the actionability checks. The click is sent even if the button is covered or disabled. But it does not promise that your button gets the click: an overlay may receive it, and a disabled button does nothing. The test can go green anyway. But a real user cannot click a covered button. The test now hides a real bug.
+
+So when a click fails, read the message. It says which check was not true. Then ask: would a user have the same problem? If yes, you found a bug in the app, and the test did its job.
+
+### How it shows up in real QA work: one body, many inputs
+
+A QA analyst often tests the same action with many inputs. The Practice app shows an error for empty fields and another error for a wrong password. Without care, you copy the test and change two values.
+
+DRY means "Don't Repeat Yourself". Write the steps once and loop over the data:
+
+```ts
+import { expect, test } from "./lib/test"
+
+const invalidLogins = [
+  {
+    name: "empty fields",
+    email: "",
+    password: "",
+    message: "Enter your email and password.",
+  },
+  {
+    name: "a wrong password",
+    email: "qa@example.com",
+    password: "wrong",
+    message: "Wrong email or password.",
+  },
+]
+
+for (const { name, email, password, message } of invalidLogins) {
+  test(`login rejects ${name}`, async ({ page }) => {
+    await page.goto("/#/practice")
+    await page.getByTestId("login-email").fill(email)
+    await page.getByTestId("login-password").fill(password)
+    await page.getByTestId("login-submit").click()
+
+    await expect(page.getByTestId("login-error")).toHaveText(message)
+  })
+}
+```
+
+Playwright creates two tests with two names. A new case needs one new object, not a new test.
+
+The limit: this works when the steps are the same and only the data changes. If each case needs different steps, separate tests are easier to read.
+
 ## Practice
 
 1. Open `e2e/exercises/03-playwright/03-actions.spec.ts`.
@@ -165,6 +231,38 @@ The checks Playwright makes before an action: the element exists, is visible, is
 No. It only waits until the element is ready to click. To wait for a result, use an assertion.
 
 </details>
+
+5. The Practice app has no cases. A test runs `await page.getByTestId("cases-input").press("Enter")` on the empty field and then expects `cases-item` to have a count of 1. What happens and why?
+
+<details><summary>Answer</summary>
+
+The test fails. Pressing Enter sends the form, but the app ignores an empty title: the code returns before it adds a case. So the count stays at 0. The assertion waits 5 seconds and then reports the difference between 1 and 0.
+
+</details>
+
+6. A test calls `check()` on `cases-toggle-1`, but no case was added before. Nothing in the test is wrong except this missing step. How long does the test take to fail, and what does the message say?
+
+<details><summary>Answer</summary>
+
+It waits for the default test timeout, 30 seconds, and then fails. Playwright cannot do the action, so it keeps waiting for the element to exist. The message says that the test timed out and that it was waiting for the locator `getByTestId('cases-toggle-1')`. A missing set-up step looks like a slow failure, not like a quick one.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between `fill()` and `pressSequentially()` in Playwright?**
+   - Search for: `playwright fill vs pressSequentially`
+   - A good answer explains: how each one enters text, which events the page receives, and one situation where `fill` is not enough.
+
+2. **What is the difference between the HTML `disabled` attribute and `aria-disabled`?**
+   - Search for: `html disabled vs aria-disabled button`
+   - A good answer explains: what each one does for a mouse user and for a screen reader user, and why this matters when you test a button that "cannot be clicked".
+
+3. **What is data-driven testing, and when is it a good idea?**
+   - Search for: `data-driven testing parameterized tests`
+   - A good answer explains: how one test with a table of inputs works, what is gained, and when separate tests are clearer.
 
 ## Next step
 

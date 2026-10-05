@@ -1,7 +1,7 @@
 ---
 title: Types
 summary: Learn that every value has a type, and let the TypeScript type checker find mistakes before you run the code.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -158,6 +158,60 @@ The sign `|` means "or". So `string | undefined` means: a string, or nothing yet
 
 The type checker uses this to protect you. If a value can be missing, it makes you think about that case.
 
+## Go deeper
+
+### Why types disappear when the program runs
+
+TypeScript checks your types, and then it removes them. What Node.js runs is plain JavaScript. This is why `node file.ts` does not report a type mistake.
+
+It also means TypeScript only knows what you tell it. If a value comes from outside, like text from a web page, TypeScript cannot look inside it. At run time, the value has the type it really has.
+
+### A common wrong idea: "Number() always gives a number I can trust"
+
+`Number()` always returns a value of type `number`. But the value can still be useless.
+
+```ts
+console.log(Number("abc"));
+console.log(Number(""));
+console.log(typeof Number("abc"));
+```
+
+This prints:
+
+```text
+NaN
+0
+number
+```
+
+`NaN` means "not a number". It is a number value that marks a failed conversion. Its type is still `number`. And an empty text becomes `0`, with no warning. So check the text before you trust the result.
+
+### How it shows up in real QA automation work
+
+A page shows a price as text, like `$5.00`. You want to add 1 to it.
+
+```ts
+console.log(Number("$5.00"));
+console.log(Number("$5.00".replace("$", "")) + 1);
+console.log("5" + 1);
+```
+
+This prints:
+
+```text
+NaN
+6
+51
+```
+
+The `$` sign makes the conversion fail. `replace` is a ready-made function of text. Here it changes `$` into nothing. The last line shows the other danger: `+` with a string and a number joins them as text, and gives `"51"`.
+
+Many wrong test results come from this. The value on the page looked like a number, but the code treated it as text.
+
+### A trade-off: types help, but they are not tests
+
+The type checker finds a wrong kind of value. It cannot tell you if a price is correct. Only a test with a check can do that. Types and tests catch different problems, so you need both.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/types.ts`.
@@ -210,6 +264,50 @@ No. Use the red lines in VS Code or `pnpm typecheck`.
 `undefined` means nothing has been given yet. `null` means there is no value, on purpose.
 
 </details>
+
+5. What does this code print, and why?
+
+```ts
+console.log(typeof Number("abc"), Number("abc"));
+```
+
+<details>
+<summary>Answer</summary>
+
+It prints `number NaN`. `Number()` cannot read the text `abc`, so it gives `NaN`. `NaN` is a special value of the type number. It is not an error, so the program continues.
+
+</details>
+
+6. A test reads the text `"20"` from a page and wants the total after adding 5. Find the bug.
+
+```ts
+const price = "20";
+const total = price + 5;
+console.log(total);
+```
+
+<details>
+<summary>Answer</summary>
+
+It prints `205`, not `25`. The variable `price` is a string, so `+` joins the text. The fix is `Number(price) + 5`. The type checker does not complain here, because joining text and a number is allowed.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **Why does `typeof null` give `"object"` in JavaScript?**
+   - Search for: `typeof null object javascript why`
+   - A good answer explains: the history behind it, and that it is a known mistake in the language.
+
+2. **What is `NaN`, and why is `NaN === NaN` false? How do you check for it?**
+   - Search for: `javascript NaN not equal itself Number.isNaN`
+   - A good answer explains: what NaN means, the surprising comparison, and the correct way to test for it.
+
+3. **What is the difference between a type checker and a test, and which problems can each one catch?**
+   - Search for: `static typing vs testing bugs`
+   - A good answer explains: one problem that only types catch, one that only tests catch, and why teams use both.
 
 ## Next step
 

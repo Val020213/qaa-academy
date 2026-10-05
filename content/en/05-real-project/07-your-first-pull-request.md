@@ -1,7 +1,7 @@
 ---
 title: Your first pull request
 summary: Take your tests from your computer to the team: branch, small commits, checks, push, pull request, and review.
-duration: 35 min
+duration: 50 min
 ---
 
 ## Goal
@@ -122,6 +122,39 @@ Before you open the pull request, check each item yourself. This is the checklis
 
 > **Careful:** A forgotten `test.only` fails the CI build, because `forbidOnly` is on there. Search for `.only` before you push.
 
+## Go deeper
+
+### Why small commits help: what a commit really is
+
+A **commit** is a saved snapshot of your files, with a message and an id. Git keeps the whole history of snapshots. Because each commit is separate, Git can undo one without touching the others. With one big commit, you cannot undo only the bad part.
+
+A **branch** is only a name that points to one commit. Making a branch is cheap. That is why the advice is to make a new branch for each topic.
+
+### A wrong idea: "git add . is faster, so it is fine"
+
+It is faster, but it adds everything, including files you did not mean to share. Before each commit, look at what is staged:
+
+```bash
+git status
+git diff --staged
+```
+
+`git diff --staged` shows the exact lines that go into the commit. If you see a file that does not belong, remove it from the stage:
+
+```bash
+git restore --staged path/to/file
+```
+
+This check takes ten seconds. Reviewers notice a clean diff, and they trust you more.
+
+### How it shows up in real QA automation work
+
+A pull request is also a **conversation about risk**. A reviewer asks: "Why did you choose order 1001?" or "What happens if this runs twice?" Your answers should already be in the description. The checklist at the end of this lesson is a way to remove repetition: the same review comments do not need to be written again on every pull request. This is the idea called **DRY**, applied to the work of a team instead of code. The `COVERAGE.md` file works the same way. What is covered is written once, in one file, not in many chat messages.
+
+### The trade-off of size
+
+A very big pull request is hard to review. People skim it and miss bugs. A very small one for each line creates too many pull requests, and each one has a cost: waiting, running CI, switching tasks. A good size is one topic that a person can read in 15 to 20 minutes. The three commits in this lesson are one pull request because they share one goal: close coverage gaps. If they were unrelated topics, three pull requests would be better.
+
 ## Practice
 
 1. Create a branch named `tests/close-coverage-gaps`.
@@ -164,6 +197,38 @@ What is covered, how to run it, and that `COVERAGE.md` is updated.
 Change the code, commit, push to the same branch, and reply "Done".
 
 </details>
+
+5. You commit with the message "fixed stuff" and `git status` before the commit showed `e2e/.auth/admin.json`. List two problems.
+
+<details><summary>Answer</summary>
+
+First, the message does not say what changed, so nobody can understand the history. Second, `.auth` should be ignored by Git. If it shows in `git status`, the ignore rule is not working or the file was added by force. The file holds a private session and must not be committed.
+
+</details>
+
+6. Your pull request has three commits. After the merge, you find that the viewer spec breaks the build. What is the advantage of having three commits?
+
+<details><summary>Answer</summary>
+
+You can undo only the commit that holds the viewer spec, with `git revert`. The cancel test and the edit spec stay in place. With one large commit, you would have to undo all the work or edit it by hand.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between a Git commit and a Git branch?**
+   - Search for: `git commit vs branch explained`
+   - A good answer explains: that a commit is a snapshot and a branch is a movable name that points to a commit
+
+2. **How do you write a good Git commit message?**
+   - Search for: `git commit message best practices`
+   - A good answer explains: the short summary line, the present tense, and why the message should say what and why
+
+3. **What should a reviewer look for in a pull request that adds automated tests?**
+   - Search for: `code review checklist test automation pull request`
+   - A good answer explains: at least three things such as independent tests, clear names and stable selectors
 
 ## Next step
 

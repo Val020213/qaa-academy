@@ -1,5 +1,6 @@
 import { allLessons, lessonHeadings, renderMarkdown, type Lesson } from "../content.ts"
 import { currentLocale, t } from "../i18n.ts"
+import { icon } from "../icons.ts"
 import { modules } from "../modules.ts"
 import { isCompleted, toggleCompleted } from "../progress.ts"
 
@@ -22,7 +23,7 @@ export function renderLesson(lesson: Lesson): string {
     <div class="lesson-layout">
     <article class="page lesson">
       <p class="card-eyebrow" data-testid="lesson-module">
-        ${courseModule?.title[currentLocale()] ?? ""}${lesson.duration ? ` · ${lesson.duration}` : ""}
+        ${courseModule?.title[currentLocale()] ?? ""}${lesson.duration ? `<span class="eyebrow-meta">${icon("clock", 14)}${lesson.duration}</span>` : ""}
       </p>
       <h1 data-testid="lesson-title">${lesson.title}</h1>
       ${lesson.summary ? `<p class="lead">${lesson.summary}</p>` : ""}
@@ -33,16 +34,16 @@ export function renderLesson(lesson: Lesson): string {
         <button type="button" class="button ${done ? "button-done" : ""}"
                 aria-pressed="${done}" data-lesson="${lesson.path}"
                 data-testid="lesson-complete-toggle">
-          ${done ? t("lesson.completed") : t("lesson.complete")}
+          ${icon("check")}${done ? t("lesson.completed") : t("lesson.complete")}
         </button>
         <nav class="lesson-nav">
-          ${previous ? `<a href="#${previous.path}" data-testid="lesson-previous">← ${previous.title}</a>` : "<span></span>"}
-          ${next ? `<a href="#${next.path}" data-testid="lesson-next">${next.title} →</a>` : ""}
+          ${previous ? `<a href="#${previous.path}" data-testid="lesson-previous">${icon("arrow-left")}<span>${previous.title}</span></a>` : "<span></span>"}
+          ${next ? `<a href="#${next.path}" data-testid="lesson-next"><span>${next.title}</span>${icon("arrow-right")}</a>` : ""}
         </nav>
       </footer>
     </article>
     <aside class="toc" data-testid="lesson-toc">
-      <p class="toc-title">${t("lesson.onThisPage")}</p>
+      <p class="toc-title">${icon("list", 14)}${t("lesson.onThisPage")}</p>
       <ul>${headings}</ul>
     </aside>
     </div>`

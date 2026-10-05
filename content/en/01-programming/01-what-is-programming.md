@@ -1,7 +1,7 @@
 ---
 title: What is programming?
 summary: Learn what a program is, write your first one with console.log, and read your first error message.
-duration: 25 min
+duration: 40 min
 ---
 
 ## Goal
@@ -133,6 +133,44 @@ Add the missing quote and run it again. The message goes away.
 
 > **Tip:** Do not be afraid of red text. It tells you where to look. Read the line number first.
 
+## Go deeper
+
+### Why the computer does not guess
+
+A computer chip understands only very small instructions, such as "add these two numbers". It cannot read your TypeScript directly. Node.js contains an engine that turns your code into those small instructions. The engine works in a strict way. It follows your text exactly, and it cannot ask you what you meant.
+
+This is why one wrong letter breaks a program. A person reading a test case can guess that "Logn" means "Login". A computer cannot.
+
+### A common wrong idea: "an error means nothing ran"
+
+Many beginners think a failed program does nothing at all. Look at this file. The second line has a typing mistake: `Log` has a capital L.
+
+```ts
+console.log("Step 1: open the login page");
+console.Log("Step 2: type the user name");
+console.log("Step 3: click Login");
+```
+
+When you run it, the terminal shows this:
+
+```text
+Step 1: open the login page
+```
+
+After that line, you see the error `TypeError: console.Log is not a function`. Step 1 ran. Step 2 failed. Step 3 never ran.
+
+The computer runs the lines in order and stops at the first problem. The lines before the problem already did their work. Remember this when you debug: find the last line that worked, and look at the next one.
+
+> **Note:** A syntax error, like the missing quote in this lesson, is different. The computer reads the whole file before it runs anything. So with a syntax error, no line runs.
+
+### How it shows up in real QA automation work
+
+An automated test is a program. It has steps, in order, like a manual test case. When one step fails, the test stops there. The steps after it do not run. The report tells you which step failed.
+
+So the order of the steps is part of the test. If you swap "type the password" and "click Login", you made a different test.
+
+You may also see that the three `console.log` lines look alike. Repeating the same idea many times is a signal. You will study this idea, called DRY, at the end of this module.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/hello.ts` if you have not done it yet.
@@ -179,6 +217,46 @@ It ignores the line. It is a comment, written for people.
 The file name and the line number, then the last line that names the kind of error.
 
 </details>
+
+5. Look at this program. What does the terminal show, and why?
+
+```ts
+console.log("A");
+console.Log("B");
+console.log("C");
+```
+
+<details>
+<summary>Answer</summary>
+
+It shows `A`, then an error that says `console.Log is not a function`. It does not show `C`. The computer runs the lines in order. It stops at line 2, because `Log` with a capital L does not exist. Line 3 is never reached.
+
+</details>
+
+6. A teammate says: "My file has a missing quote on line 5, but lines 1 to 4 still printed their text." Is this possible?
+
+<details>
+<summary>Answer</summary>
+
+No. A missing quote is a syntax error. The computer reads the whole file before it runs it, so it finds the problem first and runs nothing. If lines 1 to 4 printed text, the problem on line 5 was a different kind of error. That kind of error happens only when the computer reaches that line.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between JavaScript and TypeScript, and why do many teams choose TypeScript?**
+   - Search for: `typescript vs javascript difference`
+   - A good answer explains: what TypeScript adds, when the extra checks happen, and what is removed before the code runs.
+
+2. **What is Node.js, and why can JavaScript run outside a browser?**
+   - Search for: `what is node.js v8 engine`
+   - A good answer explains: what an engine does and what Node.js adds around it, such as files and the terminal.
+
+3. **Which manual tests are good to automate, and which are not?**
+   - Search for: `what to automate in testing`
+   - A good answer explains: at least three good candidates and three bad ones, with a reason for each.
 
 ## Next step
 

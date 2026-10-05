@@ -1,7 +1,7 @@
 ---
 title: Git basics
 summary: Use Git to save your work, work on a branch, and share changes through a pull request.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -145,6 +145,52 @@ Git will not track these. Most projects already have a `.gitignore`. Do not dele
 
 > **Careful:** If you commit a password by mistake, tell your team at once. The password must be changed.
 
+## Go deeper
+
+### Why it works this way: snapshots and labels
+
+Git does not store a list of edits. A commit stores a snapshot of your files at one moment. Each commit has a long unique ID and points to the commit before it. The IDs are shortened in `git log --oneline`:
+
+```text
+a1b2c3d Add login test for valid user
+9f8e7d6 Add exercises folder
+```
+
+Your IDs will be different. A **branch** is only a small label that points to one commit. When you commit, the label moves forward. Because a branch is just a label, making one is instant and costs almost nothing. That is why the team asks you to make a new branch for every task.
+
+### A common wrong idea: "I deleted the file, so the secret is gone"
+
+A beginner commits a file `.env` with a password. They see the mistake, delete the file, and commit again. Now the file is gone from the folder. It is not gone from the history.
+
+```text
+commit 2: Remove .env file      (the file is gone here)
+commit 1: Add login test        (the file, and the password, are still here)
+```
+
+Anyone can go back to commit 1 and read the password. This is why the lesson says the password must be changed. Deleting a file does not delete history.
+
+A second wrong idea is about `.gitignore`. It only affects files that Git does not track yet. If a file was committed before, adding its name to `.gitignore` does not stop Git from tracking it.
+
+### How it shows up in real QA work: small commits
+
+A pull request is read by a person who has little time. Compare two histories:
+
+```text
+Update tests
+Fix stuff
+```
+
+```text
+Add a failing test for the wrong-password error
+Use data-testid for the sign-in button
+```
+
+The second history tells a story. A reviewer can read one commit at a time. If one commit causes a problem, the team can undo only that commit. A good rule: one commit, one idea.
+
+### A trade-off: many commits or few
+
+Very small commits, such as one for each line, are also hard to read. Commit when one idea is finished and the tests still run.
+
 ## Practice
 
 1. Run `git config --global user.name "Your Name"` with your own name.
@@ -194,6 +240,38 @@ It means the line was added.
 Passwords or secrets, `node_modules`, or `test-results`. Any two are correct.
 
 </details>
+
+5. You add `secrets.txt` to `.gitignore`, but you committed `secrets.txt` last week. You change the file and run `git status`. Does Git show the file as changed? Why?
+
+<details>
+<summary>Answer</summary>
+
+Yes. `.gitignore` only works for files that Git does not track yet. This file is already tracked, so Git still watches it. To stop tracking it, you must remove it from Git, and you must change any password inside it, because the old commits still hold it.
+
+</details>
+
+6. Which way is better? A) One commit with a new login test, a renamed folder and a changed config. B) Three commits, one for each of these. Why?
+
+<details>
+<summary>Answer</summary>
+
+B is better. A reviewer can read each commit alone and understand it. If the config change causes a problem, the team can undo that one commit and keep the test. In A, everything is mixed, so the reviewer must check all of it at once, and the team cannot undo one part.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is a merge conflict, and how do you solve one?**
+   - Search for: `git merge conflict markers resolve`
+   - A good answer explains: what causes a conflict, what the marker lines in the file mean, and the steps to fix the file and finish.
+2. **What can you write in a `.gitignore` file besides a plain name, such as `*` and `!`?**
+   - Search for: `gitignore pattern format`
+   - A good answer explains: how to ignore all files with one ending, how to ignore a folder, and how to make an exception.
+3. **Why do teams review test code in pull requests, and what should a reviewer look for in a test?**
+   - Search for: `code review checklist test automation`
+   - A good answer explains: at least three things a reviewer checks in a test change, such as clear names, stable selectors and independent data.
 
 ## Next step
 

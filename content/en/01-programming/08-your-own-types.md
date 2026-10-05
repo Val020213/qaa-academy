@@ -1,7 +1,7 @@
 ---
 title: Your own types
 summary: Name the shape of your objects with type aliases, optional properties and literal unions.
-duration: 25 min
+duration: 40 min
 ---
 
 ## Goal
@@ -151,6 +151,53 @@ Sometimes you see types with `<` and `>`, like `Array<TestCase>`. You only need 
 
 Read the part inside `< >` as "of". `Array<TestCase>` is "an array of test cases".
 
+## Go deeper
+
+### Types exist only while you write
+
+TypeScript removes all types before the program runs. Node only sees plain JavaScript. So a type cannot check data that arrives while the program runs.
+
+```ts
+type TestCase = { id: number; title: string };
+
+const parsed: TestCase = JSON.parse('{"id":"abc","title":"Login works"}');
+console.log(parsed.id + 1);
+```
+
+TypeScript shows no error. The program prints:
+
+```text
+abc1
+```
+
+The type says `id` is a number. The real data has text. `JSON.parse` returns a value of type `any`, which means "anything", so TypeScript accepts it without a check. You told TypeScript what you hope, and it believed you.
+
+This matters in QA work. An API answer is data from outside. A type describes what you expect, not what the server sent. Your test must still check the real values.
+
+### One shape, written once
+
+A type alias is also a way to avoid repetition. This idea is called **DRY**, "Don't Repeat Yourself". Each piece of knowledge lives in one place. You will study it at the end of this module.
+
+Look at `Status`. The allowed values are written once:
+
+```ts
+type Status = "passed" | "failed" | "skipped" | "blocked";
+```
+
+You add `"blocked"` here, and every place that uses `Status` accepts it. If you wrote the three choices in ten functions, you would change ten places and could forget one.
+
+### When not to write a type
+
+Do not write a type for everything. This line needs none:
+
+```ts
+const count = 3;
+```
+
+TypeScript already knows that `count` is a number. Write types for function parameters, for shapes that many places share, and for fixed choices. Extra types make the code longer and do not make it safer.
+
+Also choose the right tool. Use a union only when the choices are a small, fixed list. If the text can be anything, such as a title typed by a user, use `string`.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/types-practice.ts`.
@@ -200,6 +247,59 @@ The property is optional. It may be missing, and then its value is `undefined`.
 "An array of test cases". It is the same as `TestCase[]`.
 
 </details>
+
+5. What does this program print, and why?
+
+```ts
+type TestCase = { id: number; title: string; owner?: string };
+
+const testCase: TestCase = { id: 1, title: "Login works" };
+console.log(`Owner: ${testCase.owner}`);
+```
+
+<details><summary>Answer</summary>
+
+It prints `Owner: undefined`. The property `owner` is optional and was not given, so its value is `undefined`. A template string turns any value into text, so you see the word `undefined`. TypeScript does not stop you, but the result is probably not what you want. A check with `if` would be better.
+
+</details>
+
+6. This code has a bug. Find it.
+
+```ts
+type Status = "passed" | "failed";
+
+function isDone(status: Status): boolean {
+  if (status === "passed") {
+    return true;
+  }
+  if (status === "failde") {
+    return false;
+  }
+  return false;
+}
+```
+
+<details><summary>Answer</summary>
+
+The text `"failde"` has a spelling mistake. `Status` can only be `"passed"` or `"failed"`, so this comparison can never be true. TypeScript reports that the types have no overlap. With a plain `string` type, TypeScript could not catch this mistake. The program would run and the second `if` would never work.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between `type` and `interface` in TypeScript?**
+   - Search for: `typescript type vs interface`
+   - A good answer explains: how each one describes an object shape, one thing only `type` can do, and which one this course uses and why.
+
+2. **What does it mean that TypeScript types are erased at runtime?**
+   - Search for: `typescript types erased at runtime`
+   - A good answer explains: what the compiler or Node removes, why type checks do not exist when the program runs, and one bug this can hide.
+
+3. **What is an API contract, and why can a TypeScript type not prove that a server follows it?**
+   - Search for: `api contract testing explained`
+   - A good answer explains: what an API contract is, why a type is only a promise made at coding time, and how a tester can check the real answer.
 
 ## Next step
 

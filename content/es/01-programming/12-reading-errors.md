@@ -1,7 +1,7 @@
 ---
 title: Leer errores
 summary: Lee errores de tipo y stack traces, sigue una rutina para depurar y corrige los errores más comunes de quien empieza.
-duration: 35 min
+duration: 50 min
 ---
 
 ## Objetivo
@@ -126,6 +126,70 @@ Olvidaste `await`. Añádelo. Este es el bug más común en los tests de Playwri
 
 > **Consejo:** Corrige primero el primer error de la lista. Los errores siguientes suelen ser causados por el primero.
 
+## Profundiza
+
+### Por qué un stack trace es una lista
+
+Las funciones llaman a otras funciones. Node guarda una lista de las funciones que se están ejecutando ahora. Esta lista es la **pila de llamadas** (*call stack*). Cuando ocurre un fallo, Node muestra la lista. Eso es el stack trace.
+
+```ts
+type TestCase = { id: number; title: string };
+const testCases: TestCase[] = [{ id: 1, title: "Login works" }];
+
+function getTitle(id: number): string {
+  const found = testCases.find((testCase) => testCase.id === id) as TestCase;
+  return found.title;
+}
+
+function printTitle(id: number): void {
+  console.log(getTitle(id));
+}
+
+printTitle(2);
+```
+
+Node muestra, con los nombres largos de carpetas acortados:
+
+```text
+TypeError: Cannot read properties of undefined (reading 'title')
+    at getTitle (demo.ts:6:16)
+    at printTitle (demo.ts:10:15)
+    at Object.<anonymous> (demo.ts:13:1)
+```
+
+Léelo de arriba hacia abajo. `getTitle` falló. La llamó `printTitle`, línea 10. A esa la llamó el archivo principal, línea 13.
+
+### Una idea equivocada: la línea del fallo contiene el error
+
+El fallo está en la línea 6, pero la línea 6 no está mal. El problema real es que nadie tiene un caso de prueba con id 2. El texto `as TestCase` le dijo a TypeScript que confiara en ti, así que ocultó el `undefined`. El valor incorrecto vino de la línea 13.
+
+Lee hacia abajo en la pila para encontrar quién pasó el valor incorrecto. Luego pregunta: ¿qué esperaba aquí y qué obtuve?
+
+### Cómo aparece en el trabajo de automatización QA
+
+Un error es un mensaje del código. No debes esconderlo. Este es un error común:
+
+```ts
+async function checkWelcome(): Promise<void> {
+  throw new Error("Expected the welcome text");
+}
+
+async function main(): Promise<void> {
+  try {
+    await checkWelcome();
+  } catch {
+    // ignore
+  }
+  console.log("test passed");
+}
+
+main();
+```
+
+Muestra `test passed`, aunque la comprobación falló. El `catch` vacío se tragó el error. Un test así nunca puede fallar. Usa `catch` solo cuando puedas hacer algo útil. Si solo quieres registrar el error, escribe `throw error` al final del bloque `catch` para pasarlo hacia arriba.
+
+Los mensajes claros también valen mucho. El *helper* `byTestId` en `src/views/playground.ts` escribe una sola vez el mensaje "was not found" para cada elemento. Esa es la idea **DRY** (*Don't Repeat Yourself*, no te repitas), que estudiarás en la siguiente lección.
+
 ## Práctica
 
 1. Crea el archivo `exercises/01-programming/errors-practice.ts`.
@@ -175,6 +239,54 @@ Falta un `await`.
 
 </details>
 
+5. ¿Qué muestra este programa y por qué?
+
+```ts
+function parsePrice(text: string): number {
+  return Number(text.replace("$", ""));
+}
+
+console.log(parsePrice("$abc"));
+```
+
+<details><summary>Respuesta</summary>
+
+Muestra `NaN`, que significa "no es un número" (*not a number*). `Number("abc")` no puede crear un número, pero no lanza un error. El programa se ejecuta sin ningún mensaje. Este es un bug de lógica, y solo una revisión del valor, por ejemplo con `console.log`, puede mostrarlo.
+
+</details>
+
+6. Este código falla al ejecutarse. Encuentra la causa y explica cómo lo corregirías.
+
+```ts
+type TestCase = { id: number; title: string };
+const testCases: TestCase[] = [{ id: 1, title: "Login works" }];
+
+const second = testCases[5];
+console.log(second.title);
+```
+
+<details><summary>Respuesta</summary>
+
+No hay ningún elemento en la posición 5, así que `second` es `undefined`. Leer `.title` de él da "Cannot read properties of undefined". TypeScript en modo estricto avisa antes: `'second' is possibly 'undefined'`. Corrígelo con `if (second !== undefined) { ... }` y averigua por qué miraste la posición 5.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Qué es la pila de llamadas (*call stack*) en JavaScript y cómo se relaciona con un stack trace?**
+   - Busca: `javascript call stack explained`
+   - Una buena respuesta explica: qué se agrega y qué se quita de la pila cuando se ejecutan las funciones, y qué es un desbordamiento de pila (*stack overflow*).
+
+2. **¿Cuáles son los tipos de error comunes de JavaScript, como `TypeError`, `ReferenceError` y `SyntaxError`?**
+   - Busca: `MDN javascript error types TypeError ReferenceError`
+   - Una buena respuesta explica: qué causa cada tipo y un ejemplo corto de código para cada uno.
+
+3. **¿Cómo ayuda el Trace Viewer de Playwright a un tester a encontrar por qué falló un test?**
+   - Busca: `playwright trace viewer`
+   - Una buena respuesta explica: qué registra un *trace*, qué puedes ver en él y por qué ayuda más que solo leer el texto del error.
+
 ## Siguiente paso
 
-Terminaste los fundamentos de programación. En el módulo 2 aprendes Git y cómo funciona la web, para que puedas leer y compartir proyectos reales.
+En la última lección de este módulo aprendes DRY, una forma de pensar que mantiene tu código fácil de cambiar y fácil de creer.

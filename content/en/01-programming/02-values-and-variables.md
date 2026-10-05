@@ -1,7 +1,7 @@
 ---
 title: Values and variables
 summary: Store text, numbers and true/false values in variables, and combine them with maths and template literals.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -175,6 +175,65 @@ Total tests: 10
 
 > **Tip:** Use a template literal whenever you build a message from values. You will do this often in tests.
 
+## Go deeper
+
+### A variable keeps its own copy of a value
+
+When you write `const saved = price;`, the computer copies the value into `saved`. The two variables do not stay linked.
+
+```ts
+let price = 10;
+const saved = price;
+price = 20;
+console.log(saved, price);
+```
+
+This prints:
+
+```text
+10 20
+```
+
+`saved` kept the old value. Changing `price` later did not change it. Think of two boxes, not one box with two labels.
+
+### A common wrong idea: the name and the text are the same
+
+Beginners often put quotes around a variable name. Compare these two lines.
+
+```ts
+console.log("price");
+console.log(price);
+```
+
+The first line prints the word `price`, because quotes make text. The second prints the value stored in the variable, here `20`. No quotes means "look up the variable". Quotes mean "this is text".
+
+The same mistake happens with template literals. A normal string in quotes does not fill in values. Only backticks do.
+
+### How it shows up in real QA automation work
+
+Test code uses the same value many times: a web address, a user name, an error message. Write it once, in a `const`, and use the name everywhere.
+
+```ts
+const baseUrl = "https://shop.example.com";
+console.log(`${baseUrl}/login`);
+console.log(`${baseUrl}/cart`);
+```
+
+This prints:
+
+```text
+https://shop.example.com/login
+https://shop.example.com/cart
+```
+
+If the address changes, you edit one line. Not twenty. This idea is called DRY, "Don't Repeat Yourself". Each piece of knowledge lives in one place. You will study it at the end of this module.
+
+A value written directly in the code, like `"https://shop.example.com"` in the middle of a line, is sometimes called a magic value. A reader does not know why it is there. A good name explains it.
+
+### A trade-off
+
+Do not make a variable for everything. A name like `const zero = 0;` adds nothing. Make a variable when the value is used more than once, or when the name explains something that the value does not.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/variables.ts`.
@@ -227,6 +286,52 @@ It prints 11.
 Backticks. Values go inside `${...}`.
 
 </details>
+
+5. What does this code print, and why?
+
+```ts
+let count = 1;
+count = count + 1;
+count = count * 5;
+console.log(count);
+```
+
+<details>
+<summary>Answer</summary>
+
+It prints 10. The first line stores 1. The second line reads the current value, adds 1, and stores 2. The third line reads 2, multiplies by 5, and stores 10. Each line uses the value that the last line left.
+
+</details>
+
+6. This code should print `Hello, Ana`, but it does not. Find the bug.
+
+```ts
+const userName = "Ana";
+console.log("Hello, ${userName}");
+```
+
+<details>
+<summary>Answer</summary>
+
+It prints `Hello, ${userName}`. The text uses normal quotes, so the computer treats `${userName}` as plain characters. A template literal needs backticks: `` `Hello, ${userName}` ``.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between `var`, `let` and `const`, and why do style guides say to avoid `var`?**
+   - Search for: `javascript var let const difference scope`
+   - A good answer explains: how each one handles scope and re-assigning, and the main problem with `var`.
+
+2. **What are camelCase, snake_case, PascalCase and kebab-case, and where is each one used?**
+   - Search for: `camelCase snake_case PascalCase kebab-case`
+   - A good answer explains: each style with one example, and which one JavaScript variables normally use.
+
+3. **What is a magic number or magic string in code, and why is it a problem in test code?**
+   - Search for: `magic number magic string programming`
+   - A good answer explains: a definition, one example, and how a named constant fixes it.
 
 ## Next step
 

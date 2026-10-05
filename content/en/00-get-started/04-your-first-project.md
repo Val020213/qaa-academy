@@ -1,7 +1,7 @@
 ---
 title: Your first project
 summary: Download the course repository, run the course site, and learn what each folder and file is for.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -125,6 +125,38 @@ The number of tests and the time can be different.
 
 > **Careful:** If `pnpm dev` is still running in another terminal, that is fine. Playwright can use it or start its own.
 
+## Go deeper
+
+### Why the lock file exists
+
+In `package.json`, a dependency version can have a range, such as `^5.3.0`. The `^` means "this version or a newer compatible one". Without more control, two people could install two different versions on two days.
+
+The file `pnpm-lock.yaml` removes this risk. It saves the exact version of every dependency, and pnpm uses it when you run `pnpm install`. So you and a colleague get the same code. Playwright itself has no `^` here: the course writes `1.59.1`, an exact version.
+
+### Why Playwright installs its own browser
+
+You may ask: "I have Chrome. Why download another browser?" A test needs a browser that behaves the same each time. Your Chrome updates by itself, and each update can change small things. The browser that Playwright downloads matches the Playwright version you use, so tests stay stable.
+
+### How it shows up in real QA automation work: scripts
+
+The `scripts` section of `package.json` is a small menu of commands. This is the real section in this project:
+
+```json
+"scripts": {
+  "dev": "vite",
+  "e2e": "playwright test",
+  "e2e:ui": "playwright test --ui"
+}
+```
+
+When you run `pnpm e2e`, pnpm runs `playwright test`. You do not need to remember the long command. In a team, everyone runs the same short names, and CI runs them too. This is the first example of the DRY idea, "Don't Repeat Yourself": the long command is written once, in one place, and the name is used everywhere. You will study DRY at the end of module 1.
+
+### A common wrong idea: "If tests pass, the setup is good"
+
+The tests in this lesson check the course site. When they pass, they prove that Node, pnpm, and Playwright work together. They do not prove that you understand them. Also note the config file `playwright.config.ts`: it starts the site before the tests, so you do not run `pnpm dev` first. Read that file in module 3.
+
+> **Tip:** When a command fails, do not delete `node_modules` first. Read the error. Most failures have a short, clear message.
+
 ## Practice
 
 1. Open a terminal and go to your projects folder.
@@ -174,6 +206,40 @@ Press Ctrl+C in the terminal.
 The `exercises/` folder.
 
 </details>
+
+5. Another program on your computer already uses port 5180, and you run `pnpm e2e`. Why can this give wrong results, and what does the file `playwright.config.ts` offer for it?
+
+<details>
+<summary>Answer</summary>
+
+Playwright can reuse a server that is already running on that port. If another app answers there, the tests would check the wrong app, or fail. The config reads the port from the `QAA_E2E_PORT` setting, so you can choose a free port and run again.
+
+</details>
+
+6. A colleague says: "I changed `package.json` by hand to a newer Playwright version, but I did not run `pnpm install`." What do you expect to happen when she runs the tests, and why?
+
+<details>
+<summary>Answer</summary>
+
+The installed code in `node_modules` is still the old version, because only `pnpm install` downloads new code. The tests run with the old library, or fail with a version warning. The file and the installed code must agree, so run `pnpm install` after any change to dependencies.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between `dependencies` and `devDependencies` in package.json?**
+   - Search for: `dependencies vs devDependencies package.json`
+   - A good answer explains: what each list holds, and why a testing tool such as Playwright goes in the second list.
+
+2. **What is a lock file, and why should you commit it to Git?**
+   - Search for: `pnpm-lock.yaml lock file why commit`
+   - A good answer explains: what the lock file stores, and what can go wrong in a team without it.
+
+3. **What is a port, and what does localhost:5180 mean?**
+   - Search for: `what is a port localhost explained`
+   - A good answer explains: what a port number is, why two apps cannot use the same port, and how a test tool finds the app to test.
 
 ## Next step
 

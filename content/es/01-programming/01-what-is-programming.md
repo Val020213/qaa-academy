@@ -1,7 +1,7 @@
 ---
 title: ¿Qué es programar?
 summary: Aprende qué es un programa, escribe el primero con console.log y lee tu primer mensaje de error.
-duration: 25 min
+duration: 40 min
 ---
 
 ## Objetivo
@@ -133,6 +133,44 @@ Añade la comilla que falta y ejecuta de nuevo. El mensaje desaparece.
 
 > **Consejo:** No le tengas miedo al texto rojo. Te dice dónde mirar. Lee primero el número de línea.
 
+## Profundiza
+
+### Por qué la computadora no adivina
+
+Un chip de computadora entiende solo instrucciones muy pequeñas, como "suma estos dos números". No puede leer tu TypeScript directamente. Node.js contiene un motor que convierte tu código en esas instrucciones pequeñas. El motor trabaja de forma estricta. Sigue tu texto exactamente y no puede preguntarte qué quisiste decir.
+
+Por eso una letra equivocada rompe un programa. Una persona que lee un caso de prueba puede adivinar que "Logn" significa "Login". Una computadora no.
+
+### Una idea equivocada común: "un error significa que nada se ejecutó"
+
+Muchos principiantes piensan que un programa que falla no hace nada. Mira este archivo. La segunda línea tiene un error de escritura: `Log` lleva L mayúscula.
+
+```ts
+console.log("Step 1: open the login page");
+console.Log("Step 2: type the user name");
+console.log("Step 3: click Login");
+```
+
+Cuando lo ejecutas, la terminal muestra esto:
+
+```text
+Step 1: open the login page
+```
+
+Después de esa línea ves el error `TypeError: console.Log is not a function`. El paso 1 se ejecutó. El paso 2 falló. El paso 3 nunca se ejecutó.
+
+La computadora ejecuta las líneas en orden y se detiene en el primer problema. Las líneas anteriores al problema ya hicieron su trabajo. Recuérdalo cuando *depures* (busques errores): encuentra la última línea que funcionó y mira la siguiente.
+
+> **Nota:** Un error de sintaxis, como la comilla que falta en esta lección, es distinto. La computadora lee todo el archivo antes de ejecutar nada. Por eso, con un error de sintaxis, no se ejecuta ninguna línea.
+
+### Cómo aparece en el trabajo real de automatización QA
+
+Un test automatizado es un programa. Tiene pasos, en orden, como un caso de prueba manual. Cuando un paso falla, el test se detiene ahí. Los pasos siguientes no se ejecutan. El reporte te dice qué paso falló.
+
+Por eso el orden de los pasos es parte del test. Si cambias de lugar "escribir la contraseña" y "hacer clic en Login", haces un test distinto.
+
+También puedes notar que las tres líneas `console.log` se parecen. Repetir la misma idea muchas veces es una señal. Estudiarás esta idea, llamada DRY (no te repitas), al final de este módulo.
+
 ## Práctica
 
 1. Crea el archivo `exercises/01-programming/hello.ts` si aún no lo has hecho.
@@ -179,6 +217,46 @@ La ignora. Es un comentario, escrito para las personas.
 El nombre del archivo y el número de línea. Después, la última línea, que nombra el tipo de error.
 
 </details>
+
+5. Mira este programa. ¿Qué muestra la terminal y por qué?
+
+```ts
+console.log("A");
+console.Log("B");
+console.log("C");
+```
+
+<details>
+<summary>Respuesta</summary>
+
+Muestra `A` y después un error que dice `console.Log is not a function`. No muestra `C`. La computadora ejecuta las líneas en orden. Se detiene en la línea 2, porque `Log` con L mayúscula no existe. Nunca llega a la línea 3.
+
+</details>
+
+6. Un compañero dice: "Mi archivo tiene una comilla que falta en la línea 5, pero las líneas 1 a 4 sí mostraron su texto". ¿Es posible?
+
+<details>
+<summary>Respuesta</summary>
+
+No. Una comilla que falta es un error de sintaxis. La computadora lee todo el archivo antes de ejecutarlo, así que encuentra el problema primero y no ejecuta nada. Si las líneas 1 a 4 mostraron texto, el problema de la línea 5 era de otro tipo. Ese tipo de error ocurre solo cuando la computadora llega a esa línea.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Cuál es la diferencia entre JavaScript y TypeScript, y por qué muchos equipos eligen TypeScript?**
+   - Busca: `typescript vs javascript difference`
+   - Una buena respuesta explica: qué añade TypeScript, cuándo ocurren las comprobaciones extra y qué se elimina antes de ejecutar el código.
+
+2. **¿Qué es Node.js y por qué JavaScript puede ejecutarse fuera de un navegador?**
+   - Busca: `what is node.js v8 engine`
+   - Una buena respuesta explica: qué hace un motor y qué añade Node.js a su alrededor, como los archivos y la terminal.
+
+3. **¿Qué pruebas manuales conviene automatizar y cuáles no?**
+   - Busca: `what to automate in testing`
+   - Una buena respuesta explica: al menos tres buenos candidatos y tres malos, con una razón para cada uno.
 
 ## Siguiente paso
 

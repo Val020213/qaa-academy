@@ -1,7 +1,7 @@
 ---
 title: Objetos
 summary: Agrupa valores relacionados bajo nombres y guarda una lista de casos de prueba como objetos.
-duration: 25 min
+duration: 40 min
 ---
 
 ## Objetivo
@@ -184,6 +184,69 @@ console.log(describe({ id: 7, title: "Reset password" }));
 
 Esto muestra `#7 Reset password`. El texto después de los dos puntos es el tipo del objeto. La lección 08 te muestra una forma más limpia de escribirlo.
 
+## Profundiza
+
+### Por qué una copia cambia el original
+
+Un objeto vive en la memoria del computador. Una variable no guarda el objeto en sí. Guarda un enlace hacia él. Este enlace se llama **referencia**.
+
+Cuando escribes `const same = original;`, copias el enlace. No copias el objeto. Ahora dos nombres apuntan a un solo objeto.
+
+```ts
+const original = { id: 1, status: "failed" };
+const same = original;
+same.status = "passed";
+console.log(original.status);
+
+const copy = { ...original };
+copy.status = "skipped";
+console.log(original.status, copy.status);
+```
+
+El programa muestra:
+
+```text
+passed
+passed skipped
+```
+
+El primer cambio pasó por `same` y modificó el único objeto compartido. Los tres puntos de `{ ...original }` crean un objeto nuevo con las mismas propiedades. La lección 09 muestra la misma idea para los arrays. Esta copia es superficial: un objeto dentro del objeto sigue compartido.
+
+La misma regla explica por qué `===` no compara el contenido:
+
+```ts
+const a = { id: 1 };
+const b = { id: 1 };
+console.log(a === b);
+console.log(a === a);
+console.log(JSON.stringify(a) === JSON.stringify(b));
+```
+
+Muestra `false`, `true` y `true`. Dos objetos son iguales con `===` solo cuando son el mismo objeto. El verificador al final de cada archivo de ejercicios compara el texto creado por `JSON.stringify`, por esta razón.
+
+### Cómo aparece en el trabajo de automatización QA
+
+Los datos de prueba suelen ser un objeto. Lo escribes una vez y cada test lo lee. Esta idea tiene un nombre: **DRY** (*Don't Repeat Yourself*, no te repitas). La estudiarás al final de este módulo.
+
+Este archivo de test vive en la carpeta `e2e`. Las palabras `async` y `await` llegan después, en la lección 10. Lee las líneas como pasos manuales.
+
+```ts
+import { expect, test } from "./lib/test";
+
+const validUser = { email: "qa@example.com", password: "Playwright123" };
+
+test("accepts the test credentials", async ({ page }) => {
+  await page.goto("/#/practice");
+  await page.getByTestId("login-email").fill(validUser.email);
+  await page.getByTestId("login-password").fill(validUser.password);
+  await page.getByTestId("login-submit").click();
+
+  await expect(page.getByTestId("login-welcome")).toContainText(validUser.email);
+});
+```
+
+Si la contraseña cambia, cambias una sola línea. Un test debe seguir leyéndose como una historia clara, así que mantén el objeto de datos pequeño y bien nombrado.
+
 ## Práctica
 
 1. Crea el archivo `exercises/01-programming/objects-practice.ts`.
@@ -233,6 +296,56 @@ Sí. `const` solo te impide poner otro objeto distinto en la variable. Aún pued
 Crea una variable `title` y le da el valor de `testCase.title`.
 
 </details>
+
+5. ¿Qué muestra este programa y por qué?
+
+```ts
+type TestCase = { id: number; title: string; status: string };
+
+function markPassed(testCase: TestCase): void {
+  testCase.status = "passed";
+}
+
+const login: TestCase = { id: 1, title: "Login works", status: "failed" };
+markPassed(login);
+console.log(login.status);
+```
+
+<details><summary>Respuesta</summary>
+
+Muestra `passed`. La función recibe una referencia al mismo objeto, no una copia. Cuando cambia `status`, el objeto al que apunta `login` también cambia. Esto es útil, pero también un riesgo: una función puede cambiar tus datos sin que lo notes.
+
+</details>
+
+6. Este código tiene un bug. Encuéntralo.
+
+```ts
+const testCase = { id: 1, title: "Login works", status: "failed" };
+const { title, state } = testCase;
+console.log(`${title} is ${state}`);
+```
+
+<details><summary>Respuesta</summary>
+
+El objeto no tiene una propiedad `state`. La propiedad se llama `status`. TypeScript muestra el error "Property 'state' does not exist" antes de que ejecutes el programa. Sin esa revisión, el programa mostraría `Login works is undefined`.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Cuál es la diferencia entre una copia superficial y una copia profunda de un objeto?**
+   - Busca: `javascript shallow copy vs deep copy`
+   - Una buena respuesta explica: qué se copia y qué sigue compartido en cada caso, y un ejemplo donde la copia superficial causa una sorpresa.
+
+2. **¿Qué es JSON y cómo cambian `JSON.parse` y `JSON.stringify` entre texto y objetos?**
+   - Busca: `MDN JSON.parse JSON.stringify`
+   - Una buena respuesta explica: cómo se ve el texto JSON, qué hace cada función y qué pasa cuando el texto no es JSON válido.
+
+3. **¿Por qué los testers mantienen los datos de prueba separados de los pasos del test?**
+   - Busca: `test data management software testing`
+   - Una buena respuesta explica: qué son los datos de prueba, dos problemas que aparecen cuando los datos se copian en cada test y una forma de mantenerlos en un solo lugar.
 
 ## Siguiente paso
 

@@ -1,7 +1,7 @@
 ---
 title: Trabajar con listas
 summary: Usa map, filter, find, some, every y spread para trabajar con listas de casos de prueba.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Objetivo
@@ -158,6 +158,73 @@ Ambos funcionan. Usa esta regla:
 
 En Playwright a menudo usas `for...of` con `await`. La lección 10 explica por qué.
 
+## Profundiza
+
+### Qué hace realmente map
+
+`map` no tiene magia. Es un bucle que alguien escribió por ti. Esta función hace el mismo trabajo con un bucle `for...of`:
+
+```ts
+function myMap(items: TestCase[], callback: (testCase: TestCase) => number): number[] {
+  const result: number[] = [];
+  for (const item of items) {
+    result.push(callback(item));
+  }
+  return result;
+}
+
+console.log(myMap(testCases, (testCase) => testCase.id));
+```
+
+El texto `(testCase: TestCase) => number` es el tipo de un callback. Dice: una función que recibe un caso de prueba y devuelve un número. Con los cuatro casos de prueba de arriba, el programa muestra `[ 1, 2, 3, 4 ]`.
+
+### Una idea equivocada: todos los métodos de lista dejan la lista intacta
+
+`map`, `filter` y `find` no cambian el original. Pero `sort` sí.
+
+```ts
+const ids = [3, 1, 2];
+const sorted = ids.sort();
+console.log(ids, sorted === ids);
+console.log([10, 9, 1].sort());
+```
+
+El programa muestra:
+
+```text
+[ 1, 2, 3 ] true
+[ 1, 10, 9 ]
+```
+
+Dos sorpresas. `sort` cambió `ids` y devolvió el mismo array. Y `sort` sin callback ordena como texto, así que `10` va antes que `9`. Usa `toSorted`, que crea un array nuevo, y dale un callback: `[10, 9, 1].toSorted((a, b) => a - b)` da `[ 1, 9, 10 ]`.
+
+### Cómo aparece en el trabajo de automatización QA
+
+Imagina tres intentos de login incorrectos. Los pasos son iguales, solo cambia la entrada. Puedes escribir los datos una vez, como un array de objetos, y recorrerlos con un bucle. Esto es **DRY** (*Don't Repeat Yourself*, no te repitas): un solo cuerpo de test, muchas entradas. Estudiarás la idea al final de este módulo. Las palabras `async` y `await` del código llegan en la siguiente lección. Léelas como pasos manuales.
+
+```ts
+import { expect, test } from "./lib/test";
+
+const badLogins = [
+  { name: "empty email", email: "", message: "Enter your email and password." },
+  { name: "spaces only", email: "   ", message: "Enter your email and password." },
+  { name: "unknown email", email: "ana@example.com", message: "Wrong email or password." },
+];
+
+for (const badLogin of badLogins) {
+  test(`shows an error for ${badLogin.name}`, async ({ page }) => {
+    await page.goto("/#/practice");
+    await page.getByTestId("login-email").fill(badLogin.email);
+    await page.getByTestId("login-password").fill("Playwright123");
+    await page.getByTestId("login-submit").click();
+
+    await expect(page.getByTestId("login-error")).toHaveText(badLogin.message);
+  });
+}
+```
+
+Cada test necesita su propio título, por eso el título usa `name`. Si los casos necesitan pasos distintos, escribe tests separados. Un test debe seguir siendo fácil de leer.
+
 ## Práctica
 
 1. Crea el archivo `exercises/01-programming/lists-practice.ts`.
@@ -208,6 +275,51 @@ Devuelve `undefined`.
 Un array nuevo con todos los elementos de `list` y `item` al final.
 
 </details>
+
+5. ¿Qué muestra este programa y por qué?
+
+```ts
+const numbers = [1, 2, 3];
+const doubled = numbers.map((n) => {
+  n * 2;
+});
+console.log(doubled);
+```
+
+<details><summary>Respuesta</summary>
+
+Muestra `[ undefined, undefined, undefined ]`. El callback tiene llaves, así que necesita la palabra `return`. Sin ella, el callback calcula `n * 2` y descarta el resultado. Una función sin `return` da `undefined`. Escribe `(n) => n * 2` o añade `return`.
+
+</details>
+
+6. Dos personas escriben una comprobación para "¿hay algún caso de prueba fallido?". ¿Qué versión es mejor y por qué?
+
+```ts
+const versionA = testCases.filter((testCase) => testCase.status === "failed").length > 0;
+const versionB = testCases.some((testCase) => testCase.status === "failed");
+```
+
+<details><summary>Respuesta</summary>
+
+La versión B es mejor. `some` dice exactamente lo que quieres saber: ¿hay al menos una coincidencia? Puede detenerse en la primera coincidencia y no crea un array nuevo. La versión A funciona, pero crea una lista solo para contarla, y quien lee debe pensar qué significa.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Qué hace `reduce` y cuándo es más fácil de leer un bucle simple?**
+   - Busca: `javascript array reduce explained`
+   - Una buena respuesta explica: qué recibe el callback, un ejemplo pequeño como una suma y un caso donde un bucle `for...of` es más claro.
+
+2. **¿Por qué `sort` cambia el array original y qué hacen en cambio `toSorted` y la copia con spread?**
+   - Busca: `javascript sort mutates original toSorted`
+   - Una buena respuesta explica: qué métodos de array cambian el original, cuáles devuelven un array nuevo y cómo ordenar números en el orden correcto.
+
+3. **¿Qué son las pruebas guiadas por datos (*data-driven testing*) y cuándo ayudan a un tester?**
+   - Busca: `data-driven testing test automation`
+   - Una buena respuesta explica: qué es un test guiado por datos, un ejemplo con una tabla de entradas y resultados esperados, y un riesgo de poner demasiados datos en un solo test.
 
 ## Siguiente paso
 

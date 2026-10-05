@@ -1,7 +1,7 @@
 ---
 title: Prepare data through the API
 summary: Use the API to create and delete test data, and keep the UI for the one test about that UI.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -135,6 +135,45 @@ It exists only for tests, so it is blocked in production. An endpoint that erase
 
 > **Careful:** Never point your tests at a real production system. Use a test environment you can reset.
 
+## Go deeper
+
+### Why the API is faster and the UI is a layer on top
+
+The form in the shop does not talk to the server in a special way. When you click Save, the page sends this request: `POST /api/products`. That is the same request `createProduct` sends. The server does the same work for both.
+
+So the UI path does extra steps. The browser loads the page, React starts, five fields are typed, the button is clicked, the page moves to the list, and the list loads again. Any of these steps can be slow or break. The API path has one step. When you only need a product to exist, one step is better than eight.
+
+### A common wrong idea: API data makes the test less real
+
+Some people say a test is fake if the data did not come from the screen. This is not true. A test needs to be real about the thing it checks. The delete test checks the delete flow. It does not need to prove the create form works. One other test, "a new product appears at the top of the list", does that.
+
+A second wrong idea is the opposite: "the API accepts anything". It does not. The API applies the same rules as the form. Try this thought: what happens when a test calls `createProduct(request, { price: 0 })`? The server answers `422`, because the price must be greater than 0. The helper checks for `201`, so the test stops at the helper line with a clear message. You never write directly into the data and skip the rules.
+
+### How it shows up in QA work: put the state in an override
+
+`createProduct` has default values and accepts overrides. A test states only the field that matters:
+
+```ts
+import { expect, test } from "../lib/test"
+import { createProduct } from "../lib/fixtures/api-client"
+import { ProductsPage } from "../lib/pages/products.page"
+
+test("an archived product shows the archived badge", async ({ page, request }) => {
+  const product = await createProduct(request, { status: "archived" })
+  const products = new ProductsPage(page)
+  await products.goto()
+  await expect(products.row(product.id)).toBeVisible()
+
+  await expect(page.getByTestId(`products-status-${product.id}`)).toHaveText("archived")
+})
+```
+
+The body of the product, with name, SKU, price and stock, is written once in the helper. The test shows only `status: "archived"`, so a reader sees what is special. This is DRY, and it also keeps the test readable.
+
+### A trade-off
+
+The API helper ties your tests to the API. If the API changes, for example a new required field, `createProduct` breaks, and so do all tests that use it. You fix it in one place. That is a good deal. But it only works when the API is stable and your team gives you access. If there is no API, use the UI for setup and keep it short.
+
 ## Practice
 
 1. Open `apps/practice-shop/e2e/lib/fixtures/api-client.ts`. Find the three `expect` lines that check the response.
@@ -199,6 +238,48 @@ If the API fails, the test stops at once with a clear error, not later on the sc
 It erases all data. It must exist only for tests.
 
 </details>
+
+5. What happens when a test runs `createProduct(request, { price: 0 })`? Name the status code and say where the test stops.
+
+<details><summary>Answer</summary>
+
+The server rejects the price, because the rule says it must be greater than 0. It answers `422`. The helper expects `201`, so the check inside `createProduct` fails. The test stops on the `createProduct` line, before it opens any page. The error shows `422` against `201`.
+
+</details>
+
+6. This test sometimes fails, because the new product is not in the list. Find the bug.
+
+```ts
+test("the new product is in the list", async ({ page, request }) => {
+  const products = new ProductsPage(page)
+  await products.goto()
+  const product = await createProduct(request)
+
+  await expect(products.row(product.id)).toBeVisible()
+})
+```
+
+<details><summary>Answer</summary>
+
+The page loads the list once, when it opens. The product is created after that, so the list on screen does not include it. The test waits for a row that never comes. Create the product first, then open the page. Then the list that loads already contains the product.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What do the HTTP status codes 201, 204, 401, 403, 404 and 422 mean?**
+   - Search for: `HTTP status codes MDN 422 403`
+   - A good answer explains: the meaning of each code in one sentence, and which ones the shop returns for which problem.
+
+2. **What do the HTTP methods GET, POST, PUT and DELETE do in a REST API?**
+   - Search for: `REST API methods GET POST PUT DELETE`
+   - A good answer explains: what each method does, and which one the shop uses to create, change and delete a product.
+
+3. **Why do teams build test-only endpoints such as a reset, and what risks come with them?**
+   - Search for: `test-only endpoints security risk production`
+   - A good answer explains: why the endpoint helps tests, and how a team keeps it away from production.
 
 ## Next step
 

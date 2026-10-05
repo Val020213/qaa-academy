@@ -1,7 +1,7 @@
 ---
 title: Anatomy of a test
 summary: Read a real Playwright test line by line, run it, and see what a failure looks like.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -156,6 +156,91 @@ The **call log** lists each try. Below it, you see the lines of your code with a
 
 > **Tip:** Always read the "Expected" and "Received" lines first. They tell you what was different.
 
+## Go deeper
+
+### Why a test passes or fails
+
+A Playwright test is a normal function. Playwright calls it. If the function ends without an error, the test passes. If something throws an error, the test fails.
+
+An assertion is a check that throws an error when it is false. Here is the same idea in plain TypeScript, without a browser:
+
+```ts
+async function runTest(name: string, body: () => Promise<void>): Promise<void> {
+  try {
+    await body()
+    console.log(`passed: ${name}`)
+  } catch (error) {
+    console.log(`failed: ${name} (${(error as Error).message})`)
+  }
+}
+
+function check(actual: string, expected: string): void {
+  if (actual !== expected) {
+    throw new Error(`expected "${expected}" but got "${actual}"`)
+  }
+}
+
+await runTest("no check at all", async () => {
+  console.log("Wrong email or password.")
+})
+
+await runTest("with a check", async () => {
+  check("Wrong email or password.", "Wrong password.")
+})
+```
+
+It prints:
+
+```text
+Wrong email or password.
+passed: no check at all
+failed: with a check (expected "Wrong password." but got "Wrong email or password.")
+```
+
+The first test passes because nothing threw an error. It proved nothing.
+
+Your test code runs in Node.js on your computer. The browser is another program. Each `await` sends one order to the browser and waits for the answer. So a `console.log` in a test prints in your terminal, not in the browser.
+
+### A common wrong idea: "the test is green, so the app works"
+
+Look at this test:
+
+```ts
+import { test } from "./lib/test"
+
+test("adds a case", async ({ page }) => {
+  await page.goto("/#/practice")
+  await page.getByTestId("cases-input").fill("Check the login")
+  await page.getByTestId("cases-add").click()
+})
+```
+
+It passes. But it only proves that the field and the button exist and can be used. If the Add button added the wrong text, or added nothing, the test would still pass. Add an assertion for the result, such as `toHaveCount(1)`. A green test is only as strong as its checks.
+
+### How it shows up in real QA work
+
+A good test reads like a manual test case: prepare, do, check. Here the test has three steps:
+
+```ts
+import { expect, test } from "./lib/test"
+
+test("ticking a case updates the counter", async ({ page }) => {
+  await page.goto("/#/practice")
+
+  // Prepare: a case exists.
+  await page.getByTestId("cases-input").fill("Check the login")
+  await page.getByTestId("cases-add").click()
+
+  // Do: tick it.
+  await page.getByTestId("cases-toggle-1").check()
+
+  // Check: the counter changed.
+  await expect(page.getByTestId("cases-counter")).toHaveText("1 of 1 passed")
+})
+```
+
+Testers call this shape Arrange, Act, Assert. In `e2e/playground.spec.ts`, the `goto` is written once in `beforeEach`, not in every test. This is the idea called DRY, "Don't Repeat Yourself". You studied it at the end of the programming module. The limit is also important: a test should still read as a clear story from top to bottom.
+
 ## Practice
 
 1. Start the site with `pnpm dev` and try the login form by hand.
@@ -204,6 +289,38 @@ Every step takes time. `await` makes the test wait for the step to finish before
 The "Expected" and "Received" lines. They show the difference.
 
 </details>
+
+5. A test opens the Practice app, fills `login-email` and `login-password` with wrong values, and clicks `login-submit`. It has no assertion. Does it pass? Is it a useful test?
+
+<details><summary>Answer</summary>
+
+It passes, because the fields and the button exist and nothing throws an error. It is not useful. It would also pass if the app showed no error at all, or the wrong error. The test needs an assertion on `login-error`.
+
+</details>
+
+6. A test uses `page.getByTestId("login-erorr")` with a typo, and expects the text `"Wrong email or password."`. The app works correctly. What does the test do, and how long does it take?
+
+<details><summary>Answer</summary>
+
+It fails after about 5 seconds. No element has the test id with the typo. Playwright keeps looking until the assertion timeout ends, and then reports that it did not find the element. A failed test does not always mean a bug in the app. This one is a bug in the test.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between a unit test, an integration test and an end-to-end test?**
+   - Search for: `test pyramid unit integration end-to-end`
+   - A good answer explains: what each kind of test checks, which kind is fastest, and why teams usually write more fast tests than slow ones.
+
+2. **What is the Arrange, Act, Assert pattern, and why do testers use it?**
+   - Search for: `arrange act assert pattern testing`
+   - A good answer explains: the three parts of a test, with one small example, and how the pattern makes a test easier to read.
+
+3. **What is a flaky test, and what are the most common causes?**
+   - Search for: `flaky test causes automation`
+   - A good answer explains: what "flaky" means, gives at least three causes such as timing, shared data and an unstable environment, and says why a flaky test is harmful to a team.
 
 ## Next step
 

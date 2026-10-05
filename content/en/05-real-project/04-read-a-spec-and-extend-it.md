@@ -1,7 +1,7 @@
 ---
 title: Read a spec and extend it
 summary: Read the orders spec line by line, then add the test "an admin cancels a pending order" and update COVERAGE.md.
-duration: 40 min
+duration: 55 min
 ---
 
 ## Goal
@@ -127,6 +127,51 @@ In the table, change the Orders row so it says: "Status filter, admin marks a pe
 
 In "Not covered yet", delete the line "Cancelling an order." The gap is now closed.
 
+## Go deeper
+
+### Why the guard line exists
+
+Look at the first assertion in the cancel test: the status of 1001 is `pending`. Imagine you removed it. If an earlier run left 1001 cancelled, the click would fail with "element not found" for `orders-cancel-1001`. That error does not say why. The guard turns it into a clear message: expected `pending`, received `cancelled`. A good test tells you what is wrong, not only that something is wrong.
+
+### A wrong idea: "more assertions make a better test"
+
+Beginners often assert everything they can see. Then a small, harmless change breaks ten tests. Assert what the test is about. The cancel test checks the status, and that both buttons are gone, because that is the rule. It does not check the colour of the badge, or the table header.
+
+### How it shows up in real QA automation work
+
+The filter test checks one status. You may want to check all of them. You could copy the test three times. Instead, write the test body once and loop over a list of data:
+
+```ts
+import { expect, test } from "../lib/test"
+
+// status to filter by, one order that must stay, one that must go
+const cases = [
+  { status: "paid", shown: 1002, hidden: 1003 },
+  { status: "shipped", shown: 1003, hidden: 1002 },
+  { status: "cancelled", shown: 1004, hidden: 1003 },
+]
+
+test.describe("Orders filter by status", () => {
+  for (const { status, shown, hidden } of cases) {
+    test(`filtering by ${status} keeps order ${shown} and hides ${hidden}`, async ({ page }) => {
+      await page.goto("/orders")
+      await expect(page.getByTestId(`orders-row-${hidden}`)).toBeVisible()
+
+      await page.getByTestId("orders-status-filter").selectOption(status)
+
+      await expect(page.getByTestId(`orders-row-${shown}`)).toBeVisible()
+      await expect(page.getByTestId(`orders-row-${hidden}`)).toHaveCount(0)
+    })
+  }
+})
+```
+
+This is **DRY**: Don't Repeat Yourself. One test body, many inputs. The loop is the idea you learned as "loops and arrays of data". Each test needs a different name, so the name uses `status`. These orders are never changed by other tests, so they are safe.
+
+### The limit of DRY
+
+In a test, a clear story matters more than the shortest code. If the loop body grows many `if` lines, stop. Two plain tests are better than one clever test that nobody can read. Use a loop when the steps are the same and only the data changes.
+
 ## Practice
 
 1. Search all specs for `1001`. Confirm that no test uses it.
@@ -175,6 +220,38 @@ It proves the order is `pending` before you click. If the data is wrong, the fai
 Add the new test to the Orders row and remove "Cancelling an order." from the gaps.
 
 </details>
+
+5. Two tests both start with `expect(page.getByTestId("orders-status-1005")).toHaveText("pending")` and then mark 1005 as paid. Both pass when run alone. What happens when you run both in one run, and why?
+
+<details><summary>Answer</summary>
+
+The second test fails at the guard. It receives `paid`, because the first test already changed the order, and a status only moves forward. The guard makes the cause easy to see. The fix is to give each test its own order.
+
+</details>
+
+6. Which cancel test is better? Version A has no guard line. Version B checks that 1001 is `pending` first. The data is reset before every run.
+
+<details><summary>Answer</summary>
+
+Version B is better. With reset data both pass today. But if the data or another test changes later, version A fails with a vague "element not found". Version B fails with "expected pending, received cancelled", which points to the cause at once. One extra line costs little.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the Arrange, Act, Assert pattern in testing?**
+   - Search for: `arrange act assert pattern unit testing`
+   - A good answer explains: the three parts of a test and why keeping them separate makes a test easier to read
+
+2. **What is data-driven testing, and when is it better than writing separate tests?**
+   - Search for: `data-driven testing parameterized tests`
+   - A good answer explains: how one test body runs with many inputs, and one case where separate tests are clearer
+
+3. **Why do testers say each test should be independent of the others?**
+   - Search for: `test independence isolation automation`
+   - A good answer explains: what can go wrong when tests depend on each other, and one way to make a test independent
 
 ## Next step
 

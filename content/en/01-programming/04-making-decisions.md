@@ -1,7 +1,7 @@
 ---
 title: Making decisions
 summary: Compare values and use if, else if and else so your program can choose what to do.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -185,6 +185,79 @@ This is short, but it can surprise you. The number `0` is falsy, even when `0` i
 
 > **Tip:** As a beginner, write the full comparison, like `name !== ""`. It is clearer and safer.
 
+## Go deeper
+
+### Why `&&` can protect you
+
+The computer reads `a && b` from left to right. If `a` is false, the answer is already false. So it does not look at `b`. This is called **short-circuit** evaluation.
+
+```ts
+const userName: string | undefined = undefined;
+
+if (userName !== undefined && userName.length > 0) {
+  console.log("has name");
+} else {
+  console.log("no name");
+}
+```
+
+This prints:
+
+```text
+no name
+```
+
+`userName.length` would fail on `undefined`. It never runs, because the first part is false. The order of the two parts matters. (`length` is the number of characters in text. You learn more about it in lesson 06.)
+
+### A common wrong idea: "case does not matter" and the `||` mistake
+
+Comparisons are exact. Capital letters count.
+
+```ts
+console.log("Passed" === "passed");
+```
+
+This prints `false`. In a test, the text on the page and the text in your code must match exactly.
+
+The lesson showed that `status === "failed" || "blocked"` does not work as expected. Here is why. The computer reads it as two separate parts: `status === "failed"` and `"blocked"`. A non-empty text is truthy, so the second part is always true.
+
+```ts
+const status = "passed";
+
+if (status === "failed" || "blocked") {
+  console.log("Needs review");
+}
+```
+
+This prints `Needs review`, even though the status is `passed`.
+
+### How it shows up in real QA automation work
+
+A test is a decision at its core. Compare what you expected with what you got. If they differ, the test fails.
+
+```ts
+const expected = "Welcome, Ana";
+const actual = "Welcome, Luis";
+
+if (actual === expected) {
+  console.log("PASS");
+} else {
+  console.log(`FAIL: expected ${expected} but got ${actual}`);
+}
+```
+
+This prints:
+
+```text
+FAIL: expected Welcome, Ana but got Welcome, Luis
+```
+
+Playwright's `expect` does this for you. It also stops the test and prints a clear message. You will write the check once as a function in the next lesson. This is one case of DRY, "Don't Repeat Yourself". You will study it at the end of this module.
+
+### When not to use `if`
+
+Do not put `if` inside a test to hide a different result. A test should follow one clear path. If the test can take two paths, you may not know which one ran, and a failure can hide.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/decisions.ts`.
@@ -236,6 +309,58 @@ It prints B. The first condition is false. The second is true, so the computer s
 `!==`
 
 </details>
+
+5. What does this code print, and why?
+
+```ts
+const score = 95;
+
+if (score >= 50) {
+  console.log("pass");
+} else if (score >= 90) {
+  console.log("excellent");
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+It prints `pass`. The computer runs the first block whose condition is true. A score of 95 is also 50 or more, so it stops at the first block. The `excellent` check is never reached. Put the more specific condition, `score >= 90`, first.
+
+</details>
+
+6. This code should print `unknown` only when the status is neither `passed` nor `failed`. It prints `unknown` for `passed` too. Find the bug.
+
+```ts
+const status = "passed";
+
+if (status !== "passed" || status !== "failed") {
+  console.log("unknown");
+}
+```
+
+<details>
+<summary>Answer</summary>
+
+With `||`, one true side is enough. The status `passed` makes the second part true, because it is not `failed`. Every text is different from at least one of the two. Use `&&`: both sides must be true.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between `==` and `===` in JavaScript, and what is type coercion?**
+   - Search for: `javascript == vs === type coercion`
+   - A good answer explains: what coercion means, two surprising results of `==`, and why `===` is safer.
+
+2. **What is short-circuit evaluation in JavaScript?**
+   - Search for: `javascript short-circuit evaluation && ||`
+   - A good answer explains: how `&&` and `||` stop early, and one use that avoids a crash.
+
+3. **Why do many testing guides say that a test should not contain `if` statements?**
+   - Search for: `no conditional logic in tests`
+   - A good answer explains: the problem with tests that have several paths, and what to do instead.
 
 ## Next step
 

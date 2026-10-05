@@ -1,7 +1,7 @@
 ---
 title: async and await
 summary: Handle work that takes time, avoid the forgotten-await bug, and read how Playwright code waits.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -177,6 +177,88 @@ await page.getByRole("button", { name: "Log in" }).click();
 
 Read it as steps in a manual test: open the page, type the email, click the button. Every step takes time, so every step has `await`.
 
+## Go deeper
+
+### Why code does not wait by itself
+
+JavaScript does one thing at a time. When it starts slow work, such as a timer or a request, it does not stand still. It hands the work off and continues with the next line. When the slow work ends, it comes back.
+
+`await` pauses only the function that contains it. Look at this code, where `await` is missing in `main`:
+
+```ts
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function slowLog(): Promise<void> {
+  await wait(100);
+  console.log("slow done");
+}
+
+async function main(): Promise<void> {
+  slowLog();
+  console.log("main done");
+}
+
+main();
+```
+
+The program prints:
+
+```text
+main done
+slow done
+```
+
+A wrong idea is "no `await` means the function does not run". It does run. You just do not wait for it.
+
+### One after another, or together
+
+Each `await` in a row waits for the one before. When the tasks do not depend on each other, you can start them together with `Promise.all`.
+
+```ts
+async function main(): Promise<void> {
+  const startOne = Date.now();
+  await wait(100);
+  await wait(100);
+  await wait(100);
+  console.log(`One by one: ${Date.now() - startOne} ms`);
+
+  const startAll = Date.now();
+  await Promise.all([wait(100), wait(100), wait(100)]);
+  console.log(`Together: ${Date.now() - startAll} ms`);
+}
+
+main();
+```
+
+Use the `wait` function from above. The first line is about 300 ms and the second is about 100 ms (in a real run: 300 ms and 101 ms). In a test, steps usually depend on each other, so you await them one by one.
+
+### How it shows up in QA automation work
+
+A forgotten `await` on a check is dangerous. Look at this line:
+
+```ts
+expect(page.getByTestId("report-result")).toContainText("12 tests");
+```
+
+The check returns a Promise and nobody waits for it. What happens is not predictable. In the runs we watched, the test failed at once, without waiting for the text. In other situations, a test can end before the check finishes. Either way, the fix is the same: always write `await expect(...)`.
+
+This is the correct test. It waits for the slow report, and it does not use a fixed pause such as `waitForTimeout`:
+
+```ts
+import { expect, test } from "./lib/test";
+
+test("shows the report when loading ends", async ({ page }) => {
+  await page.goto("/#/practice");
+  await page.getByTestId("report-load").click();
+
+  await expect(page.getByTestId("report-result")).toContainText("12 tests");
+});
+```
+
+`expect` tries again and again until the text appears or the time is over. A fixed pause is either too short, and the test fails, or too long, and the suite is slow.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/async-practice.ts`.
@@ -225,6 +307,70 @@ You call an async function without `await`. The code does not wait, and you get 
 It runs when the code in `try` throws an error. You handle the error there.
 
 </details>
+
+5. What does this program print, and why?
+
+```ts
+async function main(): Promise<void> {
+  const ids = [1, 2, 3];
+  ids.forEach(async (id) => {
+    await wait(100);
+    console.log(`done ${id}`);
+  });
+  console.log("finished");
+}
+
+main();
+```
+
+Use the `wait` function from this lesson.
+
+<details><summary>Answer</summary>
+
+It prints `finished` first. Then it prints `done 1`, `done 2` and `done 3`, about 100 ms later. `forEach` does not wait for the async callbacks. It starts all three and moves on. To wait for each one, use a `for...of` loop with `await` inside.
+
+</details>
+
+6. This code has a bug. Find it.
+
+```ts
+async function isLoaded(): Promise<boolean> {
+  await wait(100);
+  return false;
+}
+
+async function main(): Promise<void> {
+  if (isLoaded()) {
+    console.log("loaded");
+  } else {
+    console.log("not loaded");
+  }
+}
+
+main();
+```
+
+<details><summary>Answer</summary>
+
+The `await` is missing before `isLoaded()`. The `if` gets a Promise, and a Promise is always "true" for an `if`. So the program always prints `loaded`, even though the function returns `false`. TypeScript reports an error: the condition will always return true. Write `if (await isLoaded())`.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the event loop, and why can JavaScript wait without freezing?**
+   - Search for: `javascript event loop explained`
+   - A good answer explains: what the call stack and the queue are, why a timer callback runs later, and why a long loop can freeze a page.
+
+2. **What is the difference between `Promise.all` and `Promise.allSettled`?**
+   - Search for: `promise.all vs promise.allsettled`
+   - A good answer explains: what each one returns when one Promise fails, and one example of when you would choose each.
+
+3. **Why is a fixed sleep a bad way to wait in a UI test, and what does Playwright do instead?**
+   - Search for: `playwright auto-waiting actionability`
+   - A good answer explains: what Playwright checks before it clicks, how assertions retry, and why a fixed pause makes tests flaky or slow.
 
 ## Next step
 

@@ -1,7 +1,7 @@
 ---
 title: Anatomía de un test
 summary: Lee un test real de Playwright línea por línea, ejecútalo y mira cómo se ve un fallo.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Objetivo
@@ -21,7 +21,7 @@ Un ***test* end-to-end (de extremo a extremo)** (también llamado test E2E) hace
 
 ## El objetivo: la Practice app
 
-Los tests de este módulo se ejecutan contra la Practice app. Es una página de este sitio del curso. Inicia el sitio en una terminal:
+Los tests de este módulo se ejecutan contra la Practice app (app de práctica). Es una página de este sitio del curso. Inicia el sitio en una terminal:
 
 ```bash
 pnpm dev
@@ -156,6 +156,91 @@ El **call log** (registro de llamadas) lista cada intento. Debajo ves las línea
 
 > **Consejo:** Lee siempre primero las líneas "Expected" y "Received". Te dicen qué fue diferente.
 
+## Profundiza
+
+### Por qué un test pasa o falla
+
+Un test de Playwright es una función normal. Playwright la llama. Si la función termina sin error, el test pasa. Si algo lanza un error, el test falla.
+
+Una aserción es una comprobación que lanza un error cuando es falsa. Esta es la misma idea en TypeScript simple, sin navegador:
+
+```ts
+async function runTest(name: string, body: () => Promise<void>): Promise<void> {
+  try {
+    await body()
+    console.log(`passed: ${name}`)
+  } catch (error) {
+    console.log(`failed: ${name} (${(error as Error).message})`)
+  }
+}
+
+function check(actual: string, expected: string): void {
+  if (actual !== expected) {
+    throw new Error(`expected "${expected}" but got "${actual}"`)
+  }
+}
+
+await runTest("no check at all", async () => {
+  console.log("Wrong email or password.")
+})
+
+await runTest("with a check", async () => {
+  check("Wrong email or password.", "Wrong password.")
+})
+```
+
+Imprime:
+
+```text
+Wrong email or password.
+passed: no check at all
+failed: with a check (expected "Wrong password." but got "Wrong email or password.")
+```
+
+El primer test pasa porque nada lanzó un error. No probó nada.
+
+Tu código de test se ejecuta en Node.js, en tu computadora. El navegador es otro programa. Cada `await` envía una orden al navegador y espera la respuesta. Por eso un `console.log` en un test imprime en tu terminal, no en el navegador.
+
+### Una idea equivocada común: "el test está en verde, así que la app funciona"
+
+Mira este test:
+
+```ts
+import { test } from "./lib/test"
+
+test("adds a case", async ({ page }) => {
+  await page.goto("/#/practice")
+  await page.getByTestId("cases-input").fill("Check the login")
+  await page.getByTestId("cases-add").click()
+})
+```
+
+Pasa. Pero solo prueba que el campo y el botón existen y se pueden usar. Si el botón Add (Agregar) agregara el texto equivocado, o no agregara nada, el test pasaría igual. Agrega una aserción sobre el resultado, como `toHaveCount(1)`. Un test en verde es tan fuerte como sus comprobaciones.
+
+### Cómo aparece en el trabajo real de QA
+
+Un buen test se lee como un caso de prueba manual: preparar, hacer, comprobar. Aquí el test tiene tres pasos:
+
+```ts
+import { expect, test } from "./lib/test"
+
+test("ticking a case updates the counter", async ({ page }) => {
+  await page.goto("/#/practice")
+
+  // Prepare: a case exists.
+  await page.getByTestId("cases-input").fill("Check the login")
+  await page.getByTestId("cases-add").click()
+
+  // Do: tick it.
+  await page.getByTestId("cases-toggle-1").check()
+
+  // Check: the counter changed.
+  await expect(page.getByTestId("cases-counter")).toHaveText("1 of 1 passed")
+})
+```
+
+Los testers llaman a esta forma Arrange, Act, Assert (preparar, actuar, comprobar). En `e2e/playground.spec.ts`, el `goto` se escribe una vez en `beforeEach`, no en cada test. Esta es la idea llamada DRY, "Don't Repeat Yourself" (no te repitas). La estudiaste al final del módulo de programación. El límite también es importante: un test debe seguir leyéndose como una historia clara de arriba abajo.
+
 ## Práctica
 
 1. Inicia el sitio con `pnpm dev` y prueba el formulario de login a mano.
@@ -204,6 +289,38 @@ Cada paso toma tiempo. `await` hace que el test espere a que el paso termine ant
 Las líneas "Expected" y "Received". Muestran la diferencia.
 
 </details>
+
+5. Un test abre la Practice app, llena `login-email` y `login-password` con valores incorrectos y hace clic en `login-submit`. No tiene aserción. ¿Pasa? ¿Es un test útil?
+
+<details><summary>Respuesta</summary>
+
+Pasa, porque los campos y el botón existen y nada lanza un error. No es útil. También pasaría si la app no mostrara ningún error, o mostrara el error equivocado. El test necesita una aserción sobre `login-error`.
+
+</details>
+
+6. Un test usa `page.getByTestId("login-erorr")` con una errata, y espera el texto `"Wrong email or password."`. La app funciona bien. ¿Qué hace el test y cuánto tarda?
+
+<details><summary>Respuesta</summary>
+
+Falla después de unos 5 segundos. Ningún elemento tiene el test id con la errata. Playwright sigue buscando hasta que termina el tiempo límite de la aserción, y luego informa que no encontró el elemento. Un test que falla no siempre significa un *bug* en la app. Este es un *bug* en el test.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Cuál es la diferencia entre un test unitario, un test de integración y un test end-to-end?**
+   - Busca: `test pyramid unit integration end-to-end`
+   - Una buena respuesta explica: qué comprueba cada tipo de test, cuál es el más rápido, y por qué los equipos suelen escribir más tests rápidos que lentos.
+
+2. **¿Qué es el patrón Arrange, Act, Assert y por qué lo usan los testers?**
+   - Busca: `arrange act assert pattern testing`
+   - Una buena respuesta explica: las tres partes de un test, con un ejemplo pequeño, y cómo el patrón hace que un test sea más fácil de leer.
+
+3. **¿Qué es un test *flaky* (inestable) y cuáles son las causas más comunes?**
+   - Busca: `flaky test causes automation`
+   - Una buena respuesta explica: qué significa "flaky", da al menos tres causas como el tiempo, los datos compartidos y un entorno inestable, y dice por qué un test flaky daña a un equipo.
 
 ## Siguiente paso
 

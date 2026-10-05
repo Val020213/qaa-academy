@@ -1,7 +1,7 @@
 ---
 title: Codegen, UI mode and headed mode
 summary: Watch tests run in a real browser, debug them in UI mode, and record steps with codegen, then clean the code up.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -101,6 +101,57 @@ The extension also has "Pick locator" and "Record new test", the same tools you 
 
 Use the extension or the terminal, whichever you like. The tests and the config are the same.
 
+## Go deeper
+
+### Why UI mode can go back in time
+
+UI mode does not play a video. While a test runs, Playwright saves a **snapshot** of the page for each action: a copy of the page content at that moment. When you click an action, UI mode shows you that copy.
+
+This is why you can inspect elements in the past, and why the same data is later used by the trace viewer. Headed and headless runs use the same browser engine. The only difference is the window. So a result is almost always the same in both.
+
+### A common wrong idea: "codegen writes my tests"
+
+Codegen records what you did. It does not know why you did it. It cannot know what the app should show, so it does not add checks by itself. Its assertion tools can record a check, but you must choose it. It also repeats steps. If you record three tests, each one has the same login steps.
+
+A recorded test usually needs a clean-up pass. Look at the repeated steps. Move them to one function:
+
+```ts
+import { expect, test, type Page } from "./lib/test"
+
+async function signIn(page: Page): Promise<void> {
+  await page.goto("/#/practice")
+  await page.getByTestId("login-email").fill("qa@example.com")
+  await page.getByTestId("login-password").fill("Playwright123")
+  await page.getByTestId("login-submit").click()
+}
+
+test("shows the signed-in message", async ({ page }) => {
+  await signIn(page)
+
+  await expect(page.getByTestId("login-welcome")).toContainText("qa@example.com")
+})
+
+test("signing out shows the form again", async ({ page }) => {
+  await signIn(page)
+  await page.getByTestId("login-logout").click()
+
+  await expect(page.getByTestId("login-form")).toBeVisible()
+})
+```
+
+This is DRY, "Don't Repeat Yourself": the login steps live in one place. If the login form changes, you fix one function. The limit: the name `signIn` must say exactly what it does, so the reader still understands each test.
+
+### A trade-off: choose the right tool for the moment
+
+Each tool has a price.
+
+- **Headed mode** is good for understanding one test. It is slow, and you must watch it. Do not use it for the whole suite.
+- **UI mode** is good while you write and debug. It uses your screen and your attention. It is not for CI.
+- **Codegen** is good for finding a locator or starting a draft. It is bad as a way to produce the final test.
+- **Headless mode** is the default. It is fast and good for CI, where nobody watches a window.
+
+Do not use a tool just because it is nice to see. If a test passes headless, you do not need to watch it. Use the visible tools when you need to understand something.
+
 ## Practice
 
 1. Run `pnpm e2e:headed e2e/playground.spec.ts`. Watch the browser.
@@ -144,6 +195,38 @@ Codegen does not know the team rules. You must fix the import, the name, the loc
 The site, with `pnpm dev`, in another terminal.
 
 </details>
+
+5. A test passes on your machine in headed mode but fails in CI, which runs headless. Give two possible reasons that do not depend on the headed or headless setting.
+
+<details><summary>Answer</summary>
+
+Many answers are right. Two examples: CI starts with clean data, while your machine already had data that the test needed, so the test is not independent. Or CI runs tests in parallel on a slower machine, so a timing problem that you never saw now appears. Do not blame the mode first. Open the trace of the CI failure and look at the cause.
+
+</details>
+
+6. You record "add a case, then tick it". Codegen writes `await page.getByRole("checkbox").check()`. The test passes. Later, someone adds a second case in the same test, and the line fails. Why?
+
+<details><summary>Answer</summary>
+
+Each case row has a checkbox. With one case, `getByRole("checkbox")` matches one element. With two cases, it matches two, and strict mode refuses to choose. The locator was too broad from the start. A locator with the row's test id, such as `cases-toggle-1`, says exactly which checkbox you mean.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is a headless browser, and why do CI servers use one?**
+   - Search for: `headless browser what is testing`
+   - A good answer explains: what "headless" means, why a server with no screen needs it, and one thing that can be different from a normal browser window.
+
+2. **What is the Playwright Inspector, and how does `page.pause()` help you debug a test?**
+   - Search for: `playwright inspector page.pause debug`
+   - A good answer explains: how to stop a test at one line, what you can do while it is stopped, and how it differs from UI mode.
+
+3. **What are the weak points of record-and-playback test tools?**
+   - Search for: `record and playback test automation drawbacks`
+   - A good answer explains: at least three problems, such as checks you must add by hand, fragile locators and repeated steps, and when such a tool is still useful.
 
 ## Next step
 

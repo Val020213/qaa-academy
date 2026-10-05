@@ -17,6 +17,8 @@
 These gaps are left on purpose. Pick one and write the test.
 
 - Editing a product.
+- The product detail page: open it from the list, check its data, go back.
+- Deleting a product from its detail page.
 - Pagination: the Next and Previous buttons.
 - Duplicate SKU error when creating a product.
 - The viewer role: no New, Edit or Delete buttons, and the API answers 403.

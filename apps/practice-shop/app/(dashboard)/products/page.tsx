@@ -127,7 +127,11 @@ export default function ProductsPage() {
             <tbody>
               {result.items.map((product) => (
                 <tr key={product.id} data-testid={`products-row-${product.id}`}>
-                  <td data-testid={`products-name-${product.id}`}>{product.name}</td>
+                  <td data-testid={`products-name-${product.id}`}>
+                    <Link href={`/products/${product.id}`} data-testid={`products-view-${product.id}`}>
+                      {product.name}
+                    </Link>
+                  </td>
                   <td>{product.sku}</td>
                   <td className="number">{formatMoney(product.price)}</td>
                   <td className="number">{product.stock}</td>
@@ -141,7 +145,7 @@ export default function ProductsPage() {
                   </td>
                   {isAdmin && (
                     <td className="row-actions">
-                      <Link href={`/products/${product.id}`} data-testid={`products-edit-${product.id}`}>
+                      <Link href={`/products/${product.id}/edit`} data-testid={`products-edit-${product.id}`}>
                         Edit
                       </Link>
                       <button

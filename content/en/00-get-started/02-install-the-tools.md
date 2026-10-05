@@ -1,7 +1,7 @@
 ---
 title: Install the tools
 summary: Install VS Code, Node.js, Git, and pnpm on Windows, and check that each one works.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -140,6 +140,38 @@ An extension adds a feature to VS Code. Open the Extensions panel with Ctrl+Shif
 | Prettier | Formats your code in a clean, common style |
 | Error Lens | Shows error messages on the same line as the code |
 
+## Go deeper
+
+### Why you must reopen the terminal
+
+When Windows starts a terminal, it gives that terminal a list of folders. This list is called **PATH**. When you type `node`, the shell looks for a program called `node` in each folder of PATH, in order.
+
+An installer adds its folder to PATH. But a terminal that was already open keeps its old copy of the list. A new terminal gets the new list. This is the real reason behind "close and reopen".
+
+You can see the list in PowerShell:
+
+```bash
+$env:PATH -split ";"
+```
+
+You will see one folder on each line. Look for the Node.js folder after the install.
+
+### A common wrong idea: "Node.js is only for websites"
+
+Beginners see the word "JavaScript" and think of web pages. JavaScript was made for browsers. But Node.js lets the same language run outside the browser, as a normal program on your computer.
+
+Playwright is such a program. It runs in Node.js, and it controls the browser from outside. So your test code does not run inside the web page. It runs in Node.js and sends commands to the browser.
+
+### Why a version number matters
+
+The course asks for Node.js 24 and gives exact tool versions. A version has three numbers, such as `10.33.4`. Different versions can behave differently. A test that passes on your computer with one version can fail on a colleague's computer with another.
+
+In real QA automation work, this is a common cause of "it works on my machine". Teams write the versions in `package.json` and a lock file, so every computer and the CI server use the same ones. CI is a server that runs your tests automatically after each code change. You will see this in lesson 4 of this module.
+
+### Trade-off: global install
+
+`npm install -g pnpm` puts pnpm on your whole computer. This is easy, but it means every project uses the same pnpm version. Newer setups let each project choose its own version. For now, the global install is simple and fine.
+
 ## Practice
 
 1. Install VS Code. Open it.
@@ -186,6 +218,40 @@ Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, then run your command
 It downloads the code libraries that a project needs.
 
 </details>
+
+5. You install Git, then you run `git --version` in the terminal that was already open. You see "is not recognized". You close VS Code, open it again, and run the command again. It works. What happened, and why?
+
+<details>
+<summary>Answer</summary>
+
+The old terminal had a copy of PATH from before the install, so it could not find Git. When you opened VS Code again, the new terminal received the new PATH, and the shell found Git. The install was fine from the start.
+
+</details>
+
+6. A colleague runs the same tests as you, with the same code. Your tests pass. Hers fail. Name two things about the tools you would compare first, and say why.
+
+<details>
+<summary>Answer</summary>
+
+Compare the Node.js version and the versions of the project libraries, such as Playwright. Different versions can change how the same code behaves. Checking these first is cheap, and it removes a common cause before you look at the test itself.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the PATH environment variable, and how does the shell use it to find a program?**
+   - Search for: `PATH environment variable explained windows`
+   - A good answer explains: what PATH holds, in which order the shell searches it, and what happens when a program is not in it.
+
+2. **What does semantic versioning mean, and what do the three numbers in a version tell you?**
+   - Search for: `semantic versioning major minor patch`
+   - A good answer explains: the meaning of major, minor, and patch, and which change can break your code.
+
+3. **Why do test automation teams say "it works on my machine" is a problem, and how do they reduce it?**
+   - Search for: `works on my machine problem consistent environments`
+   - A good answer explains: why different computers give different results, and at least two ways to make environments the same, such as pinned versions or lock files.
 
 ## Next step
 

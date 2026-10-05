@@ -1,7 +1,7 @@
 ---
 title: HTML and the DOM
 summary: Read HTML tags, attributes and nesting, and understand the DOM tree that a test uses to find elements.
-duration: 25 min
+duration: 40 min
 ---
 
 ## Goal
@@ -105,6 +105,41 @@ Playwright asks questions like these:
 
 If the HTML is clear, these questions are easy. If the HTML is messy, the test is hard to write. When you understand the DOM, you can explain why a test cannot find an element.
 
+## Go deeper
+
+### Why it works this way: the DOM is live
+
+The HTML file is text. The DOM is a set of live objects in the memory of the browser. Code in the page can change these objects at any time. Playwright does not read your HTML file. It asks the browser about the live DOM. So a test sees what the page looks like now, not what the file said at the start.
+
+### A common wrong idea: "if the element exists, the user can see it"
+
+The error message in the Practice app is in the DOM from the first moment, with the `hidden` attribute. A test that only checks "does it exist" proves nothing about what the user sees. Here is the right check, as it will look in the Playwright module:
+
+```ts
+await expect(page.getByTestId("login-error")).toBeHidden()
+await page.getByTestId("login-submit").click()
+await expect(page.getByTestId("login-error")).toBeVisible()
+```
+
+The form is empty when we click, so the app shows "Enter your email and password." Visible and hidden are states of an element that is in the DOM. Test the state the user can see.
+
+### How it shows up in real QA work: elements that are replaced
+
+Open the Practice app, add one case, and run this in the Console:
+
+```text
+> const first = document.querySelector('[data-testid="cases-item"]')
+> document.querySelector('[data-testid="cases-toggle-1"]').click()
+> first.isConnected
+false
+```
+
+`isConnected` tells you if an element is still in the page. It is `false`. When you tick the checkbox, the app redraws the whole list. It removes the old `li` elements and creates new ones that look the same. Your variable `first` still points to the old element, which is no longer on the page.
+
+This is a real problem in test code. A test must not keep a reference to one element and use it later. Playwright solves this: a **locator** is not an element. It is a description, such as "the element with this `data-testid`". Playwright searches the DOM again each time you use it. You will learn locators in module 3.
+
+Remember: the page can replace elements while a user looks at them, and they look the same. Your test should describe what to find, and not hold one element.
+
 ## Practice
 
 1. Start the course site in a terminal inside VS Code:
@@ -153,6 +188,49 @@ No. It is only in the DOM. The app created it after the page loaded.
 Yes. For example, an element with the `hidden` attribute is in the DOM but the user does not see it.
 
 </details>
+
+5. A test opens the Practice app and checks that the element `login-error` exists in the DOM. The check passes. Does it prove that the user sees an error message? Why?
+
+<details>
+<summary>Answer</summary>
+
+No. The element is in the DOM from the start, with the `hidden` attribute. It exists, but the user cannot see it. The check passes even when no error was shown. A good test checks that the element is visible, and checks its text.
+
+</details>
+
+6. Look at this HTML. How many children does the outer `ul` have? Where is `C`?
+
+```html
+<ul>
+  <li>A</li>
+  <li>B
+    <ul>
+      <li>C</li>
+    </ul>
+  </li>
+</ul>
+```
+
+<details>
+<summary>Answer</summary>
+
+The outer `ul` has two children: the `li` with A and the `li` with B. The `li` with C is a child of the inner `ul`, so it is a great-grandchild of the outer `ul` (the path is `ul`, `li`, `ul`, `li`). Children are only the elements directly inside a parent, not the ones deeper.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between a DOM node and a DOM element?**
+   - Search for: `DOM node vs element MDN`
+   - A good answer explains: that text and comments are also nodes, and that an element is one kind of node.
+2. **What is the difference between the `hidden` attribute and the CSS rule `display: none`?**
+   - Search for: `hidden attribute vs display none`
+   - A good answer explains: what each one does, and why a CSS rule can make a `hidden` element visible again.
+3. **How does Playwright decide that an element is "visible" before it clicks it?**
+   - Search for: `playwright actionability visible`
+   - A good answer explains: the checks that Playwright makes before an action, and why an element that is in the DOM may still fail them.
 
 ## Next step
 

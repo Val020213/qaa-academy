@@ -1,7 +1,7 @@
 ---
 title: Objects
 summary: Group related values under names, and keep a list of test cases as objects.
-duration: 25 min
+duration: 40 min
 ---
 
 ## Goal
@@ -184,6 +184,69 @@ console.log(describe({ id: 7, title: "Reset password" }));
 
 This prints `#7 Reset password`. The text after the colon is the type of the object. Lesson 08 shows a cleaner way to write it.
 
+## Go deeper
+
+### Why a copy changes the original
+
+An object lives in the computer memory. A variable does not hold the object itself. It holds a link to it. This link is called a **reference**.
+
+When you write `const same = original;`, you copy the link. You do not copy the object. Now two names point to one object.
+
+```ts
+const original = { id: 1, status: "failed" };
+const same = original;
+same.status = "passed";
+console.log(original.status);
+
+const copy = { ...original };
+copy.status = "skipped";
+console.log(original.status, copy.status);
+```
+
+The program prints:
+
+```text
+passed
+passed skipped
+```
+
+The first change went through `same` and changed the one shared object. The three dots in `{ ...original }` make a new object with the same properties. Lesson 09 shows the same idea for arrays. This copy is shallow: an object inside the object is still shared.
+
+The same rule explains why `===` does not compare content:
+
+```ts
+const a = { id: 1 };
+const b = { id: 1 };
+console.log(a === b);
+console.log(a === a);
+console.log(JSON.stringify(a) === JSON.stringify(b));
+```
+
+It prints `false`, `true` and `true`. Two objects are equal with `===` only when they are the same object. The checker at the bottom of every exercise file compares the text made by `JSON.stringify`, for this reason.
+
+### How it shows up in QA automation work
+
+Test data is often an object. You write it once and every test reads it. This idea has a name: **DRY**, "Don't Repeat Yourself". You will study it at the end of this module.
+
+This test file lives in the `e2e` folder. The `async` and `await` words come later, in lesson 10. Read the lines as manual steps.
+
+```ts
+import { expect, test } from "./lib/test";
+
+const validUser = { email: "qa@example.com", password: "Playwright123" };
+
+test("accepts the test credentials", async ({ page }) => {
+  await page.goto("/#/practice");
+  await page.getByTestId("login-email").fill(validUser.email);
+  await page.getByTestId("login-password").fill(validUser.password);
+  await page.getByTestId("login-submit").click();
+
+  await expect(page.getByTestId("login-welcome")).toContainText(validUser.email);
+});
+```
+
+If the password changes, you change one line. A test must still read as a clear story, so keep the data object small and named well.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/objects-practice.ts`.
@@ -233,6 +296,56 @@ Yes. `const` only stops you from putting a different object in the variable. You
 It creates a variable `title` and gives it the value of `testCase.title`.
 
 </details>
+
+5. What does this program print, and why?
+
+```ts
+type TestCase = { id: number; title: string; status: string };
+
+function markPassed(testCase: TestCase): void {
+  testCase.status = "passed";
+}
+
+const login: TestCase = { id: 1, title: "Login works", status: "failed" };
+markPassed(login);
+console.log(login.status);
+```
+
+<details><summary>Answer</summary>
+
+It prints `passed`. The function receives a reference to the same object, not a copy. When it changes `status`, the object that `login` points to changes too. This is useful, but also a risk: a function can change your data without you noticing.
+
+</details>
+
+6. This code has a bug. Find it.
+
+```ts
+const testCase = { id: 1, title: "Login works", status: "failed" };
+const { title, state } = testCase;
+console.log(`${title} is ${state}`);
+```
+
+<details><summary>Answer</summary>
+
+The object has no property `state`. The property is called `status`. TypeScript shows the error "Property 'state' does not exist" before you run the program. Without the check, the program would print `Login works is undefined`.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between a shallow copy and a deep copy of an object?**
+   - Search for: `javascript shallow copy vs deep copy`
+   - A good answer explains: what is copied and what is still shared in each case, and one example where a shallow copy causes a surprise.
+
+2. **What is JSON, and how do `JSON.parse` and `JSON.stringify` change between text and objects?**
+   - Search for: `MDN JSON.parse JSON.stringify`
+   - A good answer explains: what JSON text looks like, what each function does, and what happens when the text is not valid JSON.
+
+3. **Why do testers keep test data separate from test steps?**
+   - Search for: `test data management software testing`
+   - A good answer explains: what test data is, two problems that appear when data is copied into every test, and one way to keep it in one place.
 
 ## Next step
 

@@ -4,10 +4,12 @@
 // lessons that are not written yet, so the menu shows the full path from day one.
 
 import type { Locale } from "./i18n.ts"
+import type { IconName } from "./icons.ts"
 
 export interface CourseModule {
   /** Folder name inside `content/<language>/`, for example "01-programming". */
   id: string
+  icon: IconName
   /** One text per language. */
   title: Record<Locale, string>
   description: Record<Locale, string>
@@ -18,6 +20,7 @@ export interface CourseModule {
 export const modules: CourseModule[] = [
   {
     id: "00-get-started",
+    icon: "rocket",
     title: { en: "Get started", es: "Primeros pasos" },
     description: {
       en: "Install the tools on Windows, meet the terminal and run the course on your machine.",
@@ -27,6 +30,7 @@ export const modules: CourseModule[] = [
   },
   {
     id: "01-programming",
+    icon: "code",
     title: { en: "Programming basics with TypeScript", es: "Fundamentos de programación con TypeScript" },
     description: {
       en: "Learn to program from zero: values, decisions, functions, lists, objects, types and async code.",
@@ -36,6 +40,7 @@ export const modules: CourseModule[] = [
   },
   {
     id: "02-git-and-the-web",
+    icon: "globe",
     title: { en: "Git and the web for QA", es: "Git y la web para QA" },
     description: {
       en: "Save your work with Git and learn how a web page is built: HTML, the DOM, selectors and DevTools.",
@@ -45,6 +50,7 @@ export const modules: CourseModule[] = [
   },
   {
     id: "03-playwright",
+    icon: "flask",
     title: { en: "Playwright basics", es: "Playwright básico" },
     description: {
       en: "Your first end-to-end test: locators, actions, assertions and the tools to debug.",
@@ -54,6 +60,7 @@ export const modules: CourseModule[] = [
   },
   {
     id: "04-good-practices",
+    icon: "shield-check",
     title: { en: "QAA good practices", es: "Buenas prácticas de QAA" },
     description: {
       en: "Tests that do not break on their own: isolation, data, fixtures, page objects and no fixed waits.",
@@ -63,6 +70,7 @@ export const modules: CourseModule[] = [
   },
   {
     id: "05-real-project",
+    icon: "store",
     title: { en: "Real project", es: "Proyecto real" },
     description: {
       en: "Test the QA Shop back office, a Next.js app built like our real projects, and add your own specs.",
@@ -72,6 +80,7 @@ export const modules: CourseModule[] = [
   },
   {
     id: "06-references",
+    icon: "book-open",
     title: { en: "References", es: "Referencias" },
     description: {
       en: "Documentation, articles and repositories to keep learning.",

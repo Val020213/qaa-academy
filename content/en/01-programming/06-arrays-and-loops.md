@@ -1,7 +1,7 @@
 ---
 title: Arrays and loops
 summary: Keep many values in a list, and repeat an action for each item with a for...of loop.
-duration: 35 min
+duration: 50 min
 ---
 
 ## Goal
@@ -227,6 +227,75 @@ This prints:
 Some tests are blocked
 ```
 
+## Go deeper
+
+### Why counting starts at 0
+
+The index is the distance from the start of the list. The first item is 0 steps from the start. The second is 1 step away. That is why the last index is `length - 1`. Many programming languages work this way.
+
+### A common wrong idea: "two names are two lists"
+
+In lesson 02, copying a variable made two separate values. With arrays it is different. An array is one object in memory. A name points to it. When you write `const b = a`, both names point to the same list.
+
+```ts
+const a = ["x"];
+const b = a;
+b.push("y");
+console.log(a);
+```
+
+This prints:
+
+```text
+[ 'x', 'y' ]
+```
+
+You changed `b`, but `a` changed too. It is one list with two names. To make a real copy, use `slice()`.
+
+```ts
+const c = a.slice();
+c.push("z");
+console.log(a, c);
+```
+
+This prints:
+
+```text
+[ 'x', 'y' ] [ 'x', 'y', 'z' ]
+```
+
+Now `c` is a separate list.
+
+### How it shows up in real QA automation work
+
+You often test the same rule with many inputs. A password must have at least 8 characters. Put the inputs in an array and write the check once.
+
+```ts
+const passwords = ["", "123", "abcdefgh"];
+
+for (const password of passwords) {
+  if (password.length < 8) {
+    console.log(`Rejected: "${password}"`);
+  } else {
+    console.log(`Accepted: "${password}"`);
+  }
+}
+```
+
+This prints:
+
+```text
+Rejected: ""
+Rejected: "123"
+Accepted: "abcdefgh"
+```
+
+One body, many inputs. This is DRY, "Don't Repeat Yourself", and the name for this style is data-driven testing. You will study DRY at the end of this module. In Module 4 you will see it in real tests.
+
+### A trade-off
+
+Notice that the message prints the input. When a case fails, you must know which input it was. Also remember that a failure stops a plain loop at the first bad item. The items after it are not checked. Real test tools can run each input as its own test, so one failure does not hide the others.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/lists.ts`.
@@ -279,6 +348,58 @@ It adds an item to the end of the array.
 6. The loop adds 1, then 2, then 3.
 
 </details>
+
+5. What does this code print, and why?
+
+```ts
+const tests = ["a", "b", "c"];
+console.log(tests[tests.length]);
+```
+
+<details>
+<summary>Answer</summary>
+
+It prints `undefined`. The length is 3, but the last index is 2. Index 3 does not exist. The right code is `tests[tests.length - 1]`.
+
+</details>
+
+6. This code should count the failed tests. It prints 0 although two tests failed. Find the bug.
+
+```ts
+const statuses = ["failed", "failed", "passed"];
+let failed = 0;
+
+for (const s of statuses) {
+  failed = 0;
+  if (s === "failed") {
+    failed = failed + 1;
+  }
+}
+console.log(failed);
+```
+
+<details>
+<summary>Answer</summary>
+
+The line `failed = 0;` is inside the loop. It resets the counter in every round. The last round is `passed`, so the counter ends at 0. Move the start value, `let failed = 0;`, before the loop only, and delete the reset.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is zero-based indexing, and why do most programming languages use it?**
+   - Search for: `zero-based indexing why`
+   - A good answer explains: what an index means, and the reason about offsets from the start.
+
+2. **What is the difference between `for...of`, `for...in` and `forEach` in JavaScript?**
+   - Search for: `for of vs for in vs forEach javascript`
+   - A good answer explains: what each one gives you in each round, and which one to use for arrays.
+
+3. **What is data-driven testing, and when is it a good idea?**
+   - Search for: `data-driven testing test automation`
+   - A good answer explains: a definition, one good use, and one case where separate tests are clearer.
 
 ## Next step
 

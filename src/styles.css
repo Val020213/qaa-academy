@@ -30,6 +30,7 @@
   --ok-bg: #ecfdf3;
   --ok-border: #b9e9cb;
   --danger: #c5221f;
+  --warn: #a35200;
   --note-bg: #f5f9ff;
   --note-border: #0068d6;
   --code-inline-bg: #f2f2f2;
@@ -60,6 +61,7 @@
   --ok-bg: #0d2318;
   --ok-border: #1b4a30;
   --danger: #ff6b66;
+  --warn: #ff9300;
   --note-bg: #0c1626;
   --note-border: #52a8ff;
   --code-inline-bg: #1f1f1f;
@@ -104,6 +106,8 @@ code {
 }
 
 :focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 4px; }
+
+.icon { flex: none; vertical-align: -0.15em; }
 
 /* ---------- layout ---------- */
 
@@ -155,7 +159,7 @@ code {
   cursor: pointer;
 }
 .icon-button:hover { color: var(--text); background: var(--hover); }
-.locale-button { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+.locale-button { width: auto; gap: 6px; padding: 0 10px; grid-auto-flow: column; font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
 .icon-button + .icon-button { margin-left: 4px; }
 .topbar nav a.icon-button { padding: 0; color: var(--muted); }
 .topbar nav a.icon-button:hover { color: var(--text); }
@@ -208,7 +212,8 @@ code {
 
 .sidebar li a:hover { color: var(--text); background: var(--hover); text-decoration: none; }
 .sidebar li a.active { color: var(--text); background: var(--hover); font-weight: 500; }
-.sidebar li a.done::after { content: "✓"; float: right; color: var(--ok); }
+.sidebar li a { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sidebar li a .icon { color: var(--ok); }
 .sidebar li .planned { opacity: 0.55; }
 
 .main { min-width: 0; padding: 48px 32px 96px; }
@@ -233,6 +238,9 @@ h1 {
 }
 
 .card-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 12px;
   font-family: var(--font-mono);
   font-size: 13px;
@@ -274,9 +282,12 @@ h1 {
 .card h2 { margin: 0 0 8px; font-size: 16px; font-weight: 600; line-height: 24px; letter-spacing: -0.012em; }
 .card p { margin: 0 0 20px; font-size: 14px; line-height: 22px; color: var(--muted); }
 .card .card-eyebrow { margin-bottom: 8px; font-size: 12px; }
+.card .card-footer a { display: inline-flex; align-items: center; gap: 4px; }
 .card .card-footer { display: flex; justify-content: space-between; margin: auto 0 0; font-size: 13px; line-height: 20px; }
 
 .home-github { margin: 32px 0 0; font-size: 14px; line-height: 20px; }
+.home-github a { display: inline-flex; align-items: center; gap: 4px; }
+.eyebrow-meta { display: inline-flex; align-items: center; gap: 6px; padding-left: 12px; border-left: 1px solid var(--border-strong); }
 
 /* ---------- lesson ---------- */
 
@@ -296,7 +307,7 @@ h1 {
   overflow-y: auto;
   scrollbar-width: thin;
 }
-.toc-title { margin: 0 0 12px; font-size: 13px; font-weight: 500; line-height: 20px; color: var(--text); }
+.toc-title { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 13px; font-weight: 500; line-height: 20px; color: var(--text); }
 .toc ul { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--border); }
 .toc button {
   display: block;
@@ -341,6 +352,18 @@ h1 {
   color: var(--text);
 }
 .prose h2:first-child { margin-top: 8px; }
+.prose h2 { display: flex; align-items: center; gap: 10px; }
+.section-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
 
 .prose h3 {
   margin: 40px 0 12px;
@@ -411,6 +434,13 @@ h1 {
 }
 .prose blockquote p:last-child { margin-bottom: 0; }
 
+.prose .callout { display: flex; gap: 12px; border-left-width: 1px; border: 1px solid var(--callout-border); border-radius: var(--radius); background: var(--callout-bg); }
+.prose .callout > .icon { margin-top: 4px; color: var(--callout-icon); }
+.prose .callout > div { min-width: 0; }
+.callout-note { --callout-bg: var(--note-bg); --callout-border: color-mix(in srgb, var(--note-border) 30%, transparent); --callout-icon: var(--note-border); }
+.callout-tip { --callout-bg: var(--ok-bg); --callout-border: var(--ok-border); --callout-icon: var(--ok); }
+.callout-careful { --callout-bg: color-mix(in srgb, var(--warn) 9%, transparent); --callout-border: color-mix(in srgb, var(--warn) 35%, transparent); --callout-icon: var(--warn); }
+
 .prose details {
   margin: 8px 0 20px;
   padding: 10px 16px;
@@ -441,6 +471,9 @@ h1 {
 
 .lesson-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
 .lesson-nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 14px 16px;
   font-size: 14px;
   line-height: 20px;
@@ -450,7 +483,7 @@ h1 {
   border-radius: var(--radius);
 }
 .lesson-nav a:hover { border-color: var(--border-strong); background: var(--bg-subtle); text-decoration: none; }
-.lesson-nav a:last-child { text-align: right; }
+.lesson-nav a:last-child { justify-content: flex-end; text-align: right; }
 
 /* ---------- controls ---------- */
 
@@ -458,6 +491,7 @@ h1 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   height: 40px;
   padding: 0 16px;
   font: inherit;

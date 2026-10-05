@@ -1,7 +1,7 @@
 ---
 title: Test the viewer role
 summary: Test a second user by starting signed out and signing in as the viewer through the API, in the spec itself.
-duration: 35 min
+duration: 50 min
 ---
 
 ## Goal
@@ -92,6 +92,45 @@ The first test also checks `user-role`. This proves the page is really signed in
 
 You can add a second setup test that signs in as the viewer and saves `e2e/.auth/viewer.json`. Viewer specs then use `test.use({ storageState: "e2e/.auth/viewer.json" })`, which pays off when many specs need the viewer.
 
+## Go deeper
+
+### Why two requests can have different cookies
+
+A **cookie** is a small piece of text that the browser stores and sends with each request to the same site. When you sign in, the server makes a session id and sends it back as the cookie `shop_session`. The server keeps a list in memory: this id belongs to this user. On each request, it reads the cookie and finds the user.
+
+Playwright keeps cookies in a **browser context**. `page.request` uses the cookies of the page's context. The `request` fixture has its own. That is why the lesson says to pass `page.request`.
+
+### A wrong idea: "403 and 401 are the same"
+
+Both mean "not allowed", but they are different. In the shop:
+
+- **401** means the server does not know who you are. You have no valid session.
+- **403** means the server knows you, but your role may not do this.
+
+The viewer gets 403. A visitor with no cookie gets 401. This is a good extra test, because it checks a different rule:
+
+```ts
+import { expect, test } from "../lib/test"
+
+// Start signed out, with no cookie at all.
+test.use({ storageState: { cookies: [], origins: [] } })
+
+test("the API answers 401 when nobody is signed in", async ({ request }) => {
+  const response = await request.get("/api/products")
+
+  expect(response.status()).toBe(401)
+  expect(await response.json()).toEqual({ message: "You must sign in." })
+})
+```
+
+### How it shows up in real QA automation work
+
+Security bugs often look like this: a developer hides the Delete button for a viewer, but forgets to check the role on the server. The page looks right, and a UI-only test passes. The API test in this lesson is the one that fails. In QA, this kind of problem is called **broken access control**, and it is one of the most common serious bugs.
+
+### DRY and its trade-off
+
+The `beforeEach` signs in the viewer before each test in the group. That is **DRY**: Don't Repeat Yourself. A **fixture** in Playwright is a prepared thing a test receives; a saved `viewer.json` session is similar, and it removes the login from every spec. The cost is more set-up files and one more thing to explain to a new teammate. With two tests, `beforeEach` is simpler. With twenty, the saved session wins.
+
 ## Practice
 
 1. Create `products/viewer.spec.ts` with the code above.
@@ -125,6 +164,38 @@ On a page that is not loaded yet, the count is also 0. The test would pass witho
 A hidden button is not security. The server must refuse the request itself.
 
 </details>
+
+4. In `beforeEach` you use `loginViaApi(request, VIEWER)` with the `request` fixture instead of `page.request`. What happens to the first test, and why?
+
+<details><summary>Answer</summary>
+
+The login works, but the cookie goes to the `request` fixture's own cookie jar, not to the page. The page opens `/products` with no session, so the app sends it to the login page. The check for `user-role` then fails. This shows why the lesson says to use `page.request`.
+
+</details>
+
+5. A developer removes the role check from `POST /api/products` but keeps the buttons hidden. Which of the two viewer tests fails, and why?
+
+<details><summary>Answer</summary>
+
+The second test, the API test. The viewer's request now succeeds with status 201, not 403. The first test still passes, because the buttons are still hidden. This is why you need both tests: the UI test checks what the user sees, and the API test checks what the server allows.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the difference between HTTP status 401 and 403?**
+   - Search for: `http 401 unauthorized vs 403 forbidden`
+   - A good answer explains: what each code means and one example where an API should return each
+
+2. **What is role-based access control (RBAC)?**
+   - Search for: `role based access control rbac explained`
+   - A good answer explains: how roles map to permissions, and how a tester can check that a role is limited correctly
+
+3. **What is broken access control, and why is it on the OWASP Top 10 list?**
+   - Search for: `owasp top 10 broken access control`
+   - A good answer explains: what the risk is, one example, and how a QA engineer can test for it
 
 ## Next step
 

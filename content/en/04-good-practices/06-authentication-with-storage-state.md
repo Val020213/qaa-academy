@@ -1,7 +1,7 @@
 ---
 title: Authentication with storage state
 summary: Sign in once, save the session, reuse it in every test, and test the signed-out case.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -119,6 +119,37 @@ await page.goto("/dashboard")
 
 > **Careful:** Never click sign out in a test that uses the shared admin session. The `e2e/README.md` repeats this rule.
 
+## Go deeper
+
+### Why a cookie file is enough to sign in
+
+The web has no memory. Each request is separate, and the server does not know that you signed in a moment ago. A cookie fixes this. After login, the server sends back a cookie that holds a random token. The browser sends the token with every later request.
+
+The shop keeps a list of tokens in server memory. This is the real code from `lib/session.ts`:
+
+```ts
+const token = (await cookies()).get(SESSION_COOKIE)?.value
+if (!token) return undefined
+
+const userId = store().sessions.get(token)
+```
+
+So `admin.json` stores only the token, not who you are. The server looks up the token in its own list. If the server forgets the list, for example after a restart, the file still exists, but the token means nothing. The next request is treated as signed out. This is one reason the setup project signs in again on every run, and does not reuse an old file.
+
+### A common wrong idea: storage state skips the login test
+
+Some beginners think that saving the session means login is never tested. It is still tested. `auth.spec.ts` signs in through the real page, with an empty session. The saved session removes the login steps from tests that are about something else. Login stays under test in one place.
+
+Also, storage state is not only cookies. It can hold `localStorage`, the data a site keeps in the browser. The shop's file has none, so `origins` is empty. A site that keeps its token in `localStorage` needs that part saved too.
+
+### How it shows up in QA work
+
+Real products have many roles: admin, viewer, customer. Teams often make one setup test and one saved file for each role. A test picks its role with `test.use`. You will test the viewer role in module 5. The sign-in steps are written once in the setup, not in every test. This is DRY applied to a flow.
+
+### When not to use it
+
+Do not use a shared saved session for a test that changes the session itself. Signing out, changing a password and expiring a session are examples. The sign out test makes its own session with `loginViaApi`. A good question to ask: "Does this test change who is signed in?" If yes, give it its own session.
+
 ## Practice
 
 1. Open `apps/practice-shop/playwright.config.ts`. Find the line that says which project the `chromium` project depends on.
@@ -193,6 +224,38 @@ The file holds a live session. It must not be committed.
 Signing out deletes the session on the server. The test needs its own session so it does not break the shared admin one.
 
 </details>
+
+5. You stop the shop and start it again. The file `e2e/.auth/admin.json` is still on your disk. What happens if a test uses that old file to visit `/products`? Why does a normal run still work?
+
+<details><summary>Answer</summary>
+
+The file holds a token, and the server kept its list of tokens in memory. After the restart, the list is empty, so the token is unknown. The server treats the visitor as signed out and redirects to the login page, and the test fails. A normal run still works because the setup project runs first. It signs in again and writes a new file.
+
+</details>
+
+6. A teammate adds one new test. After that, the suite passes the first tests, but from some point on every test fails and redirects to the login page. The new test passes alone. What kind of line would you look for in the new test?
+
+<details><summary>Answer</summary>
+
+Look for a click on the sign out button, or any call that ends the session. The new test uses the shared admin session. Signing out deletes that session on the server, so every test that runs after it loses its login. The test passes alone because nothing runs after it. The fix is to give that test its own session with `loginViaApi`.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What do the cookie attributes `HttpOnly`, `Secure` and `SameSite` do?**
+   - Search for: `http cookies HttpOnly Secure SameSite MDN`
+   - A good answer explains: what attack or risk each attribute reduces.
+
+2. **How can a Playwright project use a different saved session for each role?**
+   - Search for: `playwright authentication multiple roles storage state`
+   - A good answer explains: how to save one file per role and how a test or project chooses one.
+
+3. **Why must real passwords and session files never be committed, and where do teams keep test secrets instead?**
+   - Search for: `secrets in git repository environment variables CI`
+   - A good answer explains: the risk of a committed secret, and one safe place to keep it, such as CI secrets.
 
 ## Next step
 

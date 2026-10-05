@@ -9,6 +9,7 @@ import xml from "highlight.js/lib/languages/xml"
 import yaml from "highlight.js/lib/languages/yaml"
 import { Marked } from "marked"
 import { currentLocale } from "./i18n.ts"
+import { icon, type IconName } from "./icons.ts"
 import { modules } from "./modules.ts"
 
 hljs.registerLanguage("ts", typescript)
@@ -124,6 +125,31 @@ export function findLesson(path: string): Lesson | undefined {
 const escapeHtml = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 
+// The sections that every lesson has get an icon, in English and in Spanish.
+const SECTION_ICONS: Record<string, IconName> = {
+  Goal: "target",
+  Objetivo: "target",
+  "Go deeper": "layers",
+  Profundiza: "layers",
+  Practice: "pencil",
+  "Práctica": "pencil",
+  "Check what you know": "circle-help",
+  "Comprueba lo que sabes": "circle-help",
+  "Research on your own": "search",
+  "Investiga por tu cuenta": "search",
+  "Next step": "arrow-right",
+  "Siguiente paso": "arrow-right",
+}
+
+const CALLOUTS: Record<string, { kind: string; icon: IconName }> = {
+  Note: { kind: "note", icon: "info" },
+  Nota: { kind: "note", icon: "info" },
+  Tip: { kind: "tip", icon: "lightbulb" },
+  Consejo: { kind: "tip", icon: "lightbulb" },
+  Careful: { kind: "careful", icon: "warning" },
+  Cuidado: { kind: "careful", icon: "warning" },
+}
+
 // Counts the `##` headings of the lesson being rendered, to give each one an id.
 let headingCount = 0
 
@@ -133,7 +159,17 @@ const markdown = new Marked({
       const html = this.parser.parseInline(tokens)
       if (depth !== 2) return `<h${depth}>${html}</h${depth}>\n`
       headingCount += 1
-      return `<h2 id="section-${headingCount}">${html}</h2>\n`
+      const name = SECTION_ICONS[html.trim()]
+      const mark = name ? `<span class="section-icon">${icon(name, 18)}</span>` : ""
+      return `<h2 id="section-${headingCount}">${mark}${html}</h2>\n`
+    },
+    blockquote({ tokens }) {
+      // A quote that starts with **Note:**, **Tip:** or **Careful:** is a callout.
+      const body = this.parser.parse(tokens)
+      const label = /^<p><strong>([^<:]+):<\/strong>/.exec(body)?.[1] ?? ""
+      const callout = CALLOUTS[label]
+      if (!callout) return `<blockquote>${body}</blockquote>\n`
+      return `<blockquote class="callout callout-${callout.kind}">${icon(callout.icon, 18)}<div>${body}</div></blockquote>\n`
     },
     code({ text, lang }) {
       const language = lang && hljs.getLanguage(lang) ? lang : undefined

@@ -1,7 +1,7 @@
 ---
 title: Close a coverage gap
 summary: Plan a new spec from a gap in COVERAGE.md, write it step by step, then take on the remaining gaps yourself.
-duration: 45 min
+duration: 60 min
 ---
 
 ## Goal
@@ -32,7 +32,7 @@ Use the UI only for the thing under test. Here the thing under test is the edit 
 
 ## Decide how to reach the form
 
-You could open `/products/<id>` directly. But the page is rendered on the server first, and React needs a moment to be ready. Typing too early can be erased. The suite solves this in a simple way. It starts on the list, waits for the row, and then clicks **Edit**. A click moves inside the app, so React is already ready.
+You could open `/products/<id>/edit` directly. But the page is rendered on the server first, and React needs a moment to be ready. Typing too early can be erased. The suite solves this in a simple way. It starts on the list, waits for the row, and then clicks **Edit**. A click moves inside the app, so React is already ready.
 
 The new product is the newest, so it is on page 1 of the list.
 
@@ -91,7 +91,7 @@ test.describe("Edit product", () => {
     await page.getByTestId("product-save").click()
 
     await expect(page.getByTestId("product-price-error")).toHaveText("Price must be greater than 0.")
-    await expect(page).toHaveURL(new RegExp(`/products/${product.id}$`))
+    await expect(page).toHaveURL(new RegExp(`/products/${product.id}/edit$`))
 
     const saved = await request.get(`/api/products/${product.id}`)
     expect(((await saved.json()) as { price: number }).price).toBe(30)
@@ -126,12 +126,46 @@ Run it twice. Then update `COVERAGE.md`: add a Products row for editing, and del
 
 Pick one gap at a time. Plan the scenarios in words first. Each hint is a direction, not a solution.
 
+- **Product detail page.** In the list, the product name is a link. Click it and read the page. Look for the test ids that start with `product-detail-`, and for `products-view-<id>` in the list. Which ones does a viewer also see? Where does the back link take you?
+- **Delete from the detail page.** The detail page has its own Delete button for the admin. It opens the same confirm dialog as the list. After you confirm, where does the browser go? How do you prove that the product is gone?
 - **Pagination.** The seed has 24 products, and other tests add more. Do not hard-code the number of pages. Look at the test ids `products-page`, `products-next-page` and `products-prev-page`. On page 1, which button is disabled?
 - **Duplicate SKU.** Create a product through the API. Then try to create another with the same SKU in the form. Find the error text under the SKU field.
 - **Shipped order.** A paid order can be marked as shipped. The seeded paid orders are 1002, 1006 and 1010. Check which are free. What buttons does a shipped order have?
 - **Empty order filter.** No status is empty in the seed data, and orders only move forward. You cannot empty a status without breaking other tests. Look for how Playwright can answer one request itself: the `page.route` method.
 - **404 page.** Open a product id that does not exist, such as `/products/999999`. The page has its own `data-testid`. Find it in `app/not-found.tsx`.
 - **Return to `?next=` after login.** Start signed out. Open a protected page. Sign in through the form. Where must the browser end up? See how `auth.spec.ts` starts signed out.
+
+## Go deeper
+
+### Why the page needs a moment: server rendering
+
+The shop renders the page on the server first. The browser receives ready HTML and shows it at once. After that, the JavaScript of React loads and attaches its event handlers. This step is called **hydration**. Before it ends, the page looks ready but does not react correctly to your typing.
+
+That is why the suite starts on the list, waits for a row, and clicks **Edit**. You can learn this idea more deeply by reading about server-side rendering and hydration. Many modern sites work this way.
+
+### A wrong idea: "toHaveValue(25) is the same as toHaveValue('25')"
+
+The first test checks `toHaveValue("25")` with quotes. Why a string? Because the text in an input field is always text. The number 25 and the text "25" are different in TypeScript. If you write `toHaveValue(25)`, the type check fails. Check what the page really holds, not what you hope it holds.
+
+### How it shows up in real QA automation work
+
+Look at the four tests. Each begins with the same three lines: go to the list, wait for the row, click Edit. A candidate for **DRY** (Don't Repeat Yourself) is a method on the Page Object:
+
+```ts
+// Add to the ProductsPage class in lib/pages/products.page.ts
+async openEdit(id: number) {
+  await this.goto()
+  // waitFor is a wait, not an assertion, so the Page Object stays assertion-free.
+  await this.row(id).waitFor()
+  await this.page.getByTestId(`products-edit-${id}`).click()
+}
+```
+
+Now a test says `await products.openEdit(product.id)`. If the way to reach the form changes, you fix one place. But note the cost. The test no longer shows the wait, and a new reader must open another file to see it. The lesson keeps the three lines visible on purpose, because this is a learning suite. A real team may decide either way. The rule is: remove repetition when it helps the reader, not just to make the code shorter.
+
+### The trade-off of API set-up
+
+Preparing data with `createProduct` is fast. But it has a risk: if the API breaks, every test that uses it fails, even tests about the edit form. For this reason, keep one test that creates a product through the form (the suite has it in `products.spec.ts`). Then you know the UI path works, and the others only reuse the shortcut.
 
 ## Practice
 
@@ -165,6 +199,38 @@ A click moves inside the app, so React is already ready. Typing right after a di
 It proves the server did not save the invalid value. The screen alone does not prove that.
 
 </details>
+
+4. Suppose all four edit tests used the seeded product SKU-0001 instead of a new product, and the second test renames it. What goes wrong in the other tests?
+
+<details><summary>Answer</summary>
+
+After the rename, the name of SKU-0001 is different. The first test, which checks the current values, may now fail depending on order, and so may later runs on a dirty server. Tests that share data depend on each other. Creating a new product per test keeps them independent.
+
+</details>
+
+5. A colleague writes `expect(await page.getByTestId("product-price").inputValue()).toBe("25")` instead of `await expect(page.getByTestId("product-price")).toHaveValue("25")`. Which is better, and why?
+
+<details><summary>Answer</summary>
+
+The second. `toHaveValue` is a web-first assertion: it checks again until the value matches or time runs out. `inputValue()` reads the value once, right now. If the form is still filling in, the first version fails for a timing reason, not a real bug.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is hydration in React and server-side rendering, and why can it make automated tests flaky?**
+   - Search for: `react hydration server side rendering explained`
+   - A good answer explains: what the server sends, what React does afterwards, and why input typed before hydration can be lost
+
+2. **What is the difference between creating test data through the UI and through an API?**
+   - Search for: `test data setup api vs ui automation`
+   - A good answer explains: one advantage and one risk of each approach, and when a team chooses each
+
+3. **What does an HTTP 201 status mean, and how is it different from 200?**
+   - Search for: `http status 201 created vs 200 ok`
+   - A good answer explains: what 201 says about the result of a POST request, and why the helper checks for it
 
 ## Next step
 

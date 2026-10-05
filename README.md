@@ -79,7 +79,7 @@ apps/
    ---
    ```
 
-2. Use the sections `## Goal`, the explanation sections, `## Practice`, `## Check what you know` and `## Next step`.
+2. Use the sections `## Goal`, the explanation sections, `## Go deeper`, `## Practice`, `## Check what you know`, `## Research on your own` and `## Next step`.
 3. If the lesson was in the `planned` list of its module in `src/modules.ts`, remove it from that list.
 
 The order inside a module comes from the number at the start of the file name.

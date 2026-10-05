@@ -1,7 +1,7 @@
 ---
 title: The config file
 summary: Read playwright.config.ts line by line and learn how to change the port with QAA_E2E_PORT.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -151,6 +151,60 @@ On macOS or Linux, write `QAA_E2E_PORT=5185 pnpm e2e`. There the variable lasts 
 
 > **Note:** Do not use 5190. The practice shop uses that port.
 
+## Go deeper
+
+### Why the config can contain code
+
+`playwright.config.ts` is a normal TypeScript file. Playwright loads it and reads what it exports. This is why you can use `process.env`, `??` and `? :` inside it. The config is code that returns settings.
+
+This also makes the config a good place for DRY, "Don't Repeat Yourself". Think about `baseURL`. It is written once. Every test uses `page.goto("/#/practice")`. If the config did not have it, each test would need the full address. When the port changes, you would edit every test. Now you edit one line, or set one variable.
+
+The same is true for `trace`, `screenshot` and `projects`: one setting, all tests.
+
+### A common wrong idea: "`!!process.env.CI` is true only in CI"
+
+The config has `forbidOnly: !!process.env.CI`. The `!!` turns a value into `true` or `false`. A beginner thinks that `CI=false` gives `false`. Test it in plain TypeScript:
+
+```ts
+process.env.CI = "false"
+console.log(!!process.env.CI)
+delete process.env.CI
+console.log(!!process.env.CI)
+```
+
+It prints:
+
+```text
+true
+false
+```
+
+An environment variable is always text. The text `"false"` is not empty, so it counts as `true`. Only a missing variable or an empty text gives `false`. The check means "the variable exists", not "the variable says yes".
+
+The `??` sign has a similar detail. It replaces only a missing value. An empty text is kept:
+
+```ts
+process.env.QAA_E2E_PORT = ""
+console.log(`http://localhost:${process.env.QAA_E2E_PORT ?? "5180"}`)
+console.log(`http://localhost:${process.env.QAA_E2E_PORT || "5180"}`)
+```
+
+This prints `http://localhost:` first, and `http://localhost:5180` second. The sign `||` also replaces an empty text.
+
+### A trade-off: more workers is not always faster
+
+`fullyParallel` runs tests in several workers. By default, Playwright uses about half of the processor cores of the machine. More workers means more tests at the same time.
+
+But the app and the browsers also need the processor. On a small CI machine, too many workers make every test slower. Then timeouts appear, and tests look flaky when nothing is wrong with them.
+
+When you debug a strange failure, run with one worker. The option is `--workers=1`:
+
+```bash
+pnpm e2e e2e/playground.spec.ts --workers=1
+```
+
+If the failure disappears, the cause may be load or shared data. Then check isolation and the machine, not only the test.
+
 ## Practice
 
 1. Open `playwright.config.ts`. Find each setting from this lesson.
@@ -199,6 +253,38 @@ If the site is already running at the `url`, Playwright uses it. If not, it star
 Run `$env:QAA_E2E_PORT="5185"; pnpm e2e`.
 
 </details>
+
+5. In plain TypeScript, `const PORT = process.env.QAA_E2E_PORT ?? "5180"` runs when `QAA_E2E_PORT` is set to the empty text `""`. What is the final address in `BASE_URL`, and what happens in the tests?
+
+<details><summary>Answer</summary>
+
+It is `http://localhost:` with no port. The sign `??` replaces only `undefined` or `null`, and an empty text is neither. A browser accepts this address and uses the default HTTP port 80, but the app does not run there. Also, the command that starts the app gets `--port` with no value and stops with an error, so the run fails before the tests can pass. The sign `||` would have used `5180`.
+
+</details>
+
+6. Which setup is better, and why? Version A has `baseURL` in the config and tests use `page.goto("/#/practice")`. Version B has no `baseURL`, and each test uses `page.goto("http://localhost:5180/#/practice")`. The team now needs to run the same tests on another port.
+
+<details><summary>Answer</summary>
+
+Version A is better. The address is in one place, so you change one line or set `QAA_E2E_PORT`. In Version B you must edit every `goto` in every test, and one missed line tests the wrong address. Version A also lets the same test run on other environments.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is an environment variable, and how do you set one in PowerShell and in a Unix shell?**
+   - Search for: `environment variables powershell $env bash export`
+   - A good answer explains: what an environment variable is, how long it lasts in each shell, and why programs read settings from them.
+
+2. **What is the difference between `??` and `||` in JavaScript?**
+   - Search for: `nullish coalescing vs logical or javascript`
+   - A good answer explains: which values each sign replaces, with examples for `0`, an empty text and `undefined`.
+
+3. **What is continuous integration, and why do teams run automated tests on every pull request?**
+   - Search for: `continuous integration automated tests pull request`
+   - A good answer explains: what CI does, why tests run there with different settings from a laptop, and what a team gains from it.
 
 ## Next step
 

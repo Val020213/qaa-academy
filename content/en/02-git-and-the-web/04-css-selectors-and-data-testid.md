@@ -1,7 +1,7 @@
 ---
 title: CSS selectors and data-testid
 summary: Write simple CSS selectors, see why class names break tests, and use the team data-testid convention.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -128,6 +128,46 @@ This finds every Delete button of the case list, whatever the id.
 
 When you write a test, check the selector first. If `querySelectorAll` gives exactly one element, the selector is safe. The number of matches is the answer.
 
+## Go deeper
+
+### Why it works this way: a contract between two people
+
+A class is part of the design. The designer owns it. A `data-testid` is a promise between the developer and the tester: "this name will stay, so your test can rely on it". The attribute has no other job. This is why a test that uses it breaks only when the feature changes.
+
+### A common wrong idea: "an id is always safe"
+
+An `id` is meant to be unique, and a unique selector sounds perfect. But some tools create ids by themselves, with names like `:r1:`. They can change when the page gets one more element before it. A stable name that a person chose, and agreed on, is better than a name a machine made.
+
+The second wrong idea is "one match means a good selector". Look at this selector on a page with exactly one case:
+
+```text
+[data-testid^="cases-delete-"]
+```
+
+It matches one element today. It matches two when there are two cases. The count is right only for this moment. A good selector is exact, such as `cases-delete-2`, and you know why it matches.
+
+### How it shows up in real QA work: names written many times
+
+A test uses the string `"cases-delete-2"`. Another test uses it too. When the same string appears in twenty places, a change means twenty edits. This is the idea called **DRY**, "Don't Repeat Yourself". You met it in module 1, and you will study it again in module 4 in "DRY in test automation". One place holds the knowledge.
+
+You can write the rule for the name once, in a function:
+
+```ts
+function caseDelete(id: number): string {
+  return `cases-delete-${id}`
+}
+
+console.log(caseDelete(3))
+```
+
+```text
+cases-delete-3
+```
+
+In a test, you could then write `page.getByTestId(caseDelete(2)).click()`.
+
+Be careful. In tests, a clear story is more important than removing every repeat. `page.getByTestId("cases-delete-2")` in one test is easy to read. A helper is worth it when many tests use the same name, or when the name has a rule, as here.
+
 ## Practice
 
 1. Open `http://localhost:5180/#/practice`. Press `F12` and open the **Console** tab.
@@ -189,6 +229,43 @@ A `button` element anywhere inside the element with `data-testid="login-form"`.
 `null`.
 
 </details>
+
+5. Two cases are on the page. What do these two lines print, and why?
+
+```text
+document.querySelectorAll('[data-testid="cases-delete"]').length
+document.querySelectorAll('[data-testid^="cases-delete"]').length
+```
+
+<details>
+<summary>Answer</summary>
+
+The first prints `0`. The name `cases-delete` is exact, and no element has exactly this name. The real names are `cases-delete-1` and `cases-delete-2`. The second prints `2`, because `^=` means "starts with", and both names start with `cases-delete`.
+
+</details>
+
+6. Which selector is better for the Delete button of the case with id 2? A) `.cases li:nth-child(2) button` B) `[data-testid="cases-delete-2"]`
+
+<details>
+<summary>Answer</summary>
+
+B is better. In A, the number 2 is a position. If the first case is deleted, or the filter hides a case, the second `li` is a different case. In B, the number 2 is the id of the case, and it does not move. B also says clearly what it finds.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is CSS specificity, and why does one rule win over another?**
+   - Search for: `CSS specificity MDN`
+   - A good answer explains: how id, class and tag selectors are ranked, with one small example.
+2. **What is the difference between a descendant selector (a space) and a child selector (`>`)?**
+   - Search for: `CSS combinators descendant child selector`
+   - A good answer explains: both forms with a small HTML example, and which elements each one matches.
+3. **Why does the Playwright documentation recommend user-facing locators over CSS selectors, and when do teams still use `data-testid`?**
+   - Search for: `playwright best practices locators`
+   - A good answer explains: the reason for the advice, and one situation where a test id is the better choice.
 
 ## Next step
 

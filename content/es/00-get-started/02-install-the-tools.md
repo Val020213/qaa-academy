@@ -1,14 +1,14 @@
 ---
 title: Instalar las herramientas
 summary: Instala VS Code, Node.js, Git y pnpm en Windows, y comprueba que cada uno funciona.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Objetivo
 
 - Instalar VS Code, Node.js 24 LTS, Git para Windows y pnpm.
 - Comprobar cada herramienta con un comando `--version`.
-- Resolver el error de PowerShell "running scripts is disabled on this system".
+- Resolver el error de PowerShell "running scripts is disabled on this system" (la ejecución de scripts está deshabilitada en este sistema).
 
 ## Qué hace cada herramienta
 
@@ -19,7 +19,7 @@ duration: 30 min
 
 Instálalas en el orden de abajo.
 
-> **Nota:** En cada instalador, usa el instalador oficial y acepta las opciones por defecto. Haz clic en "Next" (siguiente) hasta el final. No necesitas cambiar nada.
+> **Nota:** En cada caso, usa el instalador oficial y acepta las opciones por defecto. Haz clic en "Next" (siguiente) hasta el final. No necesitas cambiar nada.
 
 ## Cómo comprobar una instalación
 
@@ -31,7 +31,7 @@ Después de cada instalación, sigue estos pasos:
 
 Debes volver a abrir la terminal porque una terminal vieja no ve el programa nuevo.
 
-Un comando `--version` imprime el número de versión. Si ves un número, la herramienta funciona. Si ves "is not recognized", la instalación no terminó o no volviste a abrir la terminal.
+Un comando `--version` imprime el número de versión. Si ves un número, la herramienta funciona. Si ves "is not recognized" (no se reconoce), la instalación no terminó o no volviste a abrir la terminal.
 
 ## 1. VS Code
 
@@ -119,7 +119,7 @@ Cuando ejecutas `npm` o `pnpm`, PowerShell puede mostrar un error como este:
 npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system.
 ```
 
-Windows bloquea los scripts por defecto, por seguridad. La solución es permitir los scripts que tú escribiste o que están firmados. Ejecuta este comando una sola vez:
+Windows bloquea los *scripts* (archivos de comandos) por defecto, por seguridad. La solución es permitir los scripts que tú escribiste o que están firmados. Ejecuta este comando una sola vez:
 
 ```bash
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
@@ -131,7 +131,7 @@ Si PowerShell pide confirmación, escribe `Y` y presiona Enter. Luego vuelve a p
 
 ## Extensiones de VS Code
 
-Una extensión agrega una función a VS Code. Abre el panel Extensions con Ctrl+Shift+X. Busca cada nombre y haz clic en Install (instalar).
+Una extensión agrega una función a VS Code. Abre el panel Extensions (extensiones) con Ctrl+Shift+X. Busca cada nombre y haz clic en Install (instalar).
 
 | Extensión | Para qué la quieres |
 | --- | --- |
@@ -139,6 +139,38 @@ Una extensión agrega una función a VS Code. Abre el panel Extensions con Ctrl+
 | ESLint | Muestra problemas del código mientras escribes |
 | Prettier | Da formato a tu código con un estilo limpio y común |
 | Error Lens | Muestra los mensajes de error en la misma línea del código |
+
+## Profundiza
+
+### Por qué debes volver a abrir la terminal
+
+Cuando Windows inicia una terminal, le da una lista de carpetas. Esta lista se llama **PATH**. Cuando escribes `node`, la shell busca un programa llamado `node` en cada carpeta de PATH, en orden.
+
+Un instalador agrega su carpeta a PATH. Pero una terminal que ya estaba abierta conserva su copia vieja de la lista. Una terminal nueva recibe la lista nueva. Esta es la razón real detrás de "cierra y vuelve a abrir".
+
+Puedes ver la lista en PowerShell:
+
+```bash
+$env:PATH -split ";"
+```
+
+Verás una carpeta en cada línea. Busca la carpeta de Node.js después de la instalación.
+
+### Una idea equivocada común: "Node.js es solo para sitios web"
+
+Los principiantes ven la palabra "JavaScript" y piensan en páginas web. JavaScript se creó para los navegadores. Pero Node.js permite que el mismo lenguaje funcione fuera del navegador, como un programa normal en tu computadora.
+
+Playwright es un programa así. Se ejecuta en Node.js y controla el navegador desde afuera. Entonces el código de tus tests no se ejecuta dentro de la página web. Se ejecuta en Node.js y envía comandos al navegador.
+
+### Por qué importa el número de versión
+
+El curso pide Node.js 24 y da versiones exactas de las herramientas. Una versión tiene tres números, como `10.33.4`. Versiones distintas pueden comportarse de forma distinta. Un test que pasa en tu computadora con una versión puede fallar en la computadora de una colega con otra.
+
+En el trabajo real de automatización QA, esta es una causa común de "en mi máquina funciona". Los equipos escriben las versiones en `package.json` y en un archivo de bloqueo (*lock file*), para que todas las computadoras y el servidor de CI usen las mismas. CI es un servidor que ejecuta tus tests automáticamente después de cada cambio de código. Lo verás en la lección 4 de este módulo.
+
+### Compromiso: la instalación global
+
+`npm install -g pnpm` pone pnpm en toda tu computadora. Esto es fácil, pero significa que todos los proyectos usan la misma versión de pnpm. Las configuraciones más nuevas permiten que cada proyecto elija su propia versión. Por ahora, la instalación global es simple y suficiente.
 
 ## Práctica
 
@@ -186,6 +218,40 @@ Ejecuta `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` y luego vuelve a e
 Descarga las bibliotecas de código que necesita un proyecto.
 
 </details>
+
+5. Instalas Git y ejecutas `git --version` en la terminal que ya estaba abierta. Ves "is not recognized". Cierras VS Code, lo abres otra vez y ejecutas el comando de nuevo. Funciona. ¿Qué pasó y por qué?
+
+<details>
+<summary>Respuesta</summary>
+
+La terminal vieja tenía una copia de PATH de antes de la instalación, así que no podía encontrar Git. Cuando abriste VS Code otra vez, la terminal nueva recibió el PATH nuevo, y la shell encontró Git. La instalación estuvo bien desde el principio.
+
+</details>
+
+6. Una colega ejecuta los mismos tests que tú, con el mismo código. Tus tests pasan. Los de ella fallan. Nombra dos cosas sobre las herramientas que compararías primero y di por qué.
+
+<details>
+<summary>Respuesta</summary>
+
+Compara la versión de Node.js y las versiones de las bibliotecas del proyecto, como Playwright. Versiones distintas pueden cambiar cómo se comporta el mismo código. Revisar esto primero es barato y descarta una causa común antes de mirar el test en sí.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Qué es la variable de entorno PATH y cómo la usa la shell para encontrar un programa?**
+   - Busca: `PATH environment variable explained windows`
+   - Una buena respuesta explica: qué contiene PATH, en qué orden la recorre la shell y qué pasa cuando un programa no está en ella.
+
+2. **¿Qué significa el versionado semántico y qué te dicen los tres números de una versión?**
+   - Busca: `semantic versioning major minor patch`
+   - Una buena respuesta explica: el significado de major, minor y patch, y qué cambio puede romper tu código.
+
+3. **¿Por qué los equipos de automatización de tests dicen que "en mi máquina funciona" es un problema y cómo lo reducen?**
+   - Busca: `works on my machine problem consistent environments`
+   - Una buena respuesta explica: por qué computadoras distintas dan resultados distintos y al menos dos formas de igualar los entornos, como versiones fijas o archivos de bloqueo.
 
 ## Siguiente paso
 

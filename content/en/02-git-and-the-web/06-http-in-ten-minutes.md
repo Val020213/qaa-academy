@@ -1,7 +1,7 @@
 ---
 title: HTTP in ten minutes
 summary: Learn requests, responses, methods, status codes and JSON, and read them in the Network panel of the practice shop.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -107,6 +107,58 @@ The API routes are in `apps/practice-shop/app/api`. Some of them:
 
 The viewer user can read, but gets 403 when creating, editing or deleting.
 
+## Go deeper
+
+### Why it works this way: safe and repeatable methods
+
+HTTP gives each method a promise. A `GET` only reads, so you can repeat it. A `DELETE` changes data, but doing it twice leaves the same end state: the thing is gone. A `POST` usually creates a new thing each time, so doing it twice makes two. These promises matter. A browser can repeat a `GET` by itself, and it asks you before it repeats a `POST`.
+
+You can see the `DELETE` promise in the shop. The state is the same after both calls, but the answers are different:
+
+```ts
+import { expect, test } from "../lib/test"
+import { createProduct } from "../lib/fixtures/api-client"
+
+test("deleting a product twice gives 204, then 404", async ({ request }) => {
+  const product = await createProduct(request)
+
+  const first = await request.delete(`/api/products/${product.id}`)
+  const second = await request.delete(`/api/products/${product.id}`)
+
+  expect(first.status()).toBe(204)
+  expect(second.status()).toBe(404)
+})
+```
+
+Save it as `apps/practice-shop/e2e/products/delete-twice.spec.ts`. The first call removes the product. The second finds nothing.
+
+### A common wrong idea: "the status code tells everything"
+
+A status code says whether the request worked. It does not say that the data is right. A good API test checks both:
+
+```ts
+import { expect, test } from "../lib/test"
+
+test.use({ storageState: { cookies: [], origins: [] } })
+
+test("the API rejects a wrong password", async ({ request }) => {
+  const response = await request.post("/api/auth/login", {
+    data: { email: "admin@qa-shop.test", password: "wrong" },
+  })
+
+  expect(response.status()).toBe(401)
+  expect(await response.json()).toEqual({ message: "Wrong email or password." })
+})
+```
+
+Save it as `apps/practice-shop/e2e/auth/login-api.spec.ts`. The line with `test.use` makes the test start signed out, as `auth.spec.ts` does.
+
+Notice the address: `/api/auth/login`, not `http://localhost:5190/api/auth/login`. The server address is written once, as `baseURL` in `playwright.config.ts`. Every test uses a short path. This is the idea called **DRY** (Don't Repeat Yourself): one fact, one place. If the port changes, you change one line. The helper `createProduct` is another case: many tests need a product, and they all use one helper.
+
+### A trade-off: an API test is fast, but it is not the whole story
+
+The API test above is quick and does not depend on the page. But it does not prove that the page shows the message to the user. Use API tests for rules of the server. Use UI tests for what the user sees. A good suite has both.
+
 ## Practice
 
 1. Start the shop in a terminal. Keep it running:
@@ -159,6 +211,38 @@ No. It is the correct answer. The server refuses invalid data. It is a bug if th
 In the Network panel: click the request and open the Response tab.
 
 </details>
+
+5. A server answers `200 OK` to `POST /api/products`. The body is `{ "errors": { "sku": "This SKU is already used by another product." } }`. What is wrong with this answer, and which status code is right?
+
+<details>
+<summary>Answer</summary>
+
+The status says "success" but the body says that the request failed. A client or a test that checks only the status will think a product was created. The right code is `422`, which means the data is not valid. The shop already does this.
+
+</details>
+
+6. Your test sends `GET /api/products` and gets `401`. In the browser, the same request works. Give one likely reason.
+
+<details>
+<summary>Answer</summary>
+
+The browser has the session cookie from your sign-in, and the test does not. The server needs a session for this route, so without the cookie it answers 401, which means "not signed in". The fix is to sign in first in the test, or to start the test with a saved session.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What does it mean that an HTTP method is "idempotent", and which methods are?**
+   - Search for: `HTTP idempotent methods MDN`
+   - A good answer explains: the meaning with one example, and why `PUT` is idempotent and `POST` is not.
+2. **What is the difference between the HTTP status codes 301, 302 and 307?**
+   - Search for: `HTTP redirect 301 302 307 difference`
+   - A good answer explains: which redirects are permanent, and which keep the method of the request.
+3. **What should a tester check in an API response besides the status code?**
+   - Search for: `API testing what to verify response`
+   - A good answer explains: at least three checks, such as the body, the headers and the response time.
 
 ## Next step
 

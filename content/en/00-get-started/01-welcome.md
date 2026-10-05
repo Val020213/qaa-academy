@@ -1,7 +1,7 @@
 ---
 title: Welcome
 summary: What QA Automation is, how this course is ordered, and how to study so that you really learn.
-duration: 15 min
+duration: 30 min
 ---
 
 ## Goal
@@ -86,6 +86,28 @@ These habits make a big difference.
 
 > **Tip:** Keep a notes file. When you learn a new word, write it down with your own short explanation.
 
+## Go deeper
+
+### A common wrong idea: "Automation replaces manual testing"
+
+Many beginners think an automated test finds new bugs. It does not. An automated test only repeats a check that you already know. It is a guard that tells you when an old behavior breaks.
+
+Finding new bugs still needs a person. You explore, you doubt, and you notice what looks strange. A program notices only what you told it to check. So the best plan uses both: manual testing to explore, and automation to protect what you learned.
+
+### Why a program must be exact
+
+A person can read "click the blue button" and understand it. A computer cannot. It needs the exact button, found in an exact way, and the exact result to expect. If one word is missing, it stops or does the wrong thing.
+
+This is why writing a test case as steps, as you did in the Practice, is a good first skill. Each step you write clearly is a step you can later turn into code.
+
+### How it shows up in real QA automation work
+
+Think of a team with 50 manual test cases. Many of them start with the same three steps: open the login page, type the email and password, click "Log in". If the login page changes, you must fix 50 cases.
+
+Programmers have a name for this problem. They say the cases repeat the same knowledge in many places. The rule against it is called DRY, which means "Don't Repeat Yourself". You will study this idea at the end of module 1, and again in module 4. For now, notice the pain: one change, many edits.
+
+> **Note:** DRY has a limit. A test should still read as a clear story. Sometimes a little repetition is better than a clever trick that hides the steps.
+
 ## Practice
 
 1. Think about one manual test case you wrote at work. Write down its steps on paper.
@@ -129,6 +151,40 @@ Playwright tests are programs. You need to understand the language before you us
 Typing helps you pay attention and learn. Fixing your own small mistakes teaches you a lot.
 
 </details>
+
+5. A team has a rule: "We will automate every test case, so we do not need manual testing." Give two reasons why this plan is weak.
+
+<details>
+<summary>Answer</summary>
+
+An automated test only checks what someone already thought of, so it cannot explore new risks. Also, some checks are not worth the cost: a test that runs once, or a screen that changes every week, costs more to automate than to run by hand. A mix of both is stronger.
+
+</details>
+
+6. A manual case says: "Check that the page looks right." Why can this step not be automated as it is written?
+
+<details>
+<summary>Answer</summary>
+
+"Looks right" is not exact. A program needs a clear check, such as "the title says Welcome" or "the error message is visible". To automate the step, you must first rewrite it as one or more exact checks. This work is part of your skill as a tester.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the test pyramid, and where do end-to-end tests fit in it?**
+   - Search for: `test pyramid unit integration e2e`
+   - A good answer explains: the three layers, why there are fewer E2E tests than unit tests, and what each layer costs.
+
+2. **Why do people say that an automated test is also a program that can have bugs?**
+   - Search for: `flaky test meaning automation`
+   - A good answer explains: what a flaky test is, and why a test that sometimes passes and sometimes fails is a problem for a team.
+
+3. **Which kinds of test cases are good candidates for automation, and which are not?**
+   - Search for: `what to automate test automation candidates`
+   - A good answer explains: at least three signs of a good candidate, such as repeated often, stable, and clear result, and at least two cases to leave manual.
 
 ## Next step
 

@@ -1,7 +1,7 @@
 ---
 title: What to automate
 summary: Learn the test pyramid and how to choose which checks deserve an automated end-to-end test.
-duration: 25 min
+duration: 40 min
 ---
 
 ## Goal
@@ -73,6 +73,8 @@ The second part is "Not covered yet". It lists gaps on purpose:
 
 ```text
 - Editing a product.
+- The product detail page: open it from the list, check its data, go back.
+- Deleting a product from its detail page.
 - Pagination: the Next and Previous buttons.
 - Duplicate SKU error when creating a product.
 - The viewer role: no New, Edit or Delete buttons, and the API answers 403.
@@ -81,6 +83,63 @@ The second part is "Not covered yet". It lists gaps on purpose:
 This is honest. It does not say "everything is tested". It says what is tested and what is not. A reader can trust the first part because the second part exists.
 
 Keep such a file for your own project. Update it in the same change as the tests.
+
+## Go deeper
+
+### Why the same check costs so much more in a browser
+
+Think about one rule: a SKU must look like `SKU-0001`. You can check it in a browser. The test opens the page, signs in, opens the form, types the value, clicks save and reads the error. That takes seconds.
+
+The rule itself is one line of code. A unit test can check it in milliseconds. Here is the idea in plain TypeScript. It checks five inputs with one loop:
+
+```ts
+function isValidSku(value: string): boolean {
+  return /^SKU-\d{4}$/.test(value.trim().toUpperCase())
+}
+
+const rows = [
+  { input: "SKU-0001", expected: true },
+  { input: "sku-0001", expected: true },
+  { input: "SKU-1", expected: false },
+  { input: "SKU-12345", expected: false },
+  { input: "", expected: false },
+]
+
+for (const row of rows) {
+  const actual = isValidSku(row.input)
+  console.log(`${JSON.stringify(row.input)} -> ${actual} ${actual === row.expected ? "ok" : "WRONG"}`)
+}
+```
+
+It prints five lines, and each one ends with `ok`. In a browser, the same five checks would take about 25 seconds if each takes 5 seconds.
+
+Notice the shape: one body of code and a table of inputs. This is **DRY**, "Don't Repeat Yourself", from the lesson "Don't repeat yourself (DRY)" in the programming module. Lesson 10 of this module applies it to tests.
+
+### A common wrong idea: more tests mean more safety
+
+Many beginners think 200 tests are safer than 20. Not always. If 150 of them walk the same journey with small changes, one broken button turns 150 tests red. You get one problem and 150 messages.
+
+Coverage is not a count of tests. It is a list of risks that a test would notice. `COVERAGE.md` is useful because it lists risks, not test numbers.
+
+### How it shows up in QA work: test a rule through the API
+
+You can often reach the rule without the screen. The shop API checks the same rules as the form. This test needs no browser page:
+
+```ts
+import { expect, test } from "../lib/test"
+
+test("the API rejects a name that is too short", async ({ request }) => {
+  const response = await request.post("/api/products", {
+    data: { name: "ab", sku: "SKU-7001", price: 5, stock: 1, status: "active" },
+  })
+
+  expect(response.status()).toBe(422)
+  const body = (await response.json()) as { errors: { name: string } }
+  expect(body.errors.name).toBe("Name must have at least 3 characters.")
+})
+```
+
+The status `422` means the server understood the request but the data is not valid. This test is fast. One E2E test can then check only that the form shows the error to the user.
 
 ## Practice
 
@@ -135,6 +194,38 @@ Risk, frequency and stability.
 It makes the inventory honest. Readers know the real state and can choose the next test to write.
 
 </details>
+
+5. A team has 40 E2E tests. Each one types a different wrong price in the product form. The suite takes 8 minutes. What would you change, and what would you keep in the browser?
+
+<details><summary>Answer</summary>
+
+Move the 40 price checks to the API or to unit tests, because the price rule is in the server code and does not need a browser. Keep one or two E2E tests that check the form shows the error message. The rule is tested fast and the screen is tested once.
+
+</details>
+
+6. You can automate only one check this week. Check A is the checkout, which is high risk and used every release, but the page is redesigned next week. Check B is password reset, which is also high risk and has not changed for two years, but you test it by hand only once a month. Which do you pick first?
+
+<details><summary>Answer</summary>
+
+Pick B. Both are high risk. A is unstable: the redesign will break the test, and you pay twice. B is stable, so the test will keep working. Frequency is lower for B, but stability decides this time. Write the checkout test after the redesign.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is the testing trophy, and how is it different from the test pyramid?**
+   - Search for: `testing trophy vs testing pyramid`
+   - A good answer explains: which levels each shape stresses, and why some teams choose the trophy.
+
+2. **What is risk-based testing, and how do teams rank risks?**
+   - Search for: `risk-based testing likelihood impact`
+   - A good answer explains: how likelihood and impact combine into a priority, and how it helps you choose what to automate.
+
+3. **What is the difference between a smoke test and a regression test?**
+   - Search for: `smoke test vs regression test`
+   - A good answer explains: the purpose, size and timing of each, and which one you would run first after a new build.
 
 ## Next step
 

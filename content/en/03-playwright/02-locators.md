@@ -1,7 +1,7 @@
 ---
 title: Locators
 summary: Find elements with getByTestId and the other locators, handle strictness, and look inside a row.
-duration: 35 min
+duration: 50 min
 ---
 
 ## Goal
@@ -111,6 +111,65 @@ This is how you handle lists. Every row has the same buttons, so you first pick 
 
 > **Tip:** In the Practice app, a row also has its id in the test id, such as `cases-toggle-1`. The team rule says row elements include the id. You can use that when you know the id.
 
+## Go deeper
+
+### Why a locator survives changes in the page
+
+Each time you use a locator, Playwright searches the page again. The locator keeps the description, not the element.
+
+This matters in the Practice app. When you tick a checkbox, the code calls `paint()`. This function replaces every row of the list with new elements. The old elements are gone. But `page.getByTestId("cases-toggle-1")` still works after that, because it searches again and finds the new checkbox.
+
+Some other tools give you the element itself. After a page update, that saved element can point to something that was removed. Selenium calls this a "stale element". Locators avoid the problem.
+
+### A common wrong idea: "first() fixes the strict mode error"
+
+The error is annoying, so a beginner adds `first()`. The error goes away. But look at what happened:
+
+```ts
+// The app should show one row for this case. It shows two. This line does not notice.
+await page.getByTestId("cases-item").first().click()
+```
+
+The strict mode error was a warning. Maybe the app has a bug, and the list shows a case twice. `first()` hides the bug. First ask what you expect. If you expect one row, say so:
+
+```ts
+await expect(page.getByTestId("cases-item")).toHaveCount(1)
+```
+
+Use `first()` or `nth()` only when many matches are normal.
+
+### A trade-off: test id or role?
+
+The team default is `getByTestId`. It is stable. But it has a cost. A test id is invisible to the user. A test with `getByTestId` can pass when the button has no readable name, which is a problem for a person who uses a screen reader.
+
+`getByRole("button", { name: "Sign in" })` is stricter. It uses what the user and assistive tools see. It breaks when the text changes, for example in another language.
+
+Neither is always right. We choose test ids for stable tests. We can add a few role-based checks where accessibility is the goal.
+
+When you use the same row many times, write the search once. This is DRY, "Don't Repeat Yourself", applied to locators:
+
+```ts
+import { expect, test, type Locator, type Page } from "./lib/test"
+
+function caseRow(page: Page, title: string): Locator {
+  return page.getByTestId("cases-item").filter({ hasText: title })
+}
+
+test("ticks the second case", async ({ page }) => {
+  await page.goto("/#/practice")
+  for (const title of ["First case", "Second case"]) {
+    await page.getByTestId("cases-input").fill(title)
+    await page.getByTestId("cases-add").click()
+  }
+
+  await caseRow(page, "Second case").getByRole("checkbox").check()
+
+  await expect(page.getByTestId("cases-counter")).toHaveText("1 of 2 passed")
+})
+```
+
+A page object, in module 4, takes this idea further.
+
 ## Practice
 
 1. Start the site with `pnpm dev`. Open `http://localhost:5180/#/practice`.
@@ -160,6 +219,38 @@ An action used a locator that matches more than one element. Playwright refuses 
 Pick the row first, for example with `filter({ hasText })`. Then chain `getByRole("checkbox")` and act on it.
 
 </details>
+
+5. The Practice app has two cases: "Login" and "Login with a blocked user". Your test uses `page.getByTestId("cases-item").filter({ hasText: "Login" })` and then clicks the checkbox inside it. What happens, and why?
+
+<details><summary>Answer</summary>
+
+The test fails with a strict mode violation. `hasText` matches a part of the text, so both rows contain "Login". The filter keeps two rows, and an action needs exactly one. Use a more exact text, such as "Login with a blocked user", or use the row's id in the test id.
+
+</details>
+
+6. You add the cases "First case" and "Second case" and tick "Second case". Then you choose the filter `passed` in `cases-filter`. What does `page.getByTestId("cases-item-title").nth(1)` find?
+
+<details><summary>Answer</summary>
+
+Nothing. The filter shows only passed cases, so only one row is left. `nth(0)` is "Second case". `nth(1)` is the second match, and there is none. An assertion on it waits 5 seconds and then fails. Position-based locators break when the list changes.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What is a "stale element" in Selenium, and why does Playwright not have this problem?**
+   - Search for: `selenium StaleElementReferenceException`
+   - A good answer explains: what causes the error, with a simple example of a page that redraws, and how a locator that searches again avoids it.
+
+2. **What is the accessibility tree, and how does `getByRole` use it?**
+   - Search for: `accessibility tree roles browser`
+   - A good answer explains: what a role and an accessible name are, and why a locator by role also checks that the page is usable with a screen reader.
+
+3. **Why do some testers say that a locator tied to CSS classes or page structure is fragile?**
+   - Search for: `fragile locators css xpath test automation`
+   - A good answer explains: what kinds of page changes break such locators, and what a test id or a role gives instead.
 
 ## Next step
 

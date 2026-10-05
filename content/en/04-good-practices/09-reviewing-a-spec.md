@@ -1,7 +1,7 @@
 ---
 title: Reviewing a spec
 summary: Use a checklist on your own spec before review, then fix a deliberately poor spec step by step.
-duration: 35 min
+duration: 50 min
 ---
 
 ## Goal
@@ -42,6 +42,7 @@ Read your spec once, with a checklist, before you ask for review. Most comments 
 - The test name says what the user sees, such as "confirming in the dialog removes the product".
 - One behaviour per test.
 - Steps are in the order: prepare, act, check. A blank line separates them.
+- The same locator, setup or data creation is not repeated in many tests. When it appears a third time, move it to a Page Object, a fixture or a helper.
 
 **Cleanup**
 
@@ -123,6 +124,36 @@ test("searching by name shows only that product", async ({ page, request }) => {
 
 Check the result against the checklist. Both tests make their own product, use test ids through the Page Object, wait with assertions and pass in any order.
 
+## Go deeper
+
+### Why a checklist beats memory
+
+You already know most of these rules. Still, you forget some of them when you are tired or in a hurry. Pilots and surgeons use checklists for the same reason. A checklist turns "have a good spec" into small yes or no questions. Each line in this checklist comes from a problem you met in this module. Writing the rules once and reading them every time is also DRY: the knowledge lives in one list, not in everyone's head.
+
+### A common wrong idea: a passing test is a good test
+
+A green test only says that no assertion failed. It does not say the test can fail. Look at this ending of a delete test:
+
+```ts
+await products.delete(product.id)
+
+await expect(page.getByTestId("product-row-" + product.id)).toHaveCount(0)
+```
+
+The id is wrong. The real id is `products-row-`, with an `s`. No element ever has the wrong id, so the count is always 0. The test passes even if the delete does nothing. A check that cannot fail is worse than no check, because it gives false trust.
+
+How to find such a test: make it fail on purpose. Comment out the delete line, or change the expected value, and run it. If it still passes, it does not check anything. The real spec protects itself in another way. It first waits for `products.row(product.id)` to be visible, so you know the id is right, and only then deletes.
+
+### How it shows up in QA work: review the idea first
+
+When you review, read the test name first and ask: what risk does this protect? Then ask if the steps and the checks match that name. Style comes second. A perfectly styled test that checks nothing is worse than an ugly test that catches bugs.
+
+Also look for duplication. When three tests start with the same ten lines, a reviewer will ask for a helper, a fixture or a Page Object. The next lesson shows how to choose, and when to leave the repetition alone.
+
+### A limit of checklists
+
+A checklist is a floor, not a ceiling. It finds the problems you already know. It cannot tell you if you forgot an important scenario. Use it, and then use your own judgement as a tester.
+
 ## Practice
 
 1. Pick a spec you wrote in module 3, or one from this module. Go through the checklist. Mark each line yes or no.
@@ -171,6 +202,44 @@ Apply the checklist yourself and fix every item, then run the test alone and sev
 
 </details>
 
+5. This test passes. Why can you not trust it? How would you prove your doubt?
+
+```ts
+await products.delete(product.id)
+
+await expect(page.getByTestId("product-row-" + product.id)).toHaveCount(0)
+```
+
+<details><summary>Answer</summary>
+
+The test id has a typo: it is `product-row-`, but the real one is `products-row-`. No element has that id, so the count is always 0, even when the delete fails. To prove it, remove the `products.delete(...)` line and run the test. It still passes, so it cannot detect a broken delete.
+
+</details>
+
+6. A reviewer writes: "Please use `getByRole` here, it is better for accessibility." The team rule in the README says to use `getByTestId`. What should you do?
+
+<details><summary>Answer</summary>
+
+Follow the written rule in this pull request, so the code stays consistent. Then thank the reviewer and start a talk with the team: if they agree that roles are better, change the rule and move all the tests together. A mix of two styles in one suite is harder to read than either style alone.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What makes a code review useful and respectful?**
+   - Search for: `code review best practices small changes comments`
+   - A good answer explains: at least three habits of good reviewers and good authors.
+
+2. **What is mutation testing, and how does it check that tests can fail?**
+   - Search for: `mutation testing explained`
+   - A good answer explains: how the tool changes the code on purpose, and what a surviving mutant tells you.
+
+3. **What are test smells, such as assertion roulette or mystery guest?**
+   - Search for: `test smells assertion roulette mystery guest`
+   - A good answer explains: at least two named smells, what each looks like, and how to fix it.
+
 ## Next step
 
-You finished the good practices. In the next module you use these skills on a real project.
+In the next lesson you learn DRY in test automation: how to remove repeated knowledge from a spec, and when to leave a little repetition so each test stays easy to read.

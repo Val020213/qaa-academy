@@ -1,7 +1,7 @@
 ---
 title: Assertions that wait
 summary: Use expect assertions that retry until they pass, avoid waitForTimeout, and read an assertion failure.
-duration: 35 min
+duration: 50 min
 ---
 
 ## Goal
@@ -125,6 +125,79 @@ Read it in this order.
 
 > **Note:** If `Received` is empty or the element was not found, the page may be in another state than you think. Open the screenshot of the failed test, or use the trace viewer. The trace lesson shows how.
 
+## Go deeper
+
+### Why an assertion can wait
+
+An assertion that waits does not use magic. It runs a loop: check, and if the answer is no, wait a short time and check again. It stops when the answer is yes, or when the time ends.
+
+Here is the idea in plain TypeScript. The "app" is ready after 300 milliseconds:
+
+```ts
+async function retryUntil(check: () => boolean, timeoutMs: number): Promise<boolean> {
+  const start = Date.now()
+  while (Date.now() - start < timeoutMs) {
+    if (check()) return true
+    await new Promise<void>((resolve) => setTimeout(resolve, 100))
+  }
+  return false
+}
+
+const startedAt = Date.now()
+const appIsReady = () => Date.now() - startedAt >= 300
+
+console.log("plain check:", appIsReady())
+const found = await retryUntil(appIsReady, 5000)
+console.log("retrying check:", found)
+console.log("waited at least 300 ms:", Date.now() - startedAt >= 300)
+```
+
+It prints:
+
+```text
+plain check: false
+retrying check: true
+waited at least 300 ms: true
+```
+
+The plain check looks once and says no. The retrying check says yes. Playwright is more careful: it waits longer between tries as time passes. The idea is the same. There are two timers. An assertion waits up to 5 seconds. A whole test waits up to 30 seconds.
+
+### A common wrong idea: "toBeHidden proves the work is done"
+
+After you click "Load report", the message "Loading..." appears and then goes away. A beginner writes this:
+
+```ts
+await expect(page.getByTestId("report-loading")).toBeHidden()
+```
+
+This passes in two cases: when the loading message went away, and when it never appeared. `toBeHidden` is also true for an element that does not exist. It does not prove that the report is ready. Check the result you want:
+
+```ts
+await expect(page.getByTestId("report-result")).toContainText("12 tests")
+```
+
+The same trap exists for errors. To prove that "no error is shown", first wait for something that happens after the action:
+
+```ts
+await page.getByTestId("login-submit").click()
+await expect(page.getByTestId("login-welcome")).toBeVisible()
+await expect(page.getByTestId("login-error")).toBeHidden()
+```
+
+Without the middle line, the last line could pass before the app had time to show an error.
+
+### How it shows up in real QA work: a slow step
+
+Some steps are really slow, such as a large report. You can give one assertion more time:
+
+```ts
+await expect(page.getByTestId("report-result")).toContainText("12 tests", {
+  timeout: 10_000,
+})
+```
+
+This is better than `waitForTimeout`: the test still goes on as soon as the text is there. If many assertions need 10 seconds, do not repeat the number. Set it once in the config with `expect: { timeout: 10_000 }`. This is DRY: one number in one place.
+
 ## Practice
 
 1. Open `e2e/exercises/03-playwright/04-assertions-that-wait.spec.ts`.
@@ -173,6 +246,46 @@ The fixed time is a guess. It is too short on a slow day and too long on a fast 
 The tries Playwright made: what it looked for and what it saw each time.
 
 </details>
+
+5. Compare two versions of a test, after a click on `report-load`. Version A: `expect(await page.getByTestId("report-result").textContent()).toContain("12 tests")`. Version B: `await expect(page.getByTestId("report-result")).toContainText("12 tests")`. Which is better, and what does A do in the Practice app?
+
+<details><summary>Answer</summary>
+
+B is better. In the Practice app, the element `report-result` is in the page from the start, with no text and hidden. `textContent()` reads it at once and gets an empty text, so A fails and does not wait. B retries until the text appears, about 1.5 seconds later.
+
+</details>
+
+6. This test has a bug. Find it.
+
+```ts
+test("report shows the result", async ({ page }) => {
+  await page.goto("/#/practice")
+  await page.getByTestId("report-load").click()
+  expect(page.getByTestId("report-result")).toContainText("12 tests")
+})
+```
+
+<details><summary>Answer</summary>
+
+The last line has no `await`. The assertion starts, but the test function does not wait for it. The result is not predictable. In the runs we watched, the test failed at once without waiting for the text. In other situations, a test can end before the check is finished. Either way, the fix is `await`. Add `await` before `expect`.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What are soft assertions in Playwright, and when would you use one?**
+   - Search for: `playwright expect.soft soft assertions`
+   - A good answer explains: how a soft assertion differs from a normal one when it fails, and one case where seeing all failures in one run helps.
+
+2. **What does "polling" mean in programming, and how is it different from waiting a fixed time?**
+   - Search for: `polling vs sleep programming`
+   - A good answer explains: the loop of check and wait, why it ends as soon as the condition is true, and why a fixed sleep is a guess.
+
+3. **What is a race condition, and how can it make a test pass on one run and fail on the next?**
+   - Search for: `race condition flaky test`
+   - A good answer explains: what a race condition is with a simple example, and how it connects to tests that check a result before the app is ready.
 
 ## Next step
 

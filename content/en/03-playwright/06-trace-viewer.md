@@ -1,7 +1,7 @@
 ---
 title: The trace viewer
 summary: Record a trace of a failed test, open it from the HTML report, and follow a routine to find the cause.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -92,6 +92,42 @@ Follow the same steps each time. Do not change code before you know the cause.
 
 The decision in step 7 is the most important. A test can fail because the app has a bug. That is the reason the test exists.
 
+## Go deeper
+
+### Why a trace is more than a video
+
+A trace is a `.zip` file. Inside it Playwright keeps, for each step: a snapshot of the page, the console messages, the network calls and the test code line. It is not a video.
+
+A video can only show you what the page looked like. A snapshot is a copy of the page content. So the trace viewer can highlight the element that your action used, and you can open the developer tools on a past moment. 
+The viewer works from the file only. It does not need the app to be running. You can send a `trace.zip` to a colleague, and they see the same thing.
+
+### How it shows up in real QA work: a bug report that developers believe
+
+A failed test can be a test problem or an app bug. The trace helps you decide, and it helps you prove it.
+
+Suppose a test fails because a report never shows its text. In the trace you open the Network tab. You see that the page asked the server for the report, and the server answered with status 500. A 500 means "the server had an error". The test and the locator were right. The app has a bug.
+
+Now your bug report can say: "The report request returns 500. The trace is attached." The developer opens the trace and sees the same request. You did not need a long explanation. A bug report with evidence is much faster to fix than one that says "it does not work".
+
+In the Practice app, the report does not call a server, so this exact case does not happen here. In a real application, it does.
+
+### A trade-off: when to record
+
+Recording has a cost. It makes tests slower and creates big files. The option `trace` in the config decides when to pay.
+
+```ts
+use: {
+  trace: "retain-on-failure",
+},
+```
+
+- `"off"` never records.
+- `"on"` records every test and keeps every trace. Use it for one file while you learn.
+- `"on-first-retry"` records only when a test runs again. This project uses it. It costs little, but it needs retries. On your machine retries are off, so you get no trace.
+- `"retain-on-failure"` records every test and deletes the trace of tests that pass. You get a trace for every failure, without retries. The price is that every test is slower.
+
+There is no best option. Choose by asking: how often do tests fail, and how much does it cost to run them twice?
+
 ## Practice
 
 1. Make a copy of the test "rejects wrong credentials" in a new file `e2e/exercises/03-playwright/trace-practice.spec.ts`. Import from `../../lib/test`.
@@ -139,6 +175,38 @@ Add `--trace on` to the command, for example `pnpm e2e e2e/playground.spec.ts --
 It shows which element the action used. If it is the wrong one, the locator is wrong.
 
 </details>
+
+5. In a real application, a test expects a table with 5 rows. It fails: `Received` is 0 rows. In the trace, the Network tab shows the request for the table data with status 500, and the screenshot shows the message "Something went wrong". Is this a test bug or an app bug? What do you do?
+
+<details><summary>Answer</summary>
+
+Most likely an app bug. The test looked for the right element and expected a reasonable result. The page failed because the server returned an error. You report the bug with the trace and the request. You should not change the test to hide the failure. You can run the test again to see if the error is rare or always there.
+
+</details>
+
+6. You run `pnpm e2e` on your machine. A test fails. You open the report, and there is no trace. A teammate says: "Change `trace` in the config to `on`." Why is this a poor first step, and what is a better one?
+
+<details><summary>Answer</summary>
+
+Changing the config affects everyone and makes every test slower from now on. A better step is to run only the failing test with `--trace on` in the command. This records one trace and changes nothing in the project. If the failure does not come back, the test may be flaky, and `retain-on-failure` can help catch it later.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What do the Playwright trace modes `on-first-retry` and `retain-on-failure` do, and when would you choose each?**
+   - Search for: `playwright trace retain-on-failure on-first-retry`
+   - A good answer explains: when each mode records and keeps the trace, and the cost of each in time and disk space.
+
+2. **What makes a good bug report for a developer?**
+   - Search for: `good bug report steps expected actual result`
+   - A good answer explains: the main parts of a bug report, such as steps, expected result, actual result and evidence, and why each one saves time.
+
+3. **What is the browser console, and what is the difference between an error and a warning there?**
+   - Search for: `browser console errors warnings devtools`
+   - A good answer explains: what kinds of messages appear in the console, and why a page error can explain a test that fails with no clear reason.
 
 ## Next step
 

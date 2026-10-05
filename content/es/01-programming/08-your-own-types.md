@@ -1,7 +1,7 @@
 ---
 title: Tus propios tipos
 summary: Pon nombre a la forma de tus objetos con alias de tipo, propiedades opcionales y uniones de literales.
-duration: 25 min
+duration: 40 min
 ---
 
 ## Objetivo
@@ -151,6 +151,53 @@ A veces ves tipos con `<` y `>`, como `Array<TestCase>`. Solo necesitas leerlos,
 
 Lee la parte dentro de `< >` como "de". `Array<TestCase>` es "un array de casos de prueba".
 
+## Profundiza
+
+### Los tipos solo existen mientras escribes
+
+TypeScript elimina todos los tipos antes de que el programa se ejecute. Node solo ve JavaScript simple. Por eso un tipo no puede revisar los datos que llegan mientras el programa corre.
+
+```ts
+type TestCase = { id: number; title: string };
+
+const parsed: TestCase = JSON.parse('{"id":"abc","title":"Login works"}');
+console.log(parsed.id + 1);
+```
+
+TypeScript no muestra ningún error. El programa muestra:
+
+```text
+abc1
+```
+
+El tipo dice que `id` es un número. Los datos reales tienen texto. `JSON.parse` devuelve un valor de tipo `any`, que significa "cualquier cosa", así que TypeScript lo acepta sin revisar. Le dijiste a TypeScript lo que esperas, y te creyó.
+
+Esto importa en el trabajo de QA. La respuesta de una API son datos que vienen de afuera. Un tipo describe lo que esperas, no lo que envió el servidor. Tu test aún debe comprobar los valores reales.
+
+### Una forma, escrita una vez
+
+Un alias de tipo también sirve para evitar la repetición. Esta idea se llama **DRY** (*Don't Repeat Yourself*, no te repitas). Cada pieza de conocimiento vive en un solo lugar. La estudiarás al final de este módulo.
+
+Mira `Status`. Los valores permitidos se escriben una vez:
+
+```ts
+type Status = "passed" | "failed" | "skipped" | "blocked";
+```
+
+Agregas `"blocked"` aquí, y todos los lugares que usan `Status` lo aceptan. Si escribieras las tres opciones en diez funciones, cambiarías diez lugares y podrías olvidar uno.
+
+### Cuándo no escribir un tipo
+
+No escribas un tipo para todo. Esta línea no necesita ninguno:
+
+```ts
+const count = 3;
+```
+
+TypeScript ya sabe que `count` es un número. Escribe tipos para los parámetros de las funciones, para las formas que comparten muchos lugares y para las opciones fijas. Los tipos de más alargan el código y no lo hacen más seguro.
+
+Elige también la herramienta correcta. Usa una unión solo cuando las opciones son una lista pequeña y fija. Si el texto puede ser cualquiera, como un título que escribe un usuario, usa `string`.
+
 ## Práctica
 
 1. Crea el archivo `exercises/01-programming/types-practice.ts`.
@@ -200,6 +247,59 @@ La propiedad es opcional. Puede faltar, y entonces su valor es `undefined`.
 "Un array de casos de prueba". Es lo mismo que `TestCase[]`.
 
 </details>
+
+5. ¿Qué muestra este programa y por qué?
+
+```ts
+type TestCase = { id: number; title: string; owner?: string };
+
+const testCase: TestCase = { id: 1, title: "Login works" };
+console.log(`Owner: ${testCase.owner}`);
+```
+
+<details><summary>Respuesta</summary>
+
+Muestra `Owner: undefined`. La propiedad `owner` es opcional y no se dio, así que su valor es `undefined`. Una plantilla de texto convierte cualquier valor en texto, por eso ves la palabra `undefined`. TypeScript no te detiene, pero el resultado probablemente no es lo que quieres. Una comprobación con `if` sería mejor.
+
+</details>
+
+6. Este código tiene un bug. Encuéntralo.
+
+```ts
+type Status = "passed" | "failed";
+
+function isDone(status: Status): boolean {
+  if (status === "passed") {
+    return true;
+  }
+  if (status === "failde") {
+    return false;
+  }
+  return false;
+}
+```
+
+<details><summary>Respuesta</summary>
+
+El texto `"failde"` tiene un error de escritura. `Status` solo puede ser `"passed"` o `"failed"`, así que esta comparación nunca puede ser verdadera. TypeScript avisa que los tipos no tienen nada en común. Con un tipo `string` simple, TypeScript no podría detectar este error. El programa se ejecutaría y el segundo `if` nunca funcionaría.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Cuál es la diferencia entre `type` e `interface` en TypeScript?**
+   - Busca: `typescript type vs interface`
+   - Una buena respuesta explica: cómo cada uno describe la forma de un objeto, algo que solo `type` puede hacer, y cuál usa este curso y por qué.
+
+2. **¿Qué significa que los tipos de TypeScript se borran en tiempo de ejecución?**
+   - Busca: `typescript types erased at runtime`
+   - Una buena respuesta explica: qué quita el compilador o Node, por qué las comprobaciones de tipos no existen cuando el programa corre y un bug que esto puede esconder.
+
+3. **¿Qué es un contrato de API y por qué un tipo de TypeScript no puede probar que un servidor lo cumple?**
+   - Busca: `api contract testing explained`
+   - Una buena respuesta explica: qué es un contrato de API, por qué un tipo es solo una promesa hecha al escribir el código y cómo un tester puede comprobar la respuesta real.
 
 ## Siguiente paso
 

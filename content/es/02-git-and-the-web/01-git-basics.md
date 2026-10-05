@@ -1,7 +1,7 @@
 ---
 title: Git básico
-summary: Usa Git para guardar tu trabajo, trabajar en una rama y compartir cambios mediante un pull request.
-duration: 30 min
+summary: Usa Git para guardar tu trabajo, trabajar en una branch y compartir cambios mediante un pull request.
+duration: 45 min
 ---
 
 ## Objetivo
@@ -9,7 +9,7 @@ duration: 30 min
 - Explicar qué es el control de versiones y por qué QA Automation lo necesita.
 - Configurar Git en tu computadora.
 - Usar el ciclo diario de Git.
-- Saber qué nunca debes hacer *commit*.
+- Saber qué nunca debes subir con *commit*.
 
 ## ¿Qué es el control de versiones?
 
@@ -64,7 +64,7 @@ On branch main
 nothing to commit, working tree clean
 ```
 
-**2. Crea una branch.** Nunca trabajes directamente en `main`. `git switch -c` crea una rama nueva y te mueve a ella.
+**2. Crea una branch.** Nunca trabajes directamente en `main`. `git switch -c` crea una branch nueva y te mueve a ella.
 
 ```bash
 git switch -c add-login-test
@@ -137,13 +137,59 @@ test-results
 
 Git no les dará seguimiento. La mayoría de los proyectos ya tienen un `.gitignore`. No lo borres.
 
-## Lo que nunca debes hacer commit
+## Lo que nunca debes subir con commit
 
 - **Contraseñas y secretos.** Esto incluye claves de API, *tokens* y archivos `.env`. Cualquiera que pueda ver el repositorio puede ver el historial, incluso después de que borres el archivo.
 - **`node_modules`.** Es grande y cualquiera puede recrearlo con `pnpm install`.
 - **`test-results`.** Contiene reportes y capturas de pantalla de las ejecuciones de tests. Son resultados, no código fuente.
 
-> **Cuidado:** Si haces commit de una contraseña por error, avisa a tu equipo de inmediato. Hay que cambiar la contraseña.
+> **Cuidado:** Si subes una contraseña con commit por error, avisa a tu equipo de inmediato. Hay que cambiar la contraseña.
+
+## Profundiza
+
+### Por qué funciona así: copias y etiquetas
+
+Git no guarda una lista de ediciones. Un commit guarda una copia de tus archivos en un momento dado. Cada commit tiene un ID largo y único, y apunta al commit anterior. Los IDs se acortan en `git log --oneline`:
+
+```text
+a1b2c3d Add login test for valid user
+9f8e7d6 Add exercises folder
+```
+
+Tus IDs serán distintos. Una **branch** es solo una pequeña etiqueta que apunta a un commit. Cuando haces commit, la etiqueta avanza. Como una branch es solo una etiqueta, crearla es instantáneo y casi no cuesta nada. Por eso el equipo te pide crear una branch nueva para cada tarea.
+
+### Una idea equivocada común: "borré el archivo, así que el secreto desapareció"
+
+Una persona que empieza sube con commit un archivo `.env` con una contraseña. Ve el error, borra el archivo y hace otro commit. Ahora el archivo ya no está en la carpeta. Pero sigue en el historial.
+
+```text
+commit 2: Remove .env file      (the file is gone here)
+commit 1: Add login test        (the file, and the password, are still here)
+```
+
+Cualquiera puede volver al commit 1 y leer la contraseña. Por eso la lección dice que hay que cambiar la contraseña. Borrar un archivo no borra el historial.
+
+Una segunda idea equivocada trata del `.gitignore`. Solo afecta a archivos que Git aún no rastrea. Si un archivo ya se subió antes, añadir su nombre al `.gitignore` no hace que Git deje de rastrearlo.
+
+### Cómo aparece en el trabajo real de QA: commits pequeños
+
+Un pull request lo lee una persona con poco tiempo. Compara dos historiales:
+
+```text
+Update tests
+Fix stuff
+```
+
+```text
+Add a failing test for the wrong-password error
+Use data-testid for the sign-in button
+```
+
+El segundo historial cuenta una historia. Quien revisa puede leer un commit a la vez. Si un commit causa un problema, el equipo puede deshacer solo ese commit. Una buena regla: un commit, una idea.
+
+### Un equilibrio: muchos commits o pocos
+
+Los commits muy pequeños, como uno por cada línea, también son difíciles de leer. Haz commit cuando una idea esté terminada y los tests aún se ejecuten.
 
 ## Práctica
 
@@ -164,7 +210,7 @@ Git no les dará seguimiento. La mayoría de los proyectos ya tienen un `.gitign
 <details>
 <summary>Respuesta</summary>
 
-Es una copia guardada de tus cambios, con un mensaje corto.
+Es una copia guardada de tus cambios en un momento dado, con un mensaje corto.
 
 </details>
 
@@ -186,7 +232,7 @@ Significa que la línea fue añadida.
 
 </details>
 
-4. Nombra dos cosas que nunca debes hacer commit.
+4. Nombra dos cosas que nunca debes subir con commit.
 
 <details>
 <summary>Respuesta</summary>
@@ -194,6 +240,38 @@ Significa que la línea fue añadida.
 Contraseñas o secretos, `node_modules` o `test-results`. Cualquier par es correcto.
 
 </details>
+
+5. Añades `secrets.txt` a `.gitignore`, pero subiste `secrets.txt` con commit la semana pasada. Cambias el archivo y ejecutas `git status`. ¿Git muestra el archivo como cambiado? ¿Por qué?
+
+<details>
+<summary>Respuesta</summary>
+
+Sí. `.gitignore` solo funciona con archivos que Git aún no rastrea. Este archivo ya está rastreado, así que Git sigue vigilándolo. Para dejar de rastrearlo, debes quitarlo de Git. Y debes cambiar cualquier contraseña que tenga dentro, porque los commits antiguos todavía la guardan.
+
+</details>
+
+6. ¿Qué opción es mejor? A) Un commit con un test de login nuevo, una carpeta renombrada y una configuración cambiada. B) Tres commits, uno para cada cosa. ¿Por qué?
+
+<details>
+<summary>Respuesta</summary>
+
+B es mejor. Quien revisa puede leer cada commit por separado y entenderlo. Si el cambio de configuración causa un problema, el equipo puede deshacer ese solo commit y conservar el test. En A todo está mezclado, así que hay que revisar todo a la vez y el equipo no puede deshacer una sola parte.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Qué es un conflicto de merge y cómo se resuelve?**
+   - Busca: `git merge conflict markers resolve`
+   - Una buena respuesta explica: qué causa un conflicto, qué significan las líneas marcadoras en el archivo y los pasos para arreglar el archivo y terminar.
+2. **¿Qué puedes escribir en un archivo `.gitignore` además de un nombre simple, como `*` y `!`?**
+   - Busca: `gitignore pattern format`
+   - Una buena respuesta explica: cómo ignorar todos los archivos con una misma terminación, cómo ignorar una carpeta y cómo hacer una excepción.
+3. **¿Por qué los equipos revisan el código de los tests en los pull requests y qué debe buscar quien revisa en un test?**
+   - Busca: `code review checklist test automation`
+   - Una buena respuesta explica: al menos tres cosas que se revisan en un cambio de tests, como nombres claros, selectores estables y datos independientes.
 
 ## Siguiente paso
 

@@ -1,7 +1,7 @@
 ---
 title: Tomar decisiones
 summary: Compara valores y usa if, else if y else para que tu programa elija qué hacer.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Objetivo
@@ -14,7 +14,7 @@ duration: 30 min
 
 Un programa a menudo necesita hacer una pregunta. ¿El estado es "passed"? ¿El precio es mayor que 50?
 
-Una **comparación** hace esa pregunta. La respuesta siempre es un boolean: `true` o `false`.
+Una **comparación** hace una pregunta así. La respuesta siempre es un *boolean* (booleano): `true` o `false`.
 
 ```ts
 console.log(5 > 3);
@@ -35,7 +35,7 @@ Estos son los signos de comparación:
 | Signo | Significado              |
 | ----- | ------------------------ |
 | `===` | es igual a               |
-| `!==` | no es igual a            |
+| `!==` | es distinto de           |
 | `>`   | es mayor que             |
 | `<`   | es menor que             |
 | `>=`  | es mayor o igual que     |
@@ -45,7 +45,7 @@ Estos son los signos de comparación:
 
 ## if
 
-Una instrucción **if** ejecuta código solo cuando una condición es `true`. El código va dentro de llaves `{ }`.
+Una instrucción **if** ejecuta código solo cuando una condición es `true`. El código va entre llaves `{ }`.
 
 ```ts
 const status = "failed";
@@ -157,9 +157,9 @@ Esto muestra:
 Show an error: fill in all fields
 ```
 
-El texto `""` es un string vacío. La contraseña está vacía, así que la segunda parte es falsa. Con `&&`, una sola parte falsa hace falsa toda la condición.
+El texto `""` es un string vacío. La contraseña está vacía, así que la segunda parte es falsa. Con `&&`, una parte falsa hace falsa toda la condición.
 
-Aquí hay un ejemplo con `||`:
+Aquí tienes una con `||`:
 
 ```ts
 const status = "blocked";
@@ -179,11 +179,84 @@ Fíjate en que escribes la comparación completa en ambos lados. `status === "fa
 
 ## Una nota breve sobre truthy y falsy
 
-JavaScript te deja escribir `if (name)` sin una comparación. Trata algunos valores como falsos: `""`, `0`, `null` y `undefined`. Se llaman ***falsy*** (equivalentes a falso). La mayoría de los otros valores son ***truthy*** (equivalentes a verdadero).
+JavaScript te deja escribir `if (name)` sin una comparación. Trata algunos valores como falsos: `""`, `0`, `null` y `undefined`. Se llaman **falsy**. La mayoría de los demás valores son **truthy**.
 
-Es un tema corto, pero puede sorprenderte. El número `0` es falsy, aunque `0` sea un resultado válido.
+Es algo corto, pero puede sorprenderte. El número `0` es falsy, incluso cuando `0` es un resultado válido.
 
 > **Consejo:** Si estás empezando, escribe la comparación completa, como `name !== ""`. Es más claro y más seguro.
+
+## Profundiza
+
+### Por qué `&&` puede protegerte
+
+La computadora lee `a && b` de izquierda a derecha. Si `a` es falso, la respuesta ya es falsa. Por eso no mira `b`. Esto se llama evaluación de **cortocircuito** (*short-circuit*).
+
+```ts
+const userName: string | undefined = undefined;
+
+if (userName !== undefined && userName.length > 0) {
+  console.log("has name");
+} else {
+  console.log("no name");
+}
+```
+
+Esto muestra:
+
+```text
+no name
+```
+
+`userName.length` fallaría con `undefined`. Nunca se ejecuta, porque la primera parte es falsa. El orden de las dos partes importa. (`length` es el número de caracteres de un texto. Aprenderás más en la lección 06.)
+
+### Una idea equivocada común: "las mayúsculas no importan" y el error con `||`
+
+Las comparaciones son exactas. Las mayúsculas cuentan.
+
+```ts
+console.log("Passed" === "passed");
+```
+
+Esto muestra `false`. En un test, el texto de la página y el texto de tu código deben coincidir exactamente.
+
+La lección mostró que `status === "failed" || "blocked"` no funciona como se espera. Este es el motivo. La computadora lo lee como dos partes separadas: `status === "failed"` y `"blocked"`. Un texto que no está vacío es truthy, así que la segunda parte siempre es verdadera.
+
+```ts
+const status = "passed";
+
+if (status === "failed" || "blocked") {
+  console.log("Needs review");
+}
+```
+
+Esto muestra `Needs review`, aunque el estado sea `passed`.
+
+### Cómo aparece en el trabajo real de automatización QA
+
+Un test es, en el fondo, una decisión. Comparas lo que esperabas con lo que obtuviste. Si son distintos, el test falla.
+
+```ts
+const expected = "Welcome, Ana";
+const actual = "Welcome, Luis";
+
+if (actual === expected) {
+  console.log("PASS");
+} else {
+  console.log(`FAIL: expected ${expected} but got ${actual}`);
+}
+```
+
+Esto muestra:
+
+```text
+FAIL: expected Welcome, Ana but got Welcome, Luis
+```
+
+El `expect` de Playwright hace esto por ti. Además detiene el test y muestra un mensaje claro. En la próxima lección escribirás la comprobación una sola vez como una función. Este es un caso de DRY (*Don't Repeat Yourself*, no te repitas). Lo estudiarás al final de este módulo.
+
+### Cuándo no usar `if`
+
+No pongas un `if` dentro de un test para ocultar un resultado distinto. Un test debe seguir un solo camino claro. Si el test puede tomar dos caminos, quizá no sepas cuál se ejecutó, y un fallo puede quedar oculto.
 
 ## Práctica
 
@@ -237,6 +310,58 @@ Muestra B. La primera condición es falsa. La segunda es verdadera, así que la 
 
 </details>
 
+5. ¿Qué muestra este código y por qué?
+
+```ts
+const score = 95;
+
+if (score >= 50) {
+  console.log("pass");
+} else if (score >= 90) {
+  console.log("excellent");
+}
+```
+
+<details>
+<summary>Respuesta</summary>
+
+Muestra `pass`. La computadora ejecuta el primer bloque cuya condición es verdadera. Una puntuación de 95 también es 50 o más, así que se detiene en el primer bloque. Nunca llega a la comprobación de `excellent`. Pon primero la condición más específica, `score >= 90`.
+
+</details>
+
+6. Este código debería mostrar `unknown` solo cuando el estado no es `passed` ni `failed`. Pero muestra `unknown` también para `passed`. Encuentra el *bug* (error).
+
+```ts
+const status = "passed";
+
+if (status !== "passed" || status !== "failed") {
+  console.log("unknown");
+}
+```
+
+<details>
+<summary>Respuesta</summary>
+
+Con `||`, basta con que un lado sea verdadero. El estado `passed` hace verdadera la segunda parte, porque no es `failed`. Todo texto es distinto de al menos uno de los dos. Usa `&&`: los dos lados deben ser verdaderos.
+
+</details>
+
+## Investiga por tu cuenta
+
+Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
+
+1. **¿Cuál es la diferencia entre `==` y `===` en JavaScript y qué es la coerción de tipos?**
+   - Busca: `javascript == vs === type coercion`
+   - Una buena respuesta explica: qué significa coerción, dos resultados sorprendentes de `==` y por qué `===` es más seguro.
+
+2. **¿Qué es la evaluación de cortocircuito en JavaScript?**
+   - Busca: `javascript short-circuit evaluation && ||`
+   - Una buena respuesta explica: cómo `&&` y `||` se detienen antes, y un uso que evita un fallo.
+
+3. **¿Por qué muchas guías de pruebas dicen que un test no debe contener instrucciones `if`?**
+   - Busca: `no conditional logic in tests`
+   - Una buena respuesta explica: el problema de los tests con varios caminos y qué hacer en su lugar.
+
 ## Siguiente paso
 
-En la próxima lección pondrás código en funciones, para poder darle un nombre y usarlo muchas veces.
+En la próxima lección pondrás código en funciones, para darle un nombre y usarlo muchas veces.

@@ -26,6 +26,7 @@ Open http://localhost:5190.
 | `/login` | Wrong password, empty form, redirect back to the page you asked for |
 | `/dashboard` | Numbers that arrive late (the API waits 1.2 seconds on purpose) |
 | `/products` | Search, status filter, pages of 10, create, edit, delete with a confirm dialog |
+| `/products/<id>` | The detail page of one product: its data, Edit and Delete for the admin, a 404 for an unknown id |
 | `/orders` | Status filter and status changes that only go forward |
 
 ## Run the tests

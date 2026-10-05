@@ -1,7 +1,7 @@
 ---
 title: Browser DevTools
 summary: Use the Elements, Console and Network panels of Chrome or Edge to look inside a page and investigate a bug.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -101,6 +101,43 @@ When something does not work, follow the same steps each time:
 
 With these notes, a bug report is much more useful. A developer can start working at once.
 
+## Go deeper
+
+### A common wrong idea: "the Console is clean, so there is no bug"
+
+The Console shows errors of the page code. Many bugs are not errors. A page can show the wrong number, and every request can answer `200`. The code does what it was told, but the result is wrong. Nothing is red.
+
+A clean Console is a good sign, and not a proof. You still compare what you see with what is expected. You still read the response in the Network panel and check that the data is right.
+
+### How it shows up in real QA work: from DevTools to a test
+
+You can turn what you saw in DevTools into an automatic check. This test fails if the Practice page throws an error while the report loads:
+
+```ts
+import { expect, test } from "./lib/test"
+
+test("the practice page has no JavaScript errors", async ({ page }) => {
+  const errors: string[] = []
+  page.on("pageerror", (error) => errors.push(error.message))
+
+  await page.goto("/#/practice")
+  await page.getByTestId("report-load").click()
+  await expect(page.getByTestId("report-result")).toBeVisible()
+
+  expect(errors).toEqual([])
+})
+```
+
+The line with `page.on` tells Playwright: when the page has an error, save its message in the list. At the end, the list must be empty. You do not need to write this now. It shows that DevTools and Playwright look at the same browser.
+
+Another useful action: right-click a request in the Network panel and choose **Copy**, then **Copy as cURL**. You get a command that repeats the request. You can add it to a bug report.
+
+### A trade-off: DevTools help you look, but they leave no trace
+
+- Changes in the Elements panel exist only in your tab. A reload removes them. Use them to try an idea, such as "what if this text were longer?". They are not a fix, and a test run does not see them.
+- A copied request can include your cookie, and a cookie can be a password. Remove it before you paste it into a ticket that many people read.
+- The Network panel can slow the connection. Choose a throttling profile such as **Slow 4G**. This shows what a user with a poor connection sees, for example if the "Loading..." text stays on screen.
+
 ## Practice
 
 1. Open `http://localhost:5180/#/practice`. Press `F12`.
@@ -152,6 +189,38 @@ It records only while it is open. If you open it later, you miss the request.
 In the Network panel: click the request, then open the Response tab.
 
 </details>
+
+5. A tester writes the bug report "Saving a product does not work". Another writes "On New product with all fields empty, the request `products` is a `POST` and returns 422. The response lists a message for each field, but the page shows no message". Which report can a developer use at once? Why?
+
+<details>
+<summary>Answer</summary>
+
+The second one. It gives the steps, the request, the status code and what was expected. The developer can see where to look: the page does not show the messages that the server sent. The first report says only that something is wrong, so the developer must find out the details alone.
+
+</details>
+
+6. You change the text of the Sign in button to "Pay now" in the Elements panel, then reload the page. What do you see? Would a test that runs after that see "Pay now"?
+
+<details>
+<summary>Answer</summary>
+
+After the reload you see "Sign in" again. The Elements panel changes only the copy of the DOM in your tab. A reload builds the page again from the code. A test starts its own new browser, so it never sees your change.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **How do you slow down the network in Chrome DevTools, and why would a tester do it?**
+   - Search for: `chrome devtools network throttling`
+   - A good answer explains: the steps to choose a profile, and one bug that only a slow connection shows.
+2. **What is a HAR file, and why can it be risky to share it?**
+   - Search for: `HAR file network export`
+   - A good answer explains: what a HAR file records, how you save one, and what private data it may hold.
+3. **How can you test a page at the size of a phone with DevTools?**
+   - Search for: `chrome devtools device mode`
+   - A good answer explains: how to open device mode, what it can simulate, and one thing it cannot replace, such as a real phone.
 
 ## Next step
 

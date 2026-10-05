@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation"
-import { ProductForm } from "@/components/product-form"
+import { ProductDetail } from "@/components/product-detail"
 import { store } from "@/lib/store"
 
-export default async function EditProductPage({
+export default async function ProductDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
@@ -11,11 +11,6 @@ export default async function EditProductPage({
   const product = store().products.find((item) => item.id === id)
   if (!product) notFound()
 
-  return (
-    <>
-      <h1 data-testid="product-form-title">Edit product</h1>
-      {/* A copy, so the form receives plain data and not the stored object. */}
-      <ProductForm product={{ ...product }} />
-    </>
-  )
+  // A copy, so the component receives plain data and not the stored object.
+  return <ProductDetail product={{ ...product }} />
 }

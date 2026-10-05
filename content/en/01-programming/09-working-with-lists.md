@@ -1,7 +1,7 @@
 ---
 title: Working with lists
 summary: Use map, filter, find, some, every and spread to work with lists of test cases.
-duration: 30 min
+duration: 45 min
 ---
 
 ## Goal
@@ -158,6 +158,73 @@ Both work. Use this rule:
 
 In Playwright you often use `for...of` with `await`. Lesson 10 shows why.
 
+## Go deeper
+
+### What map really does
+
+There is no magic in `map`. It is a loop that someone wrote for you. This function does the same work with a `for...of` loop:
+
+```ts
+function myMap(items: TestCase[], callback: (testCase: TestCase) => number): number[] {
+  const result: number[] = [];
+  for (const item of items) {
+    result.push(callback(item));
+  }
+  return result;
+}
+
+console.log(myMap(testCases, (testCase) => testCase.id));
+```
+
+The text `(testCase: TestCase) => number` is the type of a callback. It says: a function that takes a test case and returns a number. With the four test cases above, the program prints `[ 1, 2, 3, 4 ]`.
+
+### A wrong idea: all list methods leave the list alone
+
+`map`, `filter` and `find` do not change the original. But `sort` does.
+
+```ts
+const ids = [3, 1, 2];
+const sorted = ids.sort();
+console.log(ids, sorted === ids);
+console.log([10, 9, 1].sort());
+```
+
+The program prints:
+
+```text
+[ 1, 2, 3 ] true
+[ 1, 10, 9 ]
+```
+
+Two surprises. `sort` changed `ids` and returned the same array. And `sort` without a callback sorts as text, so `10` comes before `9`. Use `toSorted`, which makes a new array, and give it a callback: `[10, 9, 1].toSorted((a, b) => a - b)` gives `[ 1, 9, 10 ]`.
+
+### How it shows up in QA automation work
+
+Imagine three bad login attempts. The steps are the same, only the input is different. You can write the data once, as an array of objects, and loop over it. This is **DRY**: one test body, many inputs. You will study the idea at the end of this module. The words `async` and `await` in the code come in the next lesson. Read them as manual steps.
+
+```ts
+import { expect, test } from "./lib/test";
+
+const badLogins = [
+  { name: "empty email", email: "", message: "Enter your email and password." },
+  { name: "spaces only", email: "   ", message: "Enter your email and password." },
+  { name: "unknown email", email: "ana@example.com", message: "Wrong email or password." },
+];
+
+for (const badLogin of badLogins) {
+  test(`shows an error for ${badLogin.name}`, async ({ page }) => {
+    await page.goto("/#/practice");
+    await page.getByTestId("login-email").fill(badLogin.email);
+    await page.getByTestId("login-password").fill("Playwright123");
+    await page.getByTestId("login-submit").click();
+
+    await expect(page.getByTestId("login-error")).toHaveText(badLogin.message);
+  });
+}
+```
+
+Each test needs its own title, so the title uses `name`. If the cases need different steps, write separate tests. A test must stay easy to read.
+
 ## Practice
 
 1. Create the file `exercises/01-programming/lists-practice.ts`.
@@ -208,6 +275,51 @@ It returns `undefined`.
 A new array with all items of `list`, and `item` at the end.
 
 </details>
+
+5. What does this program print, and why?
+
+```ts
+const numbers = [1, 2, 3];
+const doubled = numbers.map((n) => {
+  n * 2;
+});
+console.log(doubled);
+```
+
+<details><summary>Answer</summary>
+
+It prints `[ undefined, undefined, undefined ]`. The callback has curly braces, so it needs the word `return`. Without it, the callback calculates `n * 2` and throws the result away. A function with no `return` gives `undefined`. Write `(n) => n * 2` or add `return`.
+
+</details>
+
+6. Two people write a check for "is there any failed test case?" Which version is better, and why?
+
+```ts
+const versionA = testCases.filter((testCase) => testCase.status === "failed").length > 0;
+const versionB = testCases.some((testCase) => testCase.status === "failed");
+```
+
+<details><summary>Answer</summary>
+
+Version B is better. `some` says exactly what you want to know: is there at least one match? It can stop at the first match, and it does not build a new array. Version A works, but it builds a list only to count it, and the reader must think about what it means.
+
+</details>
+
+## Research on your own
+
+These questions have no answer here. Search the internet, read, and write your answer in your own words.
+
+1. **What does `reduce` do, and when is a plain loop easier to read?**
+   - Search for: `javascript array reduce explained`
+   - A good answer explains: what the callback receives, a small example such as a sum, and one case where a `for...of` loop is clearer.
+
+2. **Why does `sort` change the original array, and what do `toSorted` and the spread copy do instead?**
+   - Search for: `javascript sort mutates original toSorted`
+   - A good answer explains: which array methods change the original, which return a new array, and how to sort numbers in the right order.
+
+3. **What is data-driven testing, and when does it help a tester?**
+   - Search for: `data-driven testing test automation`
+   - A good answer explains: what a data-driven test is, one example with a table of inputs and expected results, and one risk of too much data in one test.
 
 ## Next step
 

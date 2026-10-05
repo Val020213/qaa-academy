@@ -1,5 +1,6 @@
 import { allLessons, lessonsOf } from "../content.ts"
 import { currentLocale, t } from "../i18n.ts"
+import { icon } from "../icons.ts"
 import { REPO_URL } from "../site.ts"
 import { modules } from "../modules.ts"
 import { completedCount, isCompleted } from "../progress.ts"
@@ -26,12 +27,12 @@ export function renderHome(): string {
 
       return `
         <article class="card" data-testid="home-module-card">
-          <p class="card-eyebrow">${t("home.module", { number: index })}</p>
+          <p class="card-eyebrow">${icon(courseModule.icon)}${t("home.module", { number: index })}</p>
           <h2>${courseModule.title[locale]}</h2>
           <p>${courseModule.description[locale]}</p>
           <p class="card-footer">
             <span data-testid="home-module-status">${status}</span>
-            ${first ? `<a href="#${first.path}">${t("home.open")}</a>` : ""}
+            ${first ? `<a href="#${first.path}">${t("home.open")}${icon("arrow-right", 14)}</a>` : ""}
           </p>
         </article>`
     })
@@ -49,7 +50,7 @@ export function renderHome(): string {
       </p>
       <div class="cards">${cards}</div>
       <p class="home-github">
-        <a href="${REPO_URL}" target="_blank" rel="noreferrer" data-testid="home-github">${t("home.github")} →</a>
+        <a href="${REPO_URL}" target="_blank" rel="noreferrer" data-testid="home-github">${t("home.github")}${icon("arrow-right", 14)}</a>
       </p>
     </section>`
 }
