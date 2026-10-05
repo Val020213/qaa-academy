@@ -1,0 +1,46 @@
+name: e2e
+
+# Runs both Playwright suites on every pull request and on every push to main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      # Downloads the browser and the system libraries it needs.
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - name: Course site suite
+        run: pnpm e2e
+
+      - name: Practice shop suite
+        run: pnpm shop:e2e
+
+      # Keep the HTML reports (with traces of failed tests) even when a suite fails.
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-reports
+          path: |
+            playwright-report/
+            apps/practice-shop/playwright-report/
+          retention-days: 7
