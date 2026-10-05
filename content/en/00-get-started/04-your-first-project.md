@@ -13,18 +13,26 @@ duration: 30 min
 
 ## Download the project
 
-The course is a project in a Git repository. A **repository** is a folder that Git tracks. The person who gave you this course sent you its URL.
+The course is a project in a Git repository. A **repository** is a folder that Git tracks. The course repository is public on GitHub, a website that stores repositories: https://github.com/Val020213/qaa-academy
 
-In the terminal, go to the folder where you keep projects. Then run `git clone` with the address of the course repository:
+You will not work in that repository. You will work in your own copy, called a **fork**. A fork is a copy of a repository in your own GitHub account. You can change it freely, and the original stays the same.
+
+1. Create a free account on github.com if you do not have one.
+2. Open the course repository in your browser.
+3. Click **Fork**, at the top right. Then click **Create fork**.
+
+Now you have your own copy at `https://github.com/<your-user>/qaa-academy`.
+
+In the terminal, go to the folder where you keep projects. Then run `git clone` with the address of your fork. Replace `<your-user>` with your GitHub user name:
 
 ```bash
 cd projects
-git clone https://github.com/Val020213/qaa-academy.git qaa
+git clone https://github.com/<your-user>/qaa-academy.git qaa
 cd qaa
 code .
 ```
 
-- `git clone` downloads a copy of the repository.
+- `git clone` downloads a copy of your fork to your computer.
 - `qaa` is the name of the new folder.
 - `cd qaa` moves you into it.
 - `code .` opens it in VS Code.
@@ -120,7 +128,7 @@ The number of tests and the time can be different.
 ## Practice
 
 1. Open a terminal and go to your projects folder.
-2. Run `git clone https://github.com/Val020213/qaa-academy.git qaa`.
+2. Fork the course repository on GitHub. Then run `git clone https://github.com/<your-user>/qaa-academy.git qaa` with your user name.
 3. Run `cd qaa`, then `code .`.
 4. In the VS Code terminal, run `pnpm install`.
 5. Run `pnpm dev`. Open http://localhost:5180 and find this lesson.

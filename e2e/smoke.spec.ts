@@ -100,3 +100,21 @@ test.describe("language", () => {
     await expect(page.getByTestId("lesson-title")).toHaveText("Funciones")
   })
 })
+
+test.describe("on this page", () => {
+  test("a lesson lists its sections and a click scrolls to one", async ({ page }) => {
+    await page.goto("/#/lesson/01-programming/05-functions")
+
+    const links = page.getByTestId("lesson-toc-link")
+    await expect(links.first()).toHaveText("Goal")
+    await expect(links.first()).toHaveAttribute("aria-current", "true")
+
+    await links.filter({ hasText: "Practice" }).click()
+
+    await expect(page.locator("#section-1")).not.toBeInViewport()
+    await expect(links.filter({ hasText: "Practice" })).toHaveAttribute(
+      "aria-current",
+      "true"
+    )
+  })
+})

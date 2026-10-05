@@ -13,18 +13,26 @@ duration: 30 min
 
 ## Descarga el proyecto
 
-El curso es un proyecto en un repositorio de Git. Un **repositorio** es una carpeta que Git vigila. La persona que te dio este curso te envió su URL.
+El curso es un proyecto en un repositorio de Git. Un **repositorio** es una carpeta que Git vigila. El repositorio del curso es público en GitHub, un sitio web que guarda repositorios: https://github.com/Val020213/qaa-academy
 
-En la terminal, ve a la carpeta donde guardas tus proyectos. Luego ejecuta `git clone` con la dirección del repositorio del curso:
+No vas a trabajar en ese repositorio. Vas a trabajar en tu propia copia, llamada *fork*. Un **fork** es una copia de un repositorio en tu propia cuenta de GitHub. Puedes cambiarla con libertad, y el original queda igual.
+
+1. Crea una cuenta gratis en github.com si no tienes una.
+2. Abre el repositorio del curso en tu navegador.
+3. Haz clic en **Fork**, arriba a la derecha. Luego haz clic en **Create fork**.
+
+Ahora tienes tu propia copia en `https://github.com/<your-user>/qaa-academy`.
+
+En la terminal, ve a la carpeta donde guardas tus proyectos. Luego ejecuta `git clone` con la dirección de tu fork. Reemplaza `<your-user>` con tu nombre de usuario de GitHub:
 
 ```bash
 cd projects
-git clone https://github.com/Val020213/qaa-academy.git qaa
+git clone https://github.com/<your-user>/qaa-academy.git qaa
 cd qaa
 code .
 ```
 
-- `git clone` descarga una copia del repositorio.
+- `git clone` descarga una copia de tu fork a tu computadora.
 - `qaa` es el nombre de la carpeta nueva.
 - `cd qaa` te mueve dentro de ella.
 - `code .` la abre en VS Code.
@@ -120,7 +128,7 @@ El número de tests y el tiempo pueden ser distintos.
 ## Práctica
 
 1. Abre una terminal y ve a tu carpeta de proyectos.
-2. Ejecuta `git clone https://github.com/Val020213/qaa-academy.git qaa`.
+2. Haz un fork del repositorio del curso en GitHub. Luego ejecuta `git clone https://github.com/<your-user>/qaa-academy.git qaa` con tu nombre de usuario.
 3. Ejecuta `cd qaa` y luego `code .`.
 4. En la terminal de VS Code, ejecuta `pnpm install`.
 5. Ejecuta `pnpm dev`. Abre http://localhost:5180 y busca esta lección.

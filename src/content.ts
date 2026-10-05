@@ -124,8 +124,17 @@ export function findLesson(path: string): Lesson | undefined {
 const escapeHtml = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 
+// Counts the `##` headings of the lesson being rendered, to give each one an id.
+let headingCount = 0
+
 const markdown = new Marked({
   renderer: {
+    heading({ tokens, depth }) {
+      const html = this.parser.parseInline(tokens)
+      if (depth !== 2) return `<h${depth}>${html}</h${depth}>\n`
+      headingCount += 1
+      return `<h2 id="section-${headingCount}">${html}</h2>\n`
+    },
     code({ text, lang }) {
       const language = lang && hljs.getLanguage(lang) ? lang : undefined
       const html = language
@@ -143,5 +152,24 @@ const markdown = new Marked({
 })
 
 export function renderMarkdown(source: string): string {
+  headingCount = 0
   return markdown.parse(source, { async: false })
+}
+
+export interface Heading {
+  /** The id of the <h2> element in the rendered lesson. */
+  id: string
+  text: string
+}
+
+/** The `##` headings of a lesson, in order. They feed the "On this page" list. */
+export function lessonHeadings(source: string): Heading[] {
+  return markdown
+    .lexer(source)
+    .filter((token) => token.type === "heading" && token.depth === 2)
+    .map((token, index) => ({
+      id: `section-${index + 1}`,
+      // Remove Markdown marks such as `code` and **bold** from the text.
+      text: ("text" in token ? String(token.text) : "").replace(/[`*_]/g, ""),
+    }))
 }

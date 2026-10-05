@@ -1,5 +1,7 @@
 # QAA Academy
 
+**Read the course online: https://qaa-academy.vercel.app**
+
 A course to go from manual QA to QA Automation. You first learn to program with TypeScript, then you write end-to-end tests with Playwright. The course is a static site, and the same site is the application you learn to automate.
 
 ## Requirements
@@ -13,7 +15,11 @@ The lesson "Install the tools" explains each install step.
 
 ## Start
 
+Fork this repository on GitHub, so you have your own copy to work in. Then clone your fork:
+
 ```bash
+git clone https://github.com/<your-user>/qaa-academy.git qaa
+cd qaa
 pnpm install
 pnpm dev
 ```

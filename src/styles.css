@@ -280,6 +280,49 @@ h1 {
 
 /* ---------- lesson ---------- */
 
+.lesson-layout {
+  display: grid;
+  grid-template-columns: minmax(0, var(--measure)) 208px;
+  gap: 64px;
+  justify-content: center;
+}
+.lesson-layout .page { width: 100%; margin: 0; }
+
+.toc {
+  position: sticky;
+  top: calc(var(--topbar) + 48px);
+  align-self: start;
+  max-height: calc(100vh - var(--topbar) - 96px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.toc-title { margin: 0 0 12px; font-size: 13px; font-weight: 500; line-height: 20px; color: var(--text); }
+.toc ul { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--border); }
+.toc button {
+  display: block;
+  width: 100%;
+  margin-left: -1px;
+  padding: 4px 0 4px 16px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: left;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-left: 1px solid transparent;
+  cursor: pointer;
+}
+.toc button:hover { color: var(--text); }
+.toc button.active { color: var(--text); font-weight: 500; border-left-color: var(--text); }
+
+.prose h2 { scroll-margin-top: calc(var(--topbar) + 24px); }
+
+@media (max-width: 1279px) {
+  .lesson-layout { grid-template-columns: minmax(0, var(--measure)); }
+  .toc { display: none; }
+}
+
 .lesson h1 { margin-bottom: 12px; }
 .lesson .lead { padding-bottom: 32px; border-bottom: 1px solid var(--border); }
 

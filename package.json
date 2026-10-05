@@ -17,6 +17,7 @@
     "shop:e2e": "pnpm --filter practice-shop e2e",
     "shop:e2e:ui": "pnpm --filter practice-shop e2e:ui"
   },
+  "packageManager": "pnpm@10.33.4",
   "engines": {
     "node": ">=24"
   },

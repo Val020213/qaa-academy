@@ -8,7 +8,7 @@ import { findLesson } from "./content.ts"
 import { currentLocale, setLocale, t } from "./i18n.ts"
 import { REPO_URL } from "./site.ts"
 import { renderHome } from "./views/home.ts"
-import { renderLesson } from "./views/lesson.ts"
+import { mountLessonToc, renderLesson } from "./views/lesson.ts"
 import { mountPlayground, renderPlayground } from "./views/playground.ts"
 import { paintThemeToggle, toggleTheme } from "./theme.ts"
 import { renderSidebar } from "./views/sidebar.ts"
@@ -78,6 +78,7 @@ function render(): void {
     mountPlayground(main)
   } else if (lesson) {
     main.innerHTML = renderLesson(lesson)
+    mountLessonToc(main)
   } else {
     main.innerHTML = `
       <section class="page" data-testid="not-found">

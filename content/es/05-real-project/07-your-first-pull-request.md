@@ -73,7 +73,9 @@ La primera vez, define el upstream. Esto enlaza tu branch local con la remota.
 git push -u origin tests/close-coverage-gaps
 ```
 
-La salida imprime un enlace para abrir un pull request. Ábrelo en tu navegador.
+Aquí `origin` es tu fork en GitHub, la copia que hiciste en el módulo 0. La salida imprime un enlace para abrir un pull request. Ábrelo en tu navegador.
+
+> **Cuidado:** GitHub puede ofrecerte enviar el pull request al repositorio original del curso. Cambia el **base repository** a tu propio fork, para que el pull request quede en tu copia. Luego comparte su enlace con la persona que revisa tu trabajo.
 
 ## 5. Escribe la descripción
 
