@@ -1,15 +1,33 @@
 ---
 title: Tipos
 summary: Aprende que cada valor tiene un tipo y deja que el verificador de tipos de TypeScript encuentre errores antes de ejecutar el código.
-duration: 45 min
+duration: 70 min
 ---
+
+## Empieza con un acertijo
+
+Un refugio de mascotas guarda el número de gatos como texto, porque viene de un formulario. Guarda el número de perros como un número de verdad.
+
+```ts
+const cats = "3";
+const dogs = 4;
+console.log(cats + dogs);
+console.log(cats * dogs);
+console.log(cats - dogs);
+```
+
+¿Qué imprimen las tres líneas? Puedes pensar que el programa se detiene con un error, porque no se puede mezclar texto y números. O puedes pensar que las tres líneas se comportan igual.
+
+Mira cada signo por separado. Uno de ellos puede tratar `"3"` de forma muy distinta a los otros dos.
+
+Escribe tu respuesta antes de seguir leyendo.
 
 ## Objetivo
 
-- Nombrar el tipo de un valor: string, number o boolean.
-- Escribir una anotación de tipo y saber cuándo TypeScript encuentra el tipo por ti.
-- Usar el verificador de tipos para encontrar errores antes de ejecutar.
-- Explicar `null` y `undefined` con palabras simples.
+- Predecir qué da una operación cuando sus valores tienen tipos distintos.
+- Nombrar el tipo de un valor y escribir una anotación de tipo cuando hace falta.
+- Usar el verificador de tipos para encontrar un error antes de ejecutar el código.
+- Decidir cuándo un valor que falta debe ser `null` y cuándo `undefined`.
 
 ## Cada valor tiene un tipo
 
@@ -17,21 +35,21 @@ Un **tipo** es la clase de un valor. Conociste tres clases en la lección anteri
 
 | Tipo      | Ejemplo           | Significado    |
 | --------- | ----------------- | -------------- |
-| `string`  | `"Login failed"`  | texto          |
+| `string`  | `"Rex"`           | texto          |
 | `number`  | `404`             | un número      |
 | `boolean` | `true`            | sí o no        |
 
-El tipo decide qué puedes hacer con un valor. Puedes multiplicar números. No puedes multiplicar texto de forma útil.
+El tipo decide qué puedes hacer con un valor. Puedes multiplicar números. No puedes multiplicar el nombre de un perro de una forma útil.
 
 Puedes preguntar el tipo con `typeof`.
 
 ```ts
-console.log(typeof "Login failed");
+console.log(typeof "Rex");
 console.log(typeof 404);
 console.log(typeof true);
 ```
 
-Esto muestra:
+Esto imprime:
 
 ```text
 string
@@ -41,74 +59,90 @@ boolean
 
 ## Texto que parece un número
 
-`"5"` y `5` se ven iguales, pero no son lo mismo. El primero es un string. El segundo es un número.
+`"5"` y `5` se ven iguales, pero no son lo mismo. El primero es un *string*. El segundo es un número.
+
+Antes de leer el resultado, adivina qué imprime cada línea:
 
 ```ts
 console.log("5" + "1");
 console.log(5 + 1);
 ```
 
-Esto muestra:
+Esto imprime:
 
 ```text
 51
 6
 ```
 
-Con texto, `+` une las partes. Con números, `+` los suma.
-
-Este es un error común. Una página web a menudo te da texto, aunque muestre un número. Por ejemplo, el texto de un precio en una página es un string.
+Con texto, `+` une las partes. Con números, `+` las suma.
 
 Para convertir texto en número, usa `Number()`. Para convertir un número en texto, usa `String()`.
 
 ```ts
-const textFromPage = "5";
-console.log(Number(textFromPage) + 1);
+const ageFromForm = "5";
+console.log(Number(ageFromForm) + 1);
 console.log(String(404) + " error");
 ```
 
-Esto muestra:
+Esto imprime:
 
 ```text
 6
 404 error
 ```
 
+### De vuelta al acertijo
+
+El acertijo imprime esto:
+
+```text
+34
+12
+-1
+```
+
+El signo `+` tiene dos trabajos. Si un lado es texto, une. Entonces `"3" + 4` se vuelve el texto `"34"`. Los signos `*` y `-` tienen un solo trabajo: las matemáticas. Entonces JavaScript convierte `"3"` en el número 3 sin avisar y calcula `3 * 4` y `3 - 4`.
+
+JavaScript hace este cambio sin decírtelo. Se llama **coerción de tipos** (*type coercion*). A veces es amable y muchas veces es peligrosa, porque el mismo texto da resultados de clases distintas en cada línea.
+
+TypeScript ve el problema. En VS Code, las líneas con `*` y `-` muestran una línea roja: el lado izquierdo de la operación debe ser un número. El comando `node` ignora los tipos y ejecuta el archivo de todos modos. Así que el programa funciona y el verificador igual te avisa.
+
 ## Anotaciones de tipo
 
 Una **anotación de tipo** le dice a TypeScript el tipo de una variable. Escribes dos puntos y el tipo después del nombre.
 
 ```ts
-const testName: string = "Login with valid user";
-const retries: number = 3;
-const isBlocked: boolean = false;
+const dogName: string = "Rex";
+const dogAge: number = 3;
+const isHungry: boolean = false;
 ```
 
-Lee la primera línea: `testName` es un string y su valor es este texto.
+Lee la primera línea: `dogName` es un *string*, y su valor es este texto.
 
 ## Inferencia de tipos
 
-Muchas veces no necesitas escribir el tipo. TypeScript puede verlo por el valor. Esto se llama **inferencia de tipos**.
+Muchas veces no necesitas escribir el tipo. TypeScript puede verlo a partir del valor. Esto se llama **inferencia de tipos** (*type inference*).
 
 ```ts
-const testName = "Login with valid user";
+const dogName = "Rex";
 ```
 
-TypeScript sabe que `testName` es un string, porque el valor es texto.
+TypeScript sabe que `dogName` es un *string*, porque el valor es texto.
 
 Una buena regla: deja que TypeScript infiera el tipo en las variables simples. Escribe el tipo cuando TypeScript no pueda saberlo. Lo harás con las funciones en la lección 05.
 
 ## El verificador de tipos
 
-El **verificador de tipos** (*type checker*) es una parte de TypeScript. Lee tu código y busca errores, antes de que lo ejecutes. Piensa en él como un revisor que lee cada línea.
+El **verificador de tipos** (*type checker*) es una parte de TypeScript. Lee tu código y busca errores, antes de que lo ejecutes. Piénsalo como un revisor que lee cada línea.
 
 Escribe esto en un archivo:
 
 ```ts
-const retries: number = "three";
+const dogAge: number = "three";
 ```
 
-El verificador de tipos informa un error:
+El verificador de tipos reporta un error:
 
 ```text
 error TS2322: Type 'string' is not assignable to type 'number'.
@@ -118,35 +152,35 @@ Dice: prometiste un número, pero diste texto.
 
 Ves el problema en dos lugares:
 
-- En VS Code aparece una línea roja ondulada debajo del código. Pasa el ratón por encima para leer el mensaje.
+- En VS Code aparece una línea roja ondulada bajo el código. Pasa el mouse encima para leer el mensaje.
 - En la terminal puedes ejecutar el verificador de tipos para todo el proyecto:
 
 ```bash
 pnpm typecheck
 ```
 
-Corrige el problema antes de ejecutar el programa. Es más rápido que encontrarlo después.
+Arregla el problema antes de ejecutar el programa. Es más rápido que encontrarlo después.
 
-> **Nota:** El comando `node file.ts` no comprueba los tipos. Solo los quita y ejecuta el código. El verificador es `pnpm typecheck` y las líneas rojas de VS Code.
+> **Nota:** El comando `node file.ts` no revisa los tipos. Solo los quita y ejecuta el código. El verificador es `pnpm typecheck` y las líneas rojas de VS Code.
 
 ## null y undefined
 
 A veces falta un valor. TypeScript tiene dos valores especiales para esto.
 
-`undefined` significa: todavía no se ha dado nada. Una variable que no tiene valor es `undefined`.
+`undefined` significa: todavía no se ha dado nada. Una estación meteorológica que no ha hecho su primera medición tiene una temperatura `undefined`.
 
-`null` significa: no hay valor, y es a propósito. Lo asignas tú.
+`null` significa: no hay valor, y es a propósito. Un perro del refugio que nadie ha adoptado no tiene dueño. Eso lo decides tú.
 
 ```ts
-let assignee: string | undefined;
-console.log(assignee);
-console.log(typeof assignee);
+let temperature: number | undefined;
+console.log(temperature);
+console.log(typeof temperature);
 
 const owner: string | null = null;
 console.log(owner);
 ```
 
-Esto muestra:
+Esto imprime:
 
 ```text
 undefined
@@ -154,7 +188,7 @@ undefined
 null
 ```
 
-El signo `|` significa "o". Así que `string | undefined` significa: un string, o todavía nada. Y `string | null` significa: un string, o ningún valor a propósito.
+El signo `|` significa "o". Entonces `number | undefined` significa: un número, o todavía nada. Y `string | null` significa: un *string*, o ningún valor a propósito.
 
 El verificador de tipos usa esto para protegerte. Si un valor puede faltar, te obliga a pensar en ese caso.
 
@@ -162,9 +196,9 @@ El verificador de tipos usa esto para protegerte. Si un valor puede faltar, te o
 
 ### Por qué los tipos desaparecen cuando el programa se ejecuta
 
-TypeScript comprueba tus tipos y luego los elimina. Lo que ejecuta Node.js es JavaScript simple. Por eso `node file.ts` no informa un error de tipos.
+TypeScript revisa tus tipos y luego los quita. Lo que Node.js ejecuta es JavaScript simple. Por eso `node file.ts` no reporta un error de tipos.
 
-También significa que TypeScript solo sabe lo que tú le dices. Si un valor viene de fuera, como el texto de una página web, TypeScript no puede mirar dentro de él. Al ejecutarse, el valor tiene el tipo que realmente tiene.
+También significa que TypeScript solo sabe lo que tú le dices. Si un valor viene de fuera, como un texto de una página web, TypeScript no puede mirar dentro. Al ejecutarse, el valor tiene el tipo que realmente tiene.
 
 ### Una idea equivocada común: "Number() siempre da un número en el que puedo confiar"
 
@@ -176,7 +210,7 @@ console.log(Number(""));
 console.log(typeof Number("abc"));
 ```
 
-Esto muestra:
+Esto imprime:
 
 ```text
 NaN
@@ -184,7 +218,7 @@ NaN
 number
 ```
 
-`NaN` significa "no es un número" (*not a number*). Es un valor numérico que marca una conversión fallida. Su tipo sigue siendo `number`. Y un texto vacío se convierte en `0`, sin ningún aviso. Así que revisa el texto antes de confiar en el resultado.
+`NaN` significa "no es un número" (*not a number*). Es un valor numérico que marca una conversión fallida. Su tipo sigue siendo `number`. Y un texto vacío se vuelve `0`, sin ninguna advertencia. Por eso revisa el texto antes de confiar en el resultado.
 
 ### Cómo aparece en el trabajo real de automatización QA
 
@@ -196,7 +230,7 @@ console.log(Number("$5.00".replace("$", "")) + 1);
 console.log("5" + 1);
 ```
 
-Esto muestra:
+Esto imprime:
 
 ```text
 NaN
@@ -204,21 +238,21 @@ NaN
 51
 ```
 
-El signo `$` hace que la conversión falle. `replace` es una función que ya viene incluida en el texto. Aquí cambia `$` por nada. La última línea muestra el otro peligro: `+` con un string y un número los une como texto y da `"51"`.
+El signo `$` hace que la conversión falle. `replace` es una función ya hecha del texto. Aquí cambia `$` por nada. La última línea muestra el otro peligro: `+` con un *string* y un número los une como texto y da `"51"`.
 
-Muchos resultados incorrectos en los tests vienen de esto. El valor de la página parecía un número, pero el código lo trató como texto.
+Muchos resultados incorrectos en los tests vienen de esto. El valor en la página parecía un número, pero el código lo trató como texto.
 
-### Una contrapartida: los tipos ayudan, pero no son tests
+### Una concesión: los tipos ayudan, pero no son tests
 
 El verificador de tipos encuentra una clase de valor equivocada. No puede decirte si un precio es correcto. Solo un test con una comprobación puede hacerlo. Los tipos y los tests detectan problemas distintos, así que necesitas ambos.
 
 ## Práctica
 
 1. Crea el archivo `exercises/01-programming/types.ts`.
-2. Muestra el `typeof` de un texto, un número y `true`.
-3. Muestra `"2" + "3"` y `2 + 3`. Comprueba que los resultados son distintos.
-4. Convierte el texto `"10"` en número con `Number()`. Suma 5 y muestra el resultado.
-5. Escribe `const retries: number = "three";`. Mira la línea roja en VS Code. Lee el mensaje. Después ejecuta `pnpm typecheck` en la terminal. Corrige la línea.
+2. Imprime el `typeof` de un texto, un número y `true`.
+3. Imprime `"2" + "3"` y `2 + 3`. Comprueba que los resultados son distintos.
+4. Convierte el texto `"10"` en número con `Number()`. Suma 5 e imprime el resultado.
+5. Escribe `const dogAge: number = "three";`. Mira la línea roja en VS Code. Lee el mensaje. Luego ejecuta `pnpm typecheck` en la terminal. Arregla la línea.
 6. Abre `exercises/01-programming/03-types.ts` y ejecútalo:
 
 ```bash
@@ -227,69 +261,92 @@ node exercises/01-programming/03-types.ts
 
 Resuelve los ejercicios. Haz que todas las líneas digan `OK`.
 
-## Comprueba lo que sabes
+## Reto
 
-1. ¿Qué da `"5" + "1"`?
+Una estación meteorológica envía sus lecturas como texto, con la unidad al final: `"21.5°C"`, `"19°C"`, `"23°C"`. Escribe un programa que convierta las lecturas en números e informe el promedio. Puedes cambiar el tema: un sensor de una piscina, las alturas de los jugadores de un equipo de baloncesto, los precios de un menú.
 
-<details>
-<summary>Respuesta</summary>
+Crea el archivo `exercises/challenges/types.ts`.
 
-El texto `"51"`. Con texto, `+` une las partes.
+Está terminado cuando:
 
-</details>
+- Las lecturas están guardadas como texto en tres variables `const`. También se guarda una cuarta lectura, `"n/a"`.
+- Ejecutas `node exercises/challenges/types.ts` y imprime el promedio de las tres primeras lecturas como `Average: 21.2°C`.
+- El programa también imprime el `typeof` del promedio antes de darle formato, y dice `number`.
+- El programa imprime `false` para la pregunta "¿la cuarta lectura es un número válido?" y `true` para la primera.
 
-2. ¿Cuál es la diferencia entre una anotación de tipo y la inferencia de tipos?
+Vas a necesitar algo que esta lección no enseñó: una forma de leer el número al inicio de un texto como `"21.5°C"`, y una forma confiable de preguntar "¿este valor es `NaN`?". Busca: `javascript parseFloat`, `javascript Number.isNaN`. Para un decimal, busca `javascript toFixed`.
 
-<details>
-<summary>Respuesta</summary>
+## Piénsalo bien
 
-Una anotación es un tipo que tú escribes. Con la inferencia, TypeScript encuentra el tipo por el valor.
-
-</details>
-
-3. ¿`node file.ts` encuentra errores de tipos?
-
-<details>
-<summary>Respuesta</summary>
-
-No. Usa las líneas rojas de VS Code o `pnpm typecheck`.
-
-</details>
-
-4. ¿Cuál es la diferencia entre `null` y `undefined`?
-
-<details>
-<summary>Respuesta</summary>
-
-`undefined` significa que todavía no se ha dado nada. `null` significa que no hay valor, a propósito.
-
-</details>
-
-5. ¿Qué muestra este código y por qué?
+1. ¿Qué imprime esta línea y por qué?
 
 ```ts
-console.log(typeof Number("abc"), Number("abc"));
+console.log("3" * "4", "3" + "4", "3" - 1, "3" + 1);
 ```
 
 <details>
 <summary>Respuesta</summary>
 
-Muestra `number NaN`. `Number()` no puede leer el texto `abc`, así que da `NaN`. `NaN` es un valor especial del tipo number. No es un error, así que el programa continúa.
+Imprime `12 34 2 31`. Los signos `*` y `-` solo pueden hacer matemáticas, así que JavaScript convierte el texto en números: `3 * 4` es 12 y `3 - 1` es 2. El signo `+` une cuando un lado es texto, así que obtienes `"34"` y `"31"`. El verificador de tipos marca con una línea roja las líneas de matemáticas, pero `node` las ejecuta.
 
 </details>
 
-6. Un test lee el texto `"20"` de una página y quiere el total después de sumar 5. Encuentra el bug.
+2. Un programa de una piscina debe imprimir el promedio de dos lecturas, 20 y 30. Imprime un número extraño. Encuentra el bug.
 
 ```ts
-const price = "20";
-const total = price + 5;
-console.log(total);
+const morning = "20";
+const evening = "30";
+console.log((morning + evening) / 2);
 ```
 
 <details>
 <summary>Respuesta</summary>
 
-Muestra `205`, no `25`. La variable `price` es un string, así que `+` une el texto. La solución es `Number(price) + 5`. El verificador de tipos no se queja aquí, porque unir texto y un número está permitido.
+Imprime `1015`. Los dos valores son texto, así que `+` los une en `"2030"`. Luego `/ 2` convierte ese texto en el número 2030 y lo divide. El programa se ejecuta sin error y da una respuesta equivocada. La solución es convertir primero el texto en números: `(Number(morning) + Number(evening)) / 2`, que da 25.
+
+</details>
+
+3. Dos versiones que funcionan. ¿Cuál es mejor y qué te haría elegir la otra?
+
+```ts
+const dogAge: number = 3;
+```
+
+```ts
+const dogAge = 3;
+```
+
+<details>
+<summary>Respuesta</summary>
+
+La segunda es mejor para un valor simple. TypeScript ya sabe que es un número, así que la anotación repite información y añade ruido. Elegirías la primera cuando el valor no se da en ese momento, por ejemplo `let dogAge: number;`, o cuando quieres que el verificador detenga un valor incorrecto que viene de una función. La regla: escribe un tipo donde TypeScript no pueda saberlo por sí solo.
+
+</details>
+
+4. Un formulario envía una edad como texto. Tu código es `Number(ageText) + 1` para hallar el próximo cumpleaños. Una regla nueva dice que el campo de edad puede estar vacío. ¿Qué sale mal?
+
+<details>
+<summary>Respuesta</summary>
+
+Un texto vacío se vuelve `0` con `Number("")`, así que la edad siguiente es `1`. El programa no muestra error ni advertencia, y el resultado parece una edad real. El valor que falta se esconde dentro de un número válido. Tendrías que revisar si el texto está vacío antes de convertir, y decidir qué debe decir el programa cuando no hay edad.
+
+</details>
+
+5. Un refugio guarda el dueño de cada perro como `string`. Llega un perro sin dueño. ¿Qué problema encuentras y cómo ayudaría el tipo `string | null`?
+
+<details>
+<summary>Respuesta</summary>
+
+Con solo `string`, debes inventar un valor falso como `""` o `"none"`. Ese valor parece un dueño real, y nada te avisa cuando lo usas por error. Con `string | null`, el dueño que falta es un caso real y separado. Entonces el verificador de tipos te obliga a manejar `null` antes de usar el texto. El costo es un poco más de código en cada lugar donde lees el dueño.
+
+</details>
+
+6. ¿Un programa debe guardar un precio como el número `5` o como el texto `"$5.00"`? No hay una única respuesta correcta. Explica qué te da cada opción y de qué depende.
+
+<details>
+<summary>Respuesta</summary>
+
+Un número te permite sumar, comparar y multiplicar sin conversión, y el verificador puede protegerte. El texto es lo que lee una persona, así que sirve para mostrar, y conserva el símbolo y el formato. Una solución común es guardar el número dentro del programa y crear el texto solo en el último momento, cuando lo muestras. La elección depende de lo que hace el valor: los cálculos necesitan un número, mientras que mostrarlo y compararlo con una página necesita el texto.
 
 </details>
 
@@ -299,16 +356,19 @@ Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu r
 
 1. **¿Por qué `typeof null` da `"object"` en JavaScript?**
    - Busca: `typeof null object javascript why`
-   - Una buena respuesta explica: la historia detrás de esto y que es un error conocido del lenguaje.
+   - Pruébalo: imprime `typeof null`, `typeof undefined`, `typeof NaN` y `typeof []` en un solo `console.log`. Compara cada respuesta con lo que esperabas.
+   - Una buena respuesta explica: la historia detrás de esto, y que es un error conocido del lenguaje.
 
 2. **¿Qué es `NaN` y por qué `NaN === NaN` es falso? ¿Cómo se comprueba?**
    - Busca: `javascript NaN not equal itself Number.isNaN`
-   - Una buena respuesta explica: qué significa NaN, la comparación sorprendente y la forma correcta de comprobarlo.
+   - Pruébalo: imprime `NaN === NaN`, `Number.isNaN(NaN)`, `Number.isNaN("abc")` y `isNaN("abc")`. Dos de las tres últimas dan respuestas distintas. Descubre por qué.
+   - Una buena respuesta explica: qué significa NaN, la comparación sorprendente, y por qué `Number.isNaN` e `isNaN` no son lo mismo.
 
 3. **¿Cuál es la diferencia entre un verificador de tipos y un test, y qué problemas puede detectar cada uno?**
    - Busca: `static typing vs testing bugs`
-   - Una buena respuesta explica: un problema que solo detectan los tipos, uno que solo detectan los tests y por qué los equipos usan ambos.
+   - Pruébalo: escribe `const squareArea: number = 4 + 4;` para un cuadrado de lado 4. Comprueba que el verificador de tipos queda conforme. Luego explica qué clase de comprobación encontraría el error.
+   - Una buena respuesta explica: un problema que solo detectan los tipos, uno que solo detectan los tests, y por qué los equipos usan ambos.
 
 ## Siguiente paso
 
-En la próxima lección harás que tu programa tome decisiones con comparaciones e `if`.
+En la siguiente lección haces que tu programa tome decisiones con comparaciones e `if`.

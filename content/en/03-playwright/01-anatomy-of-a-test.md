@@ -1,15 +1,29 @@
 ---
 title: Anatomy of a test
-summary: Read a real Playwright test line by line, run it, and see what a failure looks like.
-duration: 45 min
+summary: Read a real Playwright test line by line, run it, see what a failure looks like, and learn why a green test can prove nothing.
+duration: 75 min
 ---
+
+## Start with a puzzle
+
+Here are three tests. Each one first types a wrong password and clicks "Sign in" in the Practice app.
+
+- Test A has no check after the click.
+- Test B checks that the element `login-error` is visible.
+- Test C checks that the element `login-welcome` is hidden.
+
+Now a developer deletes one line from the app: the line that sets the message "Wrong email or password." The error never appears.
+
+Which of the three tests turn red? Which stay green? One of your answers may surprise you.
+
+Write down your guess before you read on.
 
 ## Goal
 
-- Explain what an end-to-end test is.
+- Predict whether a test passes or fails from its code alone.
 - Name the parts of a Playwright test: import, `test()`, `page`, an action and an assertion.
-- Run one file and one test.
-- Read the output of a passing and a failing run.
+- Run one file and one test, and read the result of a passing and a failing run.
+- Explain why a green test can still prove nothing.
 
 ## What an end-to-end test is
 
@@ -27,7 +41,11 @@ The tests in this module run against the Practice app. It is a page in this cour
 pnpm dev
 ```
 
-Open `http://localhost:5180/#/practice` in your browser. You see a login form, a test case list and a slow report. Try them by hand first.
+Open `http://localhost:5180/#/practice` in your browser. You see a login form, a test case list and a slow report. Try them by hand first. Look for the three things a test will need: where you type, what you click, and where the result appears.
+
+Watch how a person uses the Practice app by hand.
+
+![Using the Practice app by hand: log in, add cases, tick one, load the report.](/clips/practice-app-tour.webm)
 
 > **Note:** You do not need `pnpm dev` to run the tests. Playwright starts the site by itself. The lesson about the config file explains why.
 
@@ -55,13 +73,13 @@ test.describe("login", () => {
 })
 ```
 
-Go through it one part at a time.
+Before you read the explanation, take a pencil. Mark every word in this file that you can guess the meaning of. Then compare with the parts below.
 
 ### The import
 
 `import { expect, test } from "./lib/test"` brings in two tools. `test` declares a test. `expect` checks a result.
 
-The team rule: import them from the project file `e2e/lib/test.ts`, never from `@playwright/test`.
+The team rule: import them from the project file `e2e/lib/test.ts`, never from `@playwright/test`. Today that file only passes the two tools on. The team can add its own tools there later, and no spec has to change.
 
 ### test()
 
@@ -74,7 +92,7 @@ The team rule: import them from the project file `e2e/lib/test.ts`, never from `
 
 The function is `async`, because every step takes time. You learned this in the async lesson.
 
-Playwright gives the function a `page`. It is a fresh browser tab, only for this test. You write `{ page }` to take it from the object Playwright passes in.
+Playwright gives the function a `page`. It is a fresh browser tab, only for this test. You write `{ page }` to take it from the object Playwright passes in. Because every test gets its own tab, one test cannot leave a mess for the next one.
 
 ### goto
 
@@ -92,7 +110,7 @@ The shape of every test is the same: open, act, check.
 
 ## Run one file
 
-Use the root script `e2e` and give a file path:
+Use the root script `e2e` and give a file path. First, predict. The file has four tests. How many will pass? Will the lines print in the order of the file?
 
 ```bash
 pnpm e2e e2e/playground.spec.ts
@@ -113,7 +131,7 @@ Running 4 tests using 4 workers
 
 Each line is one test. The tick means it passed. `chromium` is the browser. Then you see the file, the line number, the group, the test name and the time.
 
-The numbers and times change on each run.
+The numbers and times change on each run. The first number on each line is not the order in the file. Tests run at the same time, in several "workers" (separate processes), and each line prints when its test ends. So a test must never depend on another test running first.
 
 ## Run one test
 
@@ -125,6 +143,10 @@ pnpm e2e e2e/playground.spec.ts -g "adds a case"
 
 Only one test runs.
 
+Watch the steps of the login test, with the code line shown for each step.
+
+![The login test runs step by step, with each line of code shown below.](/clips/test-run-headed.webm)
+
 ## What a failure looks like
 
 A failing test is not a problem. It is information. Make one on purpose. In the test above, expect a wrong text:
@@ -132,6 +154,8 @@ A failing test is not a problem. It is information. Make one on purpose. In the 
 ```ts
 await expect(page.getByTestId("login-error")).toHaveText("Wrong password.")
 ```
+
+Before you run it, write what you think the message will contain. Which two texts will it show? How long do you think Playwright tries before it gives up?
 
 The run prints a message like this:
 
@@ -146,7 +170,7 @@ Timeout:  5000ms
 Call log:
   - Expect "toHaveText" with timeout 5000ms
   - waiting for getByTestId('login-error')
-    9 × locator resolved to <p role="alert" data-testid="login-error" ...>Wrong email or password.</p>
+    9 × locator resolved to <div role="alert" data-slot="alert" ...>Wrong email or password.</div>
       - unexpected value "Wrong email or password."
 ```
 
@@ -155,6 +179,14 @@ Read it from the top. The assertion `toHaveText` failed. The locator is `login-e
 The **call log** lists each try. Below it, you see the lines of your code with an arrow `>` at the failing line. The next lessons explain the rest of the message.
 
 > **Tip:** Always read the "Expected" and "Received" lines first. They tell you what was different.
+
+Treat a failure like a scientist. You have one guess ("the text is different"), and the message is the result of one small experiment. Change one thing, run again. If you change three things at once, you will not know which one fixed it.
+
+### Back to the puzzle
+
+Only test B turns red. The deleted line leaves the error element empty and hidden, so `toBeVisible` fails. Test A has no check, so it can never fail. Test C checks that the welcome message is hidden. That is also true when the app has the bug, so it stays green.
+
+A check is useful only if it would be false when the app is wrong. Ask this about every assertion you write: "What bug would turn this red?"
 
 ## Go deeper
 
@@ -239,7 +271,9 @@ test("ticking a case updates the counter", async ({ page }) => {
 })
 ```
 
-Testers call this shape Arrange, Act, Assert. In `e2e/playground.spec.ts`, the `goto` is written once in `beforeEach`, not in every test. This is the idea called DRY, "Don't Repeat Yourself". You studied it at the end of the programming module. The limit is also important: a test should still read as a clear story from top to bottom.
+Testers call this shape **Arrange, Act, Assert**. In `e2e/playground.spec.ts`, the `goto` is written once in `beforeEach`, not in every test. This is the idea called DRY, "Don't Repeat Yourself". You studied it at the end of the programming module. The limit is also important: a test should still read as a clear story from top to bottom.
+
+Each test here makes its own case. It does not rely on a case from another test. A good test suite is **independent** and **repeatable**: you can run any test alone, in any order, many times, and get the same answer.
 
 ## Practice
 
@@ -256,53 +290,90 @@ pnpm e2e e2e/exercises/03-playwright/01-anatomy-of-a-test.spec.ts
 
 When you finish, compare your code with `e2e/exercises/03-playwright/solutions/01-anatomy-of-a-test.spec.ts`.
 
-## Check what you know
+## Challenge
 
-1. What is an assertion?
+Create the file `e2e/challenges/01-anatomy-of-a-test.spec.ts`. Choose one behaviour of the Practice app that `e2e/playground.spec.ts` does not test. Good choices: signing out after a login, deleting a case, or the rule that an empty case title adds nothing. Write one test for it, in the Arrange, Act, Assert shape. Split the test into named steps. Then prove that your test can fail: break it on purpose and read the message.
+
+It is done when:
+
+- The file has exactly one test, and `pnpm e2e e2e/challenges/01-anatomy-of-a-test.spec.ts` shows it as passed.
+- The test has three named steps for Arrange, Act and Assert, and the run output shows the step names when you make it fail.
+- You changed one expected value on purpose, saw the test fail, and the failure message pointed to your Assert step. Then you changed it back.
+- The test has at least one assertion that would be false if the behaviour were broken. You can say in one sentence which bug turns it red.
+- The test does not use `page.waitForTimeout`.
+
+You will need something this lesson did not teach: how to group lines of a test into named steps. Search for: `playwright test.step`.
+
+> **Tip:** You may ask an AI assistant for help. But you must run the code, and you must be able to explain every line to a teammate. Never keep code that you cannot explain.
+
+## Think it through
+
+1. Predict the output and say why. Use `runTest` and `check` from "Go deeper".
+
+```ts
+await runTest("two checks", async () => {
+  console.log("step 1")
+  check("dog", "dog")
+  console.log("step 2")
+  check("cat", "bird")
+  console.log("step 3")
+})
+```
 
 <details><summary>Answer</summary>
 
-A check. It compares what the app shows with what you expect. If they differ, the test fails.
+It prints `step 1`, `step 2`, and then `failed: two checks (expected "bird" but got "cat")`. The text `step 3` is never printed. The second `check` throws an error, and an error stops the function at that line. Playwright works the same way: the first failed assertion ends the test, so later lines do not run.
 
 </details>
 
-2. What does `-g` do?
+2. This test runs and passes, but it does the wrong job. Find the bug.
+
+```ts
+test("accepts the test credentials", async ({ page }) => {
+  await page.goto("/#/practice")
+  await page.getByTestId("login-email").fill("qa@example.com")
+  await page.getByTestId("login-password").fill("Playwright123")
+  await page.getByTestId("login-submit").click()
+
+  await expect(page.getByTestId("login-error")).toBeHidden()
+})
+```
 
 <details><summary>Answer</summary>
 
-It runs only the tests whose name contains the text you give.
+The test checks that no error is shown. That is also true when the app does nothing at all, or when it freezes. The check would pass even before the click. Check the thing that proves success: `login-welcome` is visible and contains the email. The test name says "accepts", so the assertion must prove an acceptance.
 
 </details>
 
-3. Why does every step in a test have `await`?
+3. Two versions of a spec both work. Version A calls `page.goto` once in `test.beforeEach`. Version B writes `page.goto` as the first line of every test. Which is better here, and what would make you choose the other?
 
 <details><summary>Answer</summary>
 
-Every step takes time. `await` makes the test wait for the step to finish before the next one.
+In `e2e/playground.spec.ts`, A is better. Every test starts on the same page, so the repeated line is noise, and a change of address is made in one place. B is better when some tests start elsewhere, or when a reader must see the start state without scrolling to the top of the file. The test should read as a story, so choose the version where the story stays clear.
 
 </details>
 
-4. Which lines of a failure message do you read first?
+4. What breaks if a developer renames `data-testid="login-error"` to `data-testid="auth-error"`, and the message text is the same? What does the failure look like, and is it a bug in the app?
 
 <details><summary>Answer</summary>
 
-The "Expected" and "Received" lines. They show the difference.
+Every test that uses `getByTestId("login-error")` fails after about 5 seconds. The message says the locator did not find an element, so there is no `Received` text. A user sees no difference, so this is not a bug in the app. It is a change of the contract between the app and the tests. The fix is to talk with the developer, and to update the tests in the same change.
 
 </details>
 
-5. A test opens the Practice app, fills `login-email` and `login-password` with wrong values, and clicks `login-submit`. It has no assertion. Does it pass? Is it a useful test?
+5. Explain to a teammate in three sentences why a test without checks can pass. Do not use the word "assertion".
 
 <details><summary>Answer</summary>
 
-It passes, because the fields and the button exist and nothing throws an error. It is not useful. It would also pass if the app showed no error at all, or the wrong error. The test needs an assertion on `login-error`.
+A test fails only when something throws an error. Steps like typing and clicking throw an error only when the element is missing. A check is the part of the code that compares the page with what you expect, and a test with no check never compares anything, so it can never be wrong.
 
 </details>
 
-6. A test uses `page.getByTestId("login-erorr")` with a typo, and expects the text `"Wrong email or password."`. The app works correctly. What does the test do, and how long does it take?
+6. A colleague says: "One assertion per test is the rule." Another says: "Five assertions in one test is fine." Who is right?
 
 <details><summary>Answer</summary>
 
-It fails after about 5 seconds. No element has the test id with the typo. Playwright keeps looking until the assertion timeout ends, and then reports that it did not find the element. A failed test does not always mean a bug in the app. This one is a bug in the test.
+There is no single right answer. One assertion per test gives a clear failure message and a precise name. But every test repeats the set-up, which is slow when the set-up is long. Several assertions on one result of one behaviour are fine, for example text, count and counter after "add a case". Several assertions about different behaviours in one test are not fine, because the first failure hides the rest. It depends on one question: if this test fails, will I know at once which behaviour is broken?
 
 </details>
 
@@ -312,15 +383,18 @@ These questions have no answer here. Search the internet, read, and write your a
 
 1. **What is the difference between a unit test, an integration test and an end-to-end test?**
    - Search for: `test pyramid unit integration end-to-end`
+   - Try it: Pick the Add button of the case list. Write one sentence for each kind of test: what you would check, and what you would need to run it.
    - A good answer explains: what each kind of test checks, which kind is fastest, and why teams usually write more fast tests than slow ones.
 
-2. **What is the Arrange, Act, Assert pattern, and why do testers use it?**
-   - Search for: `arrange act assert pattern testing`
-   - A good answer explains: the three parts of a test, with one small example, and how the pattern makes a test easier to read.
-
-3. **What is a flaky test, and what are the most common causes?**
+2. **What is a flaky test, and what are the most common causes?**
    - Search for: `flaky test causes automation`
+   - Try it: Run `pnpm e2e e2e/playground.spec.ts --repeat-each=10` and look at the result. Then find in the Playwright documentation what `--repeat-each` is for.
    - A good answer explains: what "flaky" means, gives at least three causes such as timing, shared data and an unstable environment, and says why a flaky test is harmful to a team.
+
+3. **What is mutation testing, and how does it connect to the question "what bug would turn this red?"**
+   - Search for: `mutation testing explained`
+   - Try it: Change one line in `src/practice/LoginPanel.tsx` on purpose, for example the error text. Run your tests and note which ones fail. Undo the change.
+   - A good answer explains: how a deliberate small bug is used to measure the strength of tests, and why a test that stays green is a warning.
 
 ## Next step
 

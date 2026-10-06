@@ -1,6 +1,10 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { api, ApiError } from "@/lib/api"
 
 export function LoginForm({ next }: { next: string }) {
@@ -30,35 +34,37 @@ export function LoginForm({ next }: { next: string }) {
   }
 
   return (
-    <form className="form" onSubmit={submit} noValidate data-testid="login-form">
-      <label>
-        Email
-        <input
+    <form className="grid gap-4" onSubmit={submit} noValidate data-testid="login-form">
+      <div className="grid gap-2">
+        <Label htmlFor="login-email">Email</Label>
+        <Input
+          id="login-email"
           type="email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           autoComplete="username"
           data-testid="login-email"
         />
-      </label>
-      <label>
-        Password
-        <input
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="login-password">Password</Label>
+        <Input
+          id="login-password"
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="current-password"
           data-testid="login-password"
         />
-      </label>
+      </div>
       {error && (
-        <p className="alert alert-error" role="alert" data-testid="login-error">
-          {error}
-        </p>
+        <Alert variant="destructive" role="alert" data-testid="login-error">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
-      <button className="button" type="submit" disabled={sending} data-testid="login-submit">
+      <Button type="submit" disabled={sending} data-testid="login-submit">
         {sending ? "Signing in…" : "Sign in"}
-      </button>
+      </Button>
     </form>
   )
 }

@@ -1,50 +1,76 @@
 ---
 title: Objects
-summary: Group related values under names, and keep a list of test cases as objects.
-duration: 40 min
+summary: Group related values under names, keep many objects in a list, and learn why a function can change an object but not a number.
+duration: 65 min
 ---
+
+## Start with a puzzle
+
+Two functions both add one year to an age. One gets a plain number. The other gets a dog, which is an object with a name and an age. You call both.
+
+```ts
+function birthdayAge(age: number): void {
+  age = age + 1;
+}
+
+function birthdayDog(dog: { name: string; age: number }): void {
+  dog.age = dog.age + 1;
+}
+
+let age = 3;
+const dog = { name: "Rex", age: 3 };
+
+birthdayAge(age);
+birthdayDog(dog);
+
+console.log(age, dog.age);
+```
+
+Both functions do the same arithmetic. Do both ages become 4? Does only one change? Which one, and why would the computer treat them differently?
+
+Write down your guess before you read on.
 
 ## Goal
 
-- Create an object that groups related values.
-- Read and change a property of an object.
+- Predict when a function changes the value you gave it, and when it does not.
+- Read, change and add a property of an object, also in a nested object.
 - Keep many objects in an array and loop over them.
-- Read a short destructuring line.
+- Decide when to change an object and when to make a new one.
 
 ## Why we need objects
 
-A test case has an id, a title and a status. These three values belong together.
+A dog has a name, an age and a weight. These three values belong together.
 
 You could use three separate variables:
 
 ```ts
-const testCaseId = 1;
-const testCaseTitle = "Login works";
-const testCaseStatus = "passed";
+const dogName = "Rex";
+const dogAge = 3;
+const dogWeight = 12.5;
 ```
 
-This gets messy when you have ten test cases. An **object** solves this. An object is one value that holds several named values.
+This gets messy when you have ten dogs. An **object** solves this. An object is one value that holds several named values.
 
 ## Create an object
 
 You write an object with curly braces `{ }`. Inside, you write pairs of `name: value`, separated by commas.
 
 ```ts
-const testCase = {
-  id: 1,
-  title: "Login works",
-  status: "passed",
+const dog = {
+  name: "Rex",
+  age: 3,
+  weight: 12.5,
 };
 
-console.log(testCase);
+console.log(dog);
 ```
 
-A **property** is one `name: value` pair inside an object. This object has three properties: `id`, `title` and `status`.
+A **property** is one `name: value` pair inside an object. This object has three properties: `name`, `age` and `weight`.
 
 The program prints:
 
 ```text
-{ id: 1, title: 'Login works', status: 'passed' }
+{ name: 'Rex', age: 3, weight: 12.5 }
 ```
 
 ## Read a property
@@ -52,44 +78,38 @@ The program prints:
 Write the object name, a dot, and the property name.
 
 ```ts
-const testCase = {
-  id: 1,
-  title: "Login works",
-  status: "passed",
-};
+const square = { side: 4, color: "red" };
 
-console.log(testCase.title);
-console.log(testCase.status);
+console.log(square.side);
+console.log(square.side * square.side);
 ```
 
 The program prints:
 
 ```text
-Login works
-passed
+4
+16
 ```
 
-If you write a property name that does not exist, TypeScript shows a red underline. This helps you find spelling mistakes early.
+The second line is the area of the square: side times side. The object holds the facts. The code makes new facts from them.
+
+What do you expect from `console.log(square.size)`? The property `size` does not exist. TypeScript shows a red underline before you run anything. If you ignore it and run the file, the program prints `undefined`. It does not stop. A spelling mistake in a property name gives "no value", not an error.
 
 ## Change a property
 
 You can assign a new value to a property with `=`.
 
 ```ts
-const testCase = {
-  id: 1,
-  title: "Login works",
-  status: "not run",
-};
+const dog = { name: "Rex", age: 3 };
 
-testCase.status = "passed";
-console.log(testCase.status);
+dog.age = 4;
+console.log(dog.age);
 ```
 
 The program prints:
 
 ```text
-passed
+4
 ```
 
 > **Note:** The variable is `const`, and you still changed a property. `const` means the variable always points to the same object. It does not freeze the inside of the object.
@@ -99,90 +119,137 @@ passed
 The value of a property can be text, a number, a boolean, an array, or even another object.
 
 ```ts
-const testCase = {
-  id: 2,
-  title: "Checkout applies discount",
-  automated: true,
-  tags: ["checkout", "smoke"],
-  environment: { name: "staging", browser: "chromium" },
+const recipe = {
+  name: "Pancakes",
+  servings: 4,
+  ingredients: ["flour", "milk", "egg"],
+  oven: { needed: false, minutes: 0 },
 };
 
-console.log(testCase.environment.browser);
-console.log(testCase.tags.length);
+console.log(recipe.oven.needed);
+console.log(recipe.ingredients.length);
 ```
 
 The program prints:
 
 ```text
-chromium
-2
+false
+3
 ```
 
-Read `testCase.environment.browser` from left to right: the test case, then its environment, then its browser.
+Read `recipe.oven.needed` from left to right: the recipe, then its oven, then whether it is needed.
+
+## Name a property with a variable
+
+Sometimes you know the property name only while the program runs. Square brackets let you use a text value as the name.
+
+```ts
+const rectangle = { width: 3, height: 5, color: "red" };
+const wanted = "height";
+
+console.log(rectangle["width"]);
+console.log(rectangle[wanted]);
+```
+
+The program prints:
+
+```text
+3
+5
+```
+
+`rectangle.width` and `rectangle["width"]` mean the same. The dot form is easier to read. Use the bracket form only when the name is in a variable.
 
 ## A list of objects
 
-In real work you have many test cases. Put the objects inside an array.
+In real work you have many objects. Put them inside an array.
 
 ```ts
-const testCases = [
-  { id: 1, title: "Login works", status: "passed" },
-  { id: 2, title: "Checkout applies discount", status: "failed" },
-  { id: 3, title: "Logout clears session", status: "failed" },
+const playlist = [
+  { title: "Blue", artist: "Mia", seconds: 215 },
+  { title: "Rain Dance", artist: "Tomas", seconds: 180 },
+  { title: "Sunday", artist: "Mia", seconds: 245 },
 ];
 
-let failedCount = 0;
+let totalSeconds = 0;
 
-for (const testCase of testCases) {
-  console.log(`#${testCase.id} ${testCase.title}`);
-  if (testCase.status === "failed") {
-    failedCount += 1;
-  }
+for (const song of playlist) {
+  console.log(`${song.title} by ${song.artist}`);
+  totalSeconds += song.seconds;
 }
 
-console.log(`Failed: ${failedCount}`);
+console.log(`Total: ${totalSeconds} seconds`);
 ```
 
-The loop gives you one object at a time in the variable `testCase`. The program prints:
+The loop gives you one object at a time in the variable `song`. The program prints:
 
 ```text
-#1 Login works
-#2 Checkout applies discount
-#3 Logout clears session
-Failed: 2
+Blue by Mia
+Rain Dance by Tomas
+Sunday by Mia
+Total: 640 seconds
 ```
 
-This shape, an array of objects, is very common. Test data and API answers often look like this.
+This shape, an array of objects, is very common. A table in a spreadsheet is the same idea: each row is an object and each column is a property. Data that arrives from a server often looks like this.
 
 ## Destructuring
 
 **Destructuring** takes properties out of an object and puts them in variables, in one line.
 
 ```ts
-const testCase = { id: 7, title: "Reset password", status: "failed" };
+const song = { title: "Blue", artist: "Mia", seconds: 215 };
 
-const { title, status } = testCase;
+const { title, seconds } = song;
 
-console.log(`${title} is ${status}`);
+console.log(`${title} lasts ${seconds} seconds`);
 ```
 
 The program prints:
 
 ```text
-Reset password is failed
+Blue lasts 215 seconds
 ```
 
 The names inside `{ }` must match the property names. You will see this form often in Playwright code, so learn to read it. You can also use it in a function parameter:
 
 ```ts
-function describe({ id, title }: { id: number; title: string }): string {
-  return `#${id} ${title}`;
+function describe({ title, artist }: { title: string; artist: string }): string {
+  return `${title} by ${artist}`;
 }
 
-console.log(describe({ id: 7, title: "Reset password" }));
+console.log(describe({ title: "Blue", artist: "Mia" }));
 ```
 
-This prints `#7 Reset password`. The text after the colon is the type of the object. Lesson 08 shows a cleaner way to write it.
+This prints `Blue by Mia`. The text after the colon is the type of the object. Lesson 08 shows a cleaner way to write it.
+
+## Make your own rule for functions
+
+You have two choices when a function needs to "change" an object. It can change the object you gave it. Or it can leave that object alone and return a new one. Look at the second way:
+
+```ts
+function withBirthday(dog: { name: string; age: number }): { name: string; age: number } {
+  return { ...dog, age: dog.age + 1 };
+}
+
+const rex = { name: "Rex", age: 3 };
+const olderRex = withBirthday(rex);
+
+console.log(rex);
+console.log(olderRex);
+```
+
+The program prints:
+
+```text
+{ name: 'Rex', age: 3 }
+{ name: 'Rex', age: 4 }
+```
+
+The three dots `...dog` put all properties of `dog` into the new object. Then `age: dog.age + 1` replaces one of them. A function that returns a new value and changes nothing else is easier to trust. You can call it twice and nothing surprising happens.
+
+### Back to the puzzle
+
+The program prints `3 4`. The number is passed by value: the function receives its own copy of `3`, adds 1 to the copy, and the copy disappears. The dog is passed by link: the function receives a link to the same object, so `dog.age = ...` changes the one dog that both names point to. The next section explains this link.
 
 ## Go deeper
 
@@ -210,7 +277,18 @@ passed
 passed skipped
 ```
 
-The first change went through `same` and changed the one shared object. The three dots in `{ ...original }` make a new object with the same properties. Lesson 09 shows the same idea for arrays. This copy is shallow: an object inside the object is still shared.
+The first change went through `same` and changed the one shared object. The three dots in `{ ...original }` make a new object with the same properties. Lesson 06 shows the same idea for arrays.
+
+This copy is shallow: an object inside the object is still shared. What do you expect here?
+
+```ts
+const rex = { name: "Rex", owner: { city: "Lima" } };
+const copyOfRex = { ...rex };
+copyOfRex.owner.city = "Cusco";
+console.log(rex.owner.city);
+```
+
+It prints `Cusco`. The copy has its own `name`, but its `owner` is the same link. To copy everything inside too, use `structuredClone(rex)`.
 
 The same rule explains why `===` does not compare content:
 
@@ -226,7 +304,7 @@ It prints `false`, `true` and `true`. Two objects are equal with `===` only when
 
 ### How it shows up in QA automation work
 
-Test data is often an object. You write it once and every test reads it. This idea has a name: **DRY**, "Don't Repeat Yourself". You will study it at the end of this module.
+This is the one link to testing in this lesson. Test data is often an object. You write it once and every test reads it. This idea has a name: **DRY**, "Don't Repeat Yourself". You will study it at the end of this module.
 
 This test file lives in the `e2e` folder. The `async` and `await` words come later, in lesson 10. Read the lines as manual steps.
 
@@ -250,10 +328,10 @@ If the password changes, you change one line. A test must still read as a clear 
 ## Practice
 
 1. Create the file `exercises/01-programming/objects-practice.ts`.
-2. Write an object named `bug` with the properties `id` (a number), `title` (text) and `severity` (text, for example `"high"`).
-3. Print the title with `console.log(bug.title)`.
-4. Change `bug.severity` to `"low"` and print the object.
-5. Make an array of three bugs. Use `for...of` to print each title.
+2. Write an object named `book` with the properties `id` (a number), `title` (text) and `pages` (a number).
+3. Print the title with `console.log(book.title)`.
+4. Change `book.pages` to a new number and print the object.
+5. Make an array of three books. Use `for...of` to print each title and add up all pages.
 6. Open `exercises/01-programming/07-objects.ts`. Replace each `// TODO` with code.
 7. Run the exercise file with this command:
 
@@ -263,71 +341,114 @@ node exercises/01-programming/07-objects.ts
 
 Make every line say `OK`.
 
-## Check what you know
+## Challenge
 
-1. What is a property?
+Choose your own world: a pet shelter, a library book, a football player, a recipe, a flight. Make one object with at least four properties. One property must be another object, for example the owner of a pet, with a name and a city.
 
-<details><summary>Answer</summary>
+Then write two functions. The first, `describeAll`, prints every property as a line `name: value`. It must not contain the name of any property. The second, `moveOwner`, takes your object and a new city. It returns a new object with the new city, and it does not change the original.
 
-A property is one `name: value` pair inside an object.
+Create the file `exercises/challenges/objects.ts`. Run it with `node exercises/challenges/objects.ts`.
 
-</details>
+It is done when:
 
-2. How do you read the `status` of an object named `testCase`?
+- `describeAll` prints one line for every property, and no property name is written inside the function.
+- When you add a new property to your object, a new line appears and you did not change `describeAll`.
+- After you call `moveOwner`, printing the original and the result shows two different cities.
+- `pnpm typecheck` shows no error for your file.
 
-<details><summary>Answer</summary>
+You will need something this lesson did not teach: how to list the names and values of an object. Search for `javascript Object.entries`. To copy an object and everything inside it, use `structuredClone` from the deep copy section above. For the type of the parameters, write the object type in the function head as in the `describe` example.
 
-Write `testCase.status`.
+## Think it through
 
-</details>
-
-3. Can you change a property of an object that is stored in a `const` variable?
-
-<details><summary>Answer</summary>
-
-Yes. `const` only stops you from putting a different object in the variable. You can still change properties inside it.
-
-</details>
-
-4. What does `const { title } = testCase;` do?
-
-<details><summary>Answer</summary>
-
-It creates a variable `title` and gives it the value of `testCase.title`.
-
-</details>
-
-5. What does this program print, and why?
+1. Predict the output and say why.
 
 ```ts
-type TestCase = { id: number; title: string; status: string };
+const rex = { name: "Rex", owner: { city: "Lima" } };
+const copyOfRex = { ...rex };
+copyOfRex.owner.city = "Cusco";
+console.log(rex.owner.city);
+```
 
-function markPassed(testCase: TestCase): void {
-  testCase.status = "passed";
+<details>
+<summary>Answer</summary>
+
+It prints `Cusco`. The spread `{ ...rex }` makes a new top object, but each property is copied as it is. The property `owner` holds a link, and the link is copied, not the object it points to. So `rex.owner` and `copyOfRex.owner` are the same object. This is a shallow copy. `structuredClone` makes a deep copy.
+
+</details>
+
+2. The song is in the list, but the program says it is not. Find the bug.
+
+```ts
+const favourite = { title: "Blue", artist: "Mia" };
+const songs = [
+  { title: "Blue", artist: "Mia" },
+  { title: "Echo", artist: "Lena" },
+];
+
+console.log(songs.includes(favourite));
+```
+
+<details>
+<summary>Answer</summary>
+
+It prints `false`. `includes` compares objects with the same rule as `===`: it asks "is this the same object?", not "does it have the same content?". The object in the list and `favourite` look the same, but they are two objects. Compare the properties you care about, for example `songs.some((song) => song.title === favourite.title)`. Lesson 09 teaches `some`.
+
+</details>
+
+3. Two versions of a birthday function both work. Which is better here, and what would make you choose the other?
+
+```ts
+function birthdayA(dog: { age: number }): void {
+  dog.age = dog.age + 1;
 }
 
-const login: TestCase = { id: 1, title: "Login works", status: "failed" };
-markPassed(login);
-console.log(login.status);
+function birthdayB(dog: { name: string; age: number }): { name: string; age: number } {
+  return { ...dog, age: dog.age + 1 };
+}
 ```
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-It prints `passed`. The function receives a reference to the same object, not a copy. When it changes `status`, the object that `login` points to changes too. This is useful, but also a risk: a function can change your data without you noticing.
+Version B is better when several parts of the program use the same dog. It does not change the dog behind your back, so you can keep the old value and compare. Version A is shorter, and it is fine when the dog is private to one function and you want to save the work of a new object. You would also choose A for a huge object that changes thousands of times per second. For normal programs, prefer B. It is easier to reason about.
 
 </details>
 
-6. This code has a bug. Find it.
+4. What breaks if someone renames the property `seconds` to `duration` in the data, but not in the code that reads it?
 
 ```ts
-const testCase = { id: 1, title: "Login works", status: "failed" };
-const { title, state } = testCase;
-console.log(`${title} is ${state}`);
+const song = { title: "Blue", duration: 215 };
+console.log(`${song.title} lasts ${song.seconds} seconds`);
 ```
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-The object has no property `state`. The property is called `status`. TypeScript shows the error "Property 'state' does not exist" before you run the program. Without the check, the program would print `Login works is undefined`.
+TypeScript shows a red underline: the property `seconds` does not exist. If you ignore it and run the file, it prints `Blue lasts undefined seconds`. If the code then used the value in a sum, the result would be `NaN`. The rename must be done in every place. This is why a type that writes the names once helps. Lesson 08 shows how.
+
+</details>
+
+5. Explain to a teammate, in three sentences and without using the word "copy", why a function can change an object that you pass in, but cannot change a number.
+
+<details>
+<summary>Answer</summary>
+
+A good answer could be: a number is stored directly in the variable, so the function receives its own number and changes only that. An object is stored somewhere in memory, and the variable holds a link to the place. The function receives the same link, so it works on the same object that you see outside. A bad answer says "objects are passed differently" and gives no reason. The reason is what the variable holds: the value itself, or a link.
+
+</details>
+
+6. What happens here when no song has the title "Nope"? How would you make the code safe?
+
+```ts
+const songs = [{ title: "Blue", artist: "Mia" }];
+const found = songs.find((song) => song.title === "Nope");
+const { title } = found;
+```
+
+<details>
+<summary>Answer</summary>
+
+The program stops with a `TypeError`: it cannot destructure the property `title` because `found` is `undefined`. The function `find` gives `undefined` when nothing matches. TypeScript also warns you before you run the file. Check with `if (found === undefined)` first, and decide what the program does when the song is missing: stop with a clear message, or use a default. An edge case like "nothing found" must have a planned answer.
 
 </details>
 
@@ -337,15 +458,18 @@ These questions have no answer here. Search the internet, read, and write your a
 
 1. **What is the difference between a shallow copy and a deep copy of an object?**
    - Search for: `javascript shallow copy vs deep copy`
+   - Try it: make an object with an array inside, for example `{ name: "Rex", toys: ["ball"] }`. Copy it with `{ ...x }`, push a toy into the copy, and print the original. Then do it again with `structuredClone`.
    - A good answer explains: what is copied and what is still shared in each case, and one example where a shallow copy causes a surprise.
 
 2. **What is JSON, and how do `JSON.parse` and `JSON.stringify` change between text and objects?**
    - Search for: `MDN JSON.parse JSON.stringify`
+   - Try it: turn your dog object into text with `JSON.stringify`, print it, then turn it back with `JSON.parse`. Then call `JSON.parse` on the text `{name: "Rex"}` and read the error.
    - A good answer explains: what JSON text looks like, what each function does, and what happens when the text is not valid JSON.
 
-3. **Why do testers keep test data separate from test steps?**
-   - Search for: `test data management software testing`
-   - A good answer explains: what test data is, two problems that appear when data is copied into every test, and one way to keep it in one place.
+3. **What does `Object.freeze` do, and does it stop a change deep inside an object?**
+   - Search for: `javascript Object.freeze shallow`
+   - Try it: freeze the `recipe` object from this lesson. Try to change `recipe.name` and `recipe.oven.needed`. Print both after each try.
+   - A good answer explains: what a frozen object refuses, why the nested object may still change, and one reason to freeze data.
 
 ## Next step
 

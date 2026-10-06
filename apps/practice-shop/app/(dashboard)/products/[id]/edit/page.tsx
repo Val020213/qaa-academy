@@ -13,7 +13,7 @@ export default async function EditProductPage({
 
   return (
     <>
-      <h1 data-testid="product-form-title">Edit product</h1>
+      <h1 className="mb-4 text-2xl font-semibold tracking-tight" data-testid="product-form-title">Edit product</h1>
       {/* A copy, so the form receives plain data and not the stored object. */}
       <ProductForm product={{ ...product }} />
     </>

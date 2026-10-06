@@ -106,7 +106,7 @@ test.describe("on this page", () => {
     await page.goto("/#/lesson/01-programming/05-functions")
 
     const links = page.getByTestId("lesson-toc-link")
-    await expect(links.first()).toHaveText("Goal")
+    await expect(links.filter({ hasText: "Goal" })).toHaveCount(1)
     await expect(links.first()).toHaveAttribute("aria-current", "true")
 
     await links.filter({ hasText: "Practice" }).click()
@@ -116,5 +116,20 @@ test.describe("on this page", () => {
       "aria-current",
       "true"
     )
+  })
+})
+
+test.describe("clips", () => {
+  test("a lesson shows its screen recording with a caption", async ({ page }) => {
+    await page.goto("/#/lesson/03-playwright/04-assertions-that-wait")
+
+    const video = page.locator("figure.clip video").first()
+    await expect(video).toHaveAttribute("src", "/clips/auto-wait-report.webm")
+    await expect(page.locator("figure.clip figcaption").first()).not.toBeEmpty()
+
+    // The file really loads: the browser knows how long the clip is.
+    await expect
+      .poll(() => video.evaluate((element: HTMLVideoElement) => element.duration))
+      .toBeGreaterThan(1)
   })
 })

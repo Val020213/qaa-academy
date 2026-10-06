@@ -3,6 +3,13 @@
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
+import { StatusBadge } from "@/components/status-badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useUser } from "@/components/user-context"
 import { api, ApiError, formatMoney } from "@/lib/api"
 import type { Page, Product } from "@/lib/types"
@@ -53,19 +60,22 @@ export default function ProductsPage() {
 
   return (
     <>
-      <div className="page-head">
-        <h1 data-testid="products-title">Products</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold tracking-tight" data-testid="products-title">Products</h1>
         {isAdmin && (
-          <Link className="button" href="/products/new" data-testid="products-new">
-            New product
-          </Link>
+          <Button asChild>
+            <Link href="/products/new" data-testid="products-new">
+              New product
+            </Link>
+          </Button>
         )}
       </div>
 
-      <div className="toolbar">
-        <label>
-          Search
-          <input
+      <div className="flex flex-wrap gap-4">
+        <div className="grid w-60 gap-2">
+          <Label htmlFor="products-search">Search</Label>
+          <Input
+            id="products-search"
             type="search"
             value={search}
             placeholder="Name or SKU"
@@ -75,10 +85,13 @@ export default function ProductsPage() {
             }}
             data-testid="products-search"
           />
-        </label>
-        <label>
-          Status
-          <select
+        </div>
+        <div className="grid w-60 gap-2">
+          <Label htmlFor="products-status-filter">Status</Label>
+          {/* A native <select>, so Playwright's selectOption works on it. */}
+          <NativeSelect
+            id="products-status-filter"
+            className="w-full"
             value={status}
             onChange={(event) => {
               setStatus(event.target.value)
@@ -86,116 +99,119 @@ export default function ProductsPage() {
             }}
             data-testid="products-status-filter"
           >
-            <option value="all">All</option>
-            <option value="active">Active</option>
-            <option value="draft">Draft</option>
-            <option value="archived">Archived</option>
-          </select>
-        </label>
+            <NativeSelectOption value="all">All</NativeSelectOption>
+            <NativeSelectOption value="active">Active</NativeSelectOption>
+            <NativeSelectOption value="draft">Draft</NativeSelectOption>
+            <NativeSelectOption value="archived">Archived</NativeSelectOption>
+          </NativeSelect>
+        </div>
       </div>
 
       {message && (
-        <p className="alert alert-ok" role="status" data-testid="products-message">
-          {message}
-        </p>
+        <Alert variant="success" role="status" data-testid="products-message">
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
       )}
       {error && (
-        <p className="alert alert-error" role="alert" data-testid="products-error">
-          {error}
-        </p>
+        <Alert variant="destructive" role="alert" data-testid="products-error">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {!result && !error && (
-        <p className="muted" data-testid="products-loading">
+        <p className="text-muted-foreground" data-testid="products-loading">
           Loading…
         </p>
       )}
 
       {result && (
         <>
-          <table className="table" data-testid="products-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>SKU</th>
-                <th className="number">Price</th>
-                <th className="number">Stock</th>
-                <th>Status</th>
-                {isAdmin && <th>Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
+          <Table aria-label="Products" data-testid="products-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>SKU</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead className="text-right">Stock</TableHead>
+                <TableHead>Status</TableHead>
+                {isAdmin && <TableHead>Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {result.items.map((product) => (
-                <tr key={product.id} data-testid={`products-row-${product.id}`}>
-                  <td data-testid={`products-name-${product.id}`}>
-                    <Link href={`/products/${product.id}`} data-testid={`products-view-${product.id}`}>
-                      {product.name}
-                    </Link>
-                  </td>
-                  <td>{product.sku}</td>
-                  <td className="number">{formatMoney(product.price)}</td>
-                  <td className="number">{product.stock}</td>
-                  <td>
-                    <span
-                      className={`badge badge-${product.status}`}
-                      data-testid={`products-status-${product.id}`}
-                    >
-                      {product.status}
-                    </span>
-                  </td>
-                  {isAdmin && (
-                    <td className="row-actions">
-                      <Link href={`/products/${product.id}/edit`} data-testid={`products-edit-${product.id}`}>
-                        Edit
+                <TableRow key={product.id} data-testid={`products-row-${product.id}`}>
+                  <TableCell data-testid={`products-name-${product.id}`}>
+                    <Button asChild variant="link" className="h-auto p-0 underline">
+                      <Link href={`/products/${product.id}`} data-testid={`products-view-${product.id}`}>
+                        {product.name}
                       </Link>
-                      <button
-                        className="link-button danger"
-                        type="button"
-                        onClick={() => setToDelete(product)}
-                        data-testid={`products-delete-${product.id}`}
-                      >
-                        Delete
-                      </button>
-                    </td>
+                    </Button>
+                  </TableCell>
+                  <TableCell>{product.sku}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatMoney(product.price)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{product.stock}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={product.status} data-testid={`products-status-${product.id}`} />
+                  </TableCell>
+                  {isAdmin && (
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button asChild variant="link" size="sm" className="underline">
+                          <Link href={`/products/${product.id}/edit`} data-testid={`products-edit-${product.id}`}>
+                            Edit
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          type="button"
+                          onClick={() => setToDelete(product)}
+                          data-testid={`products-delete-${product.id}`}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
 
           {result.items.length === 0 && (
-            <p className="muted empty" data-testid="products-empty">
+            <p className="py-5 text-center text-muted-foreground" data-testid="products-empty">
               No products match your search.
             </p>
           )}
 
-          <div className="pagination">
+          <div className="flex items-center justify-between text-sm">
             <span data-testid="products-count">
               {result.total} {result.total === 1 ? "product" : "products"}
             </span>
-            <div className="actions">
-              <button
-                className="button button-secondary"
+            <nav aria-label="Pagination" className="flex items-center gap-3">
+              <Button
+                variant="outline"
                 type="button"
                 onClick={() => setPage(page - 1)}
                 disabled={page <= 1}
                 data-testid="products-prev-page"
               >
                 Previous
-              </button>
+              </Button>
               <span data-testid="products-page">
                 Page {page} of {pageCount}
               </span>
-              <button
-                className="button button-secondary"
+              <Button
+                variant="outline"
                 type="button"
                 onClick={() => setPage(page + 1)}
                 disabled={page >= pageCount}
                 data-testid="products-next-page"
               >
                 Next
-              </button>
-            </div>
+              </Button>
+            </nav>
           </div>
         </>
       )}

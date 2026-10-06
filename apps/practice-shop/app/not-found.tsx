@@ -1,15 +1,10 @@
-import Link from "next/link"
+import { NotFoundCard } from "@/components/not-found-card"
 
+// Shown for an address that does not exist at all.
 export default function NotFound() {
   return (
-    <main className="login-page">
-      <section className="card login-card" data-testid="not-found">
-        <h1>Page not found</h1>
-        <p className="muted">There is nothing at this address.</p>
-        <Link className="button" href="/dashboard">
-          Back to the dashboard
-        </Link>
-      </section>
+    <main className="grid min-h-screen place-items-center p-6">
+      <NotFoundCard />
     </main>
   )
 }

@@ -1,13 +1,24 @@
 ---
 title: Tour of the e2e folder
-summary: Learn what every file in the shop's test suite is for, and how one test run flows from the config to the report.
-duration: 45 min
+summary: Learn what every file in the shop's test suite is for, why each one exists, and how one test run flows from the config to the report.
+duration: 75 min
 ---
+
+## Start with a puzzle
+
+A teammate runs `pnpm shop:e2e` and sees `17 passed`. She does not restart the shop. She runs the same command again. It also shows `17 passed`.
+
+But the first run changed data that cannot be changed back. The test "an admin marks a pending order as paid" turns order 1005 from `pending` to `paid`. The shop has no "undo". The same test starts by checking that order 1005 is `pending`.
+
+So how can the second run pass? Think about which file or which line could make it possible.
+
+Write down your guess before you read on.
 
 ## Goal
 
-- Name every file and folder of the shop's test suite and say what it is for.
-- Describe the order of a run: config, server, setup, specs.
+- Explain what each file and folder of the suite is for, and what would break if it were missing.
+- Predict the order of a run: config, server, setup, specs.
+- Decide where a new file belongs in the folder.
 - Find the report and the traces after a run.
 
 ## Open the folder
@@ -34,6 +45,8 @@ apps/practice-shop/
     .gitignore
 ```
 
+Do not read the files in order. First look at the names and guess. Where would you look to find "how to run the tests"? Where would you look for "what is still not tested"? Then check your guess with the notes below.
+
 ## The documents
 
 `README.md` explains how to run the suite and lists the team rules. Read it first in any project.
@@ -58,14 +71,28 @@ Specs are grouped in folders by feature. Put a new spec in the folder of its fea
 1. It calls `POST /api/test/reset` to put the data back to its first state.
 2. It signs in as admin through the login page and saves the session.
 
+### Back to the puzzle
+
+The second run passes because step 1 of the setup file runs at the start of every run. Order 1005 is pending again before the first spec starts. The status change is one-way inside the app, but the test-only reset address sits outside the app's rules.
+
+There is one more detail in `lib/store.ts`: the reset keeps the open sessions. The comment says "so logged-in tests stay logged in". Remember this when you think about what a reset does to a signed-in user.
+
 ## The lib folder
 
 `lib` holds code that specs share.
 
-- `test.ts` exports `test` and `expect`. Specs import from here, never from `@playwright/test`.
+- `test.ts` exports `test` and `expect`. Specs import from here, never from `@playwright/test`. Today the file only passes them through. That looks pointless. The reason is that one day you may add your own fixtures there, and no spec will need to change its import.
 - `helpers.ts` has `uniqueName()` and `uniqueSku()`. They make data that no other test uses.
 - `fixtures/api-client.ts` has `loginViaApi`, `createProduct` and `deleteProduct`. They prepare data through the API. It also has the users `ADMIN` and `VIEWER`.
 - `pages/products.page.ts` is a **Page Object**: a class that knows where the elements of the products page are. It never asserts.
+
+Look at how `ProductsPage` finds all the rows at once:
+
+```ts
+this.rows = page.getByTestId(/^products-row-/)
+```
+
+The test id is a regular expression here. It means "every id that starts with `products-row-`". One line finds all rows, however many there are. Notice what is missing: there is no Page Object for orders. The suite has only two order tests, so a class would add code and give little. This is **YAGNI**: do not build for a need you only imagine. If the orders page grows, you can add one then.
 
 ## The .auth folder
 
@@ -106,7 +133,7 @@ Both are ignored by Git. Each new run replaces them.
 
 ### Why setup is a project, not a normal test
 
-The `chromium` project says `dependencies: ["setup"]`. Playwright runs the `setup` project first and waits. If it fails, Playwright skips the rest and tells you so. You see one clear failure, not seventeen confusing ones.
+The `chromium` project says `dependencies: ["setup"]`. Playwright runs the `setup` project first and waits. If it fails, Playwright skips the rest and tells you so. You see one clear failure, not many confusing ones.
 
 The setup test must start with an empty session. The config shows `storageState: { cookies: [], origins: [] }` for `setup`. If it loaded `admin.json`, it would look for a file that its own run is about to create.
 
@@ -135,7 +162,9 @@ test("a test that signs in by itself", async ({ page }) => {
 
 The `test.use` line starts the test signed out. Without it, the saved admin session would send `/login` to the dashboard, and the form would never appear.
 
-With 17 tests, you would repeat these four lines 17 times, and add a few seconds to each test. The suite writes the login once in `global.setup.ts` and saves the cookies. This is the idea called **DRY**: Don't Repeat Yourself. A fact lives in one place. If the login page changes, you fix the setup file for all these tests. The auth spec tests the login page itself, so it has its own login steps and needs the same update. You studied DRY earlier in the course. The same idea applies to `baseURL` in the config: the address of the shop is written once, so tests write `page.goto("/products")`.
+With 17 tests, you would repeat these four lines 17 times, and add a few seconds to each test. The suite writes the login once in `global.setup.ts` and saves the cookies. This is the idea called **DRY**: Don't Repeat Yourself. A fact lives in one place. If the login page changes, you fix the setup file for all these tests. The auth spec tests the login page itself, so it has its own login steps and needs the same update. The same idea applies to `baseURL` in the config: the address of the shop is written once, so tests write `page.goto("/products")`.
+
+DRY has a counterweight: **KISS**, keep it simple. If a shared helper is harder to read than the lines it replaces, copy the lines. Both ideas serve one goal: the next person can change the suite without fear.
 
 ### The trade-off of `workers: 1`
 
@@ -143,7 +172,7 @@ A **worker** is a process that runs tests. With one worker, tests run one after 
 
 Teams that need speed solve it differently. Each worker gets its own data or its own server. That costs more set-up. For a small shop, slow and stable is the better choice.
 
-Also remember that readability still matters more than removing every repetition. A test that shows its own steps is easier to read than one that hides them.
+A good suite follows the letters of **FIRST**: tests should be Fast, Independent, Repeatable, Self-checking and Timely. This suite pays a little of "Fast" to get "Independent" and "Repeatable".
 
 ## Practice
 
@@ -153,53 +182,79 @@ Also remember that readability still matters more than removing every repetition
 4. Open `orders/orders.spec.ts`. Check that it imports from `../lib/test`.
 5. Draw the run flow from memory on paper. Compare it with the list above.
 
-## Check what you know
+## Challenge
 
-1. Why does `global.setup.ts` run before the specs?
+The suite has a Page Object for products but none for orders. Write one, and use it in a new spec. You will practise a rule of the team: the Page Object knows where things are, and the spec decides what is true.
+
+Create two files. The first is `apps/practice-shop/e2e/lib/pages/orders.page.ts`. It holds a class `OrdersPage` for the orders page. The second is `apps/practice-shop/e2e/orders/orders-shipped.spec.ts`. It has one test: an admin filters orders by `shipped` and sees that the shipped orders 1003, 1007 and 1011 each show the status `shipped`.
+
+It is done when:
+
+- `OrdersPage` can open the page, filter by a status, and give you the row and the status of an order by its id.
+- The file `orders.page.ts` contains no `expect`.
+- The spec imports `test` and `expect` from `../lib/test` and uses only `getByTestId`, through your class.
+- `pnpm --filter practice-shop e2e e2e/orders/orders-shipped.spec.ts` passes. Run it twice in a row.
+- The test only reads data. It does not change any order, so it cannot break another test.
+
+You will need something this lesson did not teach: how to write a TypeScript class that stores locators and has methods, as `ProductsPage` does, and how to build a test id from a variable. Search for: `typescript class constructor readonly property`, `playwright locator getByTestId template string`.
+
+> **Tip:** Read `products.page.ts` as a model. Copy its shape, not its words. Decide yourself which parts you really need. KISS and YAGNI apply: two or three methods are enough.
+
+## Think it through
+
+1. Remove the line `use: { storageState: { cookies: [], origins: [] } }` from the `setup` project, and delete `e2e/.auth/admin.json`. What happens on the next run, and why?
 
 <details><summary>Answer</summary>
 
-The `chromium` project depends on `setup`. Setup resets the data and saves the admin session that every test uses.
+The setup test now inherits `storageState: "e2e/.auth/admin.json"` from the top-level `use`. That file does not exist, because setup is the test that would create it. Playwright fails when it tries to open the setup test with a file that is missing. Because `chromium` depends on `setup`, no other test runs. One small config line prevents a circle: setup needs the file, and the file needs setup.
 
 </details>
 
-2. What does `uniqueSku()` give you?
+2. A teammate is signed in through the saved session. During the run, the setup test calls `POST /api/test/reset`. Predict: is the teammate's session still valid afterwards? Why?
 
 <details><summary>Answer</summary>
 
-A valid SKU, such as `SKU-4821`, that the seed data and other tests do not use.
+Yes. The reset code in `lib/store.ts` creates new products, orders and users, but copies the old `sessions` map into the new store. So an already signed-in browser keeps working. If the reset also cleared sessions, every saved cookie would stop working right after setup, and every test would be sent to the login page.
 
 </details>
 
-3. Where do you put a new spec about orders?
+3. Find the problem in this test. It runs, but it is not good.
+
+```ts
+test("the products page shows 10 rows", async ({ page }) => {
+  await page.goto("/products")
+  const rows = await page.getByTestId(/^products-row-/).count()
+  expect(rows).toBe(10)
+})
+```
 
 <details><summary>Answer</summary>
 
-In the `orders` folder, for example `e2e/orders/`.
+`count()` reads the number once, at that moment. The page loads its list after it opens, so the count can be 0 and the test fails even though the app is right. Passing and failing then depend on speed. The web-first form `await expect(page.getByTestId(/^products-row-/)).toHaveCount(10)` retries until the number is right or the time ends. Use a plain `expect` on a plain value only when the value cannot change.
 
 </details>
 
-4. Why is `.auth` ignored by Git?
+4. Two ways to sign in. Version A: every test signs in through the login page. Version B: the setup project signs in once and saves the cookies. Which is better here, and what would make you choose A?
 
 <details><summary>Answer</summary>
 
-It holds a private session that changes on every run. It must not be shared.
+B is better for the shop. It saves seconds per test and keeps the login steps in one place. You would choose A when the test is about the login itself, as `auth.spec.ts` is, or when each test needs a different user. A is also simpler to read for a tiny suite of two or three tests. The choice depends on how many tests there are and how many users they need.
 
 </details>
 
-5. Suppose you change `workers: 1` to `workers: 4`. Two tests use order 1005: one marks it paid, one checks it is pending. What could happen, and why?
+5. Two developers run `pnpm shop:e2e` on the same computer at nearly the same time. Both runs find the shop on port 5190 and reuse it. What can go wrong?
 
 <details><summary>Answer</summary>
 
-The tests could run at the same moment. If the first one marks the order paid before the second one checks, the second fails with `paid` instead of `pending`. The failure would not happen every time. It depends on timing, so it is a flaky test. The cause is shared data, not a bug in the app.
+Both runs share one memory. The setup of run B resets the data while run A is in the middle of its tests. Order 1005 turns from `paid` back to `pending`, or a product that run A just created disappears. The failures look random and cannot be repeated on request. The suite is built for one run at a time on one shop. Teams give each person or each CI job its own copy of the app.
 
 </details>
 
-6. You delete the file `e2e/.auth/admin.json` and run `pnpm shop:e2e`. Does the suite fail? Why?
+6. Your suite has grown to 300 tests and takes 40 minutes with `workers: 1`. The team asks you to try `workers: 4`. There is no single right answer. What would you check before you agree?
 
 <details><summary>Answer</summary>
 
-No. The `setup` project runs first and signs in again, and it saves a new `admin.json`. Only then do the other tests start. The file is created by the run, so it is safe to delete.
+First check whether tests share data. In the shop they do, so four workers would break each other unless each worker gets its own server and data. You would also weigh the cost: more machines and more set-up work, against 40 minutes of waiting on every change. Another path is to run the long suite less often and keep a short smoke suite for every change. The decision depends on how often the team ships and how much a late bug costs.
 
 </details>
 
@@ -209,15 +264,18 @@ These questions have no answer here. Search the internet, read, and write your a
 
 1. **What is a Page Object in test automation, and what should it not contain?**
    - Search for: `page object model pattern playwright`
-   - A good answer explains: that a Page Object holds locators and actions for a page, and why many teams keep assertions in the test
+   - Try it: open `products.page.ts` and imagine the test id `products-new` changes to `products-add`. Count how many files you must edit. Then do the same count for a spec that has no Page Object.
+   - A good answer explains: that a Page Object holds locators and actions for a page, and why many teams keep assertions in the test.
 
 2. **How does Playwright reuse a signed-in session between tests?**
    - Search for: `playwright authentication storageState`
-   - A good answer explains: what is saved in the storage state file, and why it makes tests faster
+   - Try it: after a run, open `e2e/.auth/admin.json`. Find the cookie called `shop_session`. Do not copy its value anywhere. Then explain in one line what the server needs to find in its memory to accept it.
+   - A good answer explains: what is saved in the storage state file, and why it makes tests faster.
 
 3. **What is a cookie, and how does a website use it to remember that you are signed in?**
-   - Search for: `http cookie session login how it works`
-   - A good answer explains: what the browser stores and sends back, and why a saved cookie can sign a test in
+   - Search for: `http cookie session login how it works httponly`
+   - Try it: sign in to the shop, open DevTools, go to Application, then Cookies. Look at `shop_session` and its `HttpOnly` flag. In the Console tab, type `document.cookie` and see if the session cookie appears.
+   - A good answer explains: what the browser stores and sends back, what `HttpOnly` changes, and why a saved cookie can sign a test in.
 
 ## Next step
 

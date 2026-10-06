@@ -1,124 +1,152 @@
 ---
 title: No te repitas (DRY)
 summary: Dale a cada regla, valor y formato un solo hogar, y aprende cuándo un poco de repetición es mejor que un atajo.
-duration: 40 min
+duration: 60 min
 ---
+
+## Empieza con un acertijo
+
+Un profesor dice: "La nota mínima para aprobar era 50. Desde hoy es 60". Un programador cambia el número en el programa. Tres funciones usan la nota mínima, y cada una tiene su propia copia del número.
+
+```ts
+function hasPassed(score: number): boolean {
+  return score >= 60;
+}
+
+function describeStudent(name: string, score: number): string {
+  return score >= 60 ? `${name} passed` : `${name} failed`;
+}
+
+function countPassed(scores: number[]): number {
+  let count = 0;
+  for (const score of scores) {
+    if (score >= 50) {
+      count += 1;
+    }
+  }
+  return count;
+}
+```
+
+Mia tiene 55 puntos. Otra estudiante tiene 40. ¿Qué dan `hasPassed(55)`, `describeStudent("Mia", 55)` y `countPassed([55, 40])`? ¿Es correcta la respuesta de la última llamada para la nueva regla?
+
+Escribe tu respuesta antes de seguir leyendo.
 
 ## Objetivo
 
-- Explicar qué significa DRY y por qué el conocimiento repetido causa bugs.
-- Quitar la repetición con una constante, una función, un parámetro, un bucle, un alias de tipo y un módulo.
-- Saber cuándo dejar un poco de repetición.
+- Predecir qué líneas de un programa se rompen cuando cambia una regla.
+- Decidir cuándo darle un solo hogar a una regla, un valor o un formato.
+- Explicar por qué dos trozos de código que se ven iguales pueden necesitar quedar separados.
+- Elegir entre un poco de repetición y un atajo difícil de leer.
 
-## El problema
+## La idea
 
-Una página es "lenta" cuando necesita más de 2000 milisegundos. Tres funciones usan esta regla, y cada una tiene su propia copia del número.
+**DRY** significa "Don't Repeat Yourself" (no te repitas). Cada pieza de conocimiento tiene un solo hogar en el programa. Cuando cambia, lo cambias una sola vez.
 
-El requisito cambia: el límite es 1500. Alguien actualiza dos funciones y olvida la tercera.
+La palabra clave es **conocimiento**: una regla, un valor o un formato. DRY no trata de texto que se parece. Lo verás pronto.
+
+### De vuelta al acertijo
+
+Las dos primeras llamadas dan `false` y `Mia failed`. La tercera da `1`, pero con la nueva regla nadie aprobó. No aparece ningún error. La copia olvidada del `50` es el *bug*.
+
+Ahora la solución. Dale nombre al número una sola vez y deja que una función sea dueña de la regla. Las otras funciones le preguntan a esa función.
 
 ```ts
-function isSlow(ms: number): boolean {
-  return ms > 1500;
+const PASS_MARK = 60;
+
+function hasPassed(score: number): boolean {
+  return score >= PASS_MARK;
 }
 
-function describePage(name: string, ms: number): string {
-  return ms > 1500 ? `${name} is too slow` : `${name} is fast enough`;
+function describeStudent(name: string, score: number): string {
+  return hasPassed(score) ? `${name} passed` : `${name} failed`;
 }
 
-function countSlow(times: number[]): number {
+function countPassed(scores: number[]): number {
   let count = 0;
-  for (const time of times) {
-    if (time > 2000) {
+  for (const score of scores) {
+    if (hasPassed(score)) {
       count += 1;
     }
   }
   return count;
 }
 
-console.log(isSlow(1700));
-console.log(describePage("Checkout", 1700));
-console.log(`Slow pages: ${countSlow([1700, 900])}`);
+console.log(hasPassed(55));
+console.log(describeStudent("Mia", 55));
+console.log(`Passed: ${countPassed([55, 40])}`);
 ```
 
-El programa muestra:
+Esto imprime:
 
 ```text
-true
-Checkout is too slow
-Slow pages: 0
+false
+Mia failed
+Passed: 0
 ```
 
-Dos líneas dicen que la página es lenta. La tercera dice que no hay páginas lentas. No aparece ningún error. La copia olvidada es el bug.
-
-## La idea
-
-**DRY** significa "Don't Repeat Yourself" (no te repitas). Cada pieza de conocimiento tiene un solo hogar en el programa. Cuando cambia, la cambias una sola vez.
-
-DRY trata del conocimiento: una regla, un valor o un formato. No trata del texto que se parece.
+La próxima vez que cambie la nota mínima, editas una línea. Ese es todo el beneficio de DRY.
 
 ## Las herramientas que ya tienes
 
-**Una constante** para un valor repetido. Escribe el número una vez, con un nombre.
+Ya conoces varias formas de darle un hogar al conocimiento. Cada una sirve para un tipo distinto de repetición.
+
+- **Una constante** para un valor repetido, como `PASS_MARK` arriba.
+- **Una función** para pasos repetidos, como `hasPassed`.
+- **Un parámetro** para los mismos pasos con una diferencia.
+- **Un array de datos y un bucle** para la misma comprobación sobre muchas entradas.
+- **Un alias de tipo** para una forma de objeto repetida (lección 08).
+- **Un módulo** para código usado por varios archivos (lección 11).
+
+### Un parámetro
+
+Una app de música imprime la línea de una canción en muchos lugares. El formato es el conocimiento. El título y la duración son las diferencias.
 
 ```ts
-const MAX_RESPONSE_MS = 1500;
-```
-
-**Una función** para pasos repetidos. La regla tiene su propio hogar y los demás lugares la llaman.
-
-```ts
-function isSlow(ms: number): boolean {
-  return ms > MAX_RESPONSE_MS;
-}
-```
-
-`describePage` y `countSlow` ahora llaman a `isSlow(ms)`. Las tres líneas del problema ahora muestran `true`, `Checkout is too slow` y `Slow pages: 1`.
-
-**Un parámetro** para los mismos pasos con una diferencia. El formato del título de un bug vive en un solo lugar.
-
-```ts
-function bugTitle(area: string, problem: string, severity: string): string {
-  return `[${severity}] ${area}: ${problem}`;
+function songLine(title: string, minutes: number): string {
+  return `${title} (${minutes} min)`;
 }
 
-console.log(bugTitle("Checkout", "discount is not applied", "high"));
+console.log(songLine("Yellow", 4));
 ```
 
-Esto muestra `[high] Checkout: discount is not applied`.
+Esto imprime `Yellow (4 min)`. Si más adelante la app muestra `4:00` en su lugar, cambias una sola función.
 
-**Un array de datos y un bucle** para la misma comprobación con muchas entradas. Este es el "antes". Tres bloques `if` copiados, uno por cada campo del formulario:
+### Un bucle sobre datos
+
+Construyes el formulario de registro de un refugio de mascotas. Tres campos no deben estar vacíos. Mira primero esta versión.
 
 ```ts
-const form = { name: "Ana", email: "", password: "" };
+const pet = { name: "Rex", species: "", age: "" };
 const errors: string[] = [];
 
-if (form.name === "") {
+if (pet.name === "") {
   errors.push("Name is required");
 }
-if (form.email === "") {
-  errors.push("Email is required");
+if (pet.species === "") {
+  errors.push("Species is required");
 }
-if (form.password === "") {
-  errors.push("Password is required");
+if (pet.age === "") {
+  errors.push("Age is required");
 }
 
 console.log(errors);
 ```
 
-Este es el "después". Los campos son datos en un array y un solo bucle `for...of` los comprueba todos:
+Antes de seguir: el refugio agrega un cuarto campo, `color`. ¿Cuántas líneas debes cambiar? Ahora mira la versión donde los campos son datos.
 
 ```ts
-const form: Record<string, string> = { name: "Ana", email: "", password: "" };
+const pet: Record<string, string> = { name: "Rex", species: "", age: "" };
 const errors: string[] = [];
 
 const required = [
   { field: "name", label: "Name" },
-  { field: "email", label: "Email" },
-  { field: "password", label: "Password" },
+  { field: "species", label: "Species" },
+  { field: "age", label: "Age" },
 ];
 
 for (const item of required) {
-  if (form[item.field] === "") {
+  if (pet[item.field] === "") {
     errors.push(`${item.label} is required`);
   }
 }
@@ -126,50 +154,89 @@ for (const item of required) {
 console.log(errors);
 ```
 
-Las dos versiones muestran el mismo resultado:
+Las dos versiones imprimen el mismo resultado:
 
 ```text
-[ 'Email is required', 'Password is required' ]
+[ 'Species is required', 'Age is required' ]
 ```
 
-Para comprobar un campo nuevo, agregas un objeto al array. El bucle no cambia.
+Para un campo nuevo, agregas un objeto al array. El bucle no cambia.
 
-**Un alias de tipo** para la forma de un objeto repetida (lección 08) y **un módulo** para el código que usan varios archivos (lección 11). El cambio vive en un solo lugar y cada usuario lo recibe.
+## Cuándo la repetición es la mejor opción
 
-## El límite: no quites la repetición demasiado pronto
+Un trozo de código compartido ata a quienes lo usan. Cuando lo cambias, cambian todos. Por eso la pregunta nunca es "¿esto se ve igual?". La pregunta es "¿esto cambia por la misma razón?".
 
-Una pieza de código compartida une a todos los que la usan. Cuando la cambias, cambian todos. Usa la **regla de tres**. La primera vez, escribe el código. La segunda vez, puedes copiarlo. La tercera vez, ves el patrón y quitas la repetición. Con dos copias, muchas veces aún no conoces la diferencia real.
+### Mismo texto, distinto conocimiento
 
-Dos piezas de código pueden verse iguales y cambiar por razones distintas. La tienda permite 10 productos en un carrito, y el título de una lista puede tener 10 caracteres. Un solo `LIMIT = 10` compartido sería un error. Mantén separados `MAX_CART_ITEMS` y `MAX_LIST_TITLE_LENGTH`.
-
-Un atajo equivocado cuesta más que un poco de repetición. Esta función atiende todos los casos con banderas:
+Una pizza puede tener como máximo 10 ingredientes. El título de una lista de reproducción puede tener como máximo 10 caracteres. Las dos reglas dicen `10`. ¿Usarías una sola constante?
 
 ```ts
-function formatLine(name: string, status: string, upper: boolean, brackets: boolean, withIcon: boolean): string {
-  let text = upper ? status.toUpperCase() : status;
+const LIMIT = 10;
+```
+
+Supón que la pizzería permite 12 ingredientes el mes que viene. Con un solo `LIMIT`, los títulos de las listas también crecen a 12 caracteres, y nadie lo pidió. Dos reglas necesitan dos nombres: `MAX_TOPPINGS` y `MAX_TITLE_LENGTH`. El número es el mismo por casualidad. El conocimiento no.
+
+### Distinto texto, mismo conocimiento
+
+Ahora lo contrario. Una función calcula el área de un círculo con `3.14 * radius * radius`. Otra calcula su longitud con `2 * 3.1416 * radius`. ¿Qué esperas para un radio de 10?
+
+```ts
+function circleArea(radius: number): number {
+  return 3.14 * radius * radius;
+}
+
+function circleLength(radius: number): number {
+  return 2 * 3.1416 * radius;
+}
+
+console.log(circleArea(10));
+console.log(circleLength(10));
+```
+
+Imprime `314` y `62.832`. Las dos funciones guardan un solo hecho, el valor de pi, pero guardan dos aproximaciones distintas. El texto no coincide, así que una búsqueda del número completo `3.1416` se saltaría la primera. Usa `Math.PI` en las dos. Entonces `circleArea(10)` da `314.1592653589793`, y las dos funciones concuerdan.
+
+### La regla de tres
+
+¿Cuándo quitas la repetición? Usa la **regla de tres**. La primera vez, escribe el código. La segunda vez, puedes copiarlo. La tercera vez, ves el patrón y quitas la repetición. Con dos copias muchas veces todavía no sabes cuál es la diferencia real.
+
+### Un atajo que hace daño
+
+Esta función atiende todos los casos con banderas:
+
+```ts
+function formatSong(
+  title: string,
+  minutes: number,
+  upper: boolean,
+  brackets: boolean,
+  star: boolean,
+): string {
+  let text = upper ? title.toUpperCase() : title;
   if (brackets) {
     text = `[${text}]`;
   }
-  if (withIcon) {
-    text = `${status === "passed" ? "+" : "-"} ${text}`;
+  if (star) {
+    text = `* ${text}`;
   }
-  return `${text} ${name}`;
+  return `${text} (${minutes} min)`;
 }
 
-console.log(formatLine("Login works", "passed", true, false, true));
+console.log(formatSong("Yellow", 4, true, false, true));
 ```
 
-Muestra `+ PASSED Login works`. Pero ¿qué significan `true, false, true`? Tienes que abrir la función para saberlo. Cada necesidad nueva agrega una bandera. Dos funciones pequeñas con nombres claros son más fáciles de leer y de cambiar.
+Imprime `* YELLOW (4 min)`. Pero ¿qué significan `true, false, true`? Tienes que abrir la función para saberlo. Cada nueva necesidad agrega una bandera. Dos funciones pequeñas con nombres claros son más fáciles de leer y de cambiar.
+
+Este es el contrapeso de DRY: **KISS** (*keep it simple*, mantenlo simple) y **YAGNI** (*you aren't gonna need it*, no lo vas a necesitar: no construyas para necesidades que solo imaginas). Una bandera que agregas "por si alguien la necesita" rompe YAGNI. Un atajo equivocado cuesta más que un poco de repetición.
 
 ## Profundiza
 
-### Texto distinto, mismo conocimiento
+### Distinto texto, mismo conocimiento
 
-La repetición no siempre es el mismo texto. Un carrito escribe `total * 1.2`. Una factura escribe `price + price / 5`. Ambos guardan un solo hecho: el impuesto es del 20 por ciento. Si el impuesto cambia, alguien debe encontrar los dos. DRY pide un solo `TAX_RATE`. Pregúntate: si esta regla cambia, ¿deben cambiar juntos todos estos lugares? Si la respuesta es sí, necesitan un solo hogar. Si es no, déjalos separados. Esta es la pregunta que debes hacer antes de cada refactorización.
+La repetición no siempre es el mismo texto. Un carrito escribe `total * 1.2`. Una factura escribe `price + price / 5`. Las dos guardan un hecho: el impuesto es 20 por ciento. Si el impuesto cambia, alguien debe encontrar las dos. DRY pide un solo `TAX_RATE`. Pregúntate: si esta regla cambia, ¿todos estos lugares deben cambiar juntos? Si la respuesta es sí, necesitan un hogar. Si es no, déjalos separados. Esta es la pregunta que debes hacer antes de cada refactorización.
 
 ### Cómo se ve en la automatización de tests
 
-En la automatización de tests, la misma idea se convierte en *helpers*, *fixtures* y *page objects*. El módulo 4 tiene una lección completa sobre esto. Ya puedes verlo en este proyecto. El archivo `playwright.config.ts` guarda `baseURL` una sola vez, así que los tests escriben `page.goto("/#/practice")` y no la dirección completa. El archivo de *spec* `e2e/playground.spec.ts` también mantiene en un solo lugar el primer paso de cada test. Un *hook* llamado `beforeEach` se ejecuta antes de cada test. El módulo 3 explica los hooks.
+En la automatización de *tests*, la misma idea se convierte en *helpers*, *fixtures* y *page objects*. El módulo 4 tiene una lección completa sobre esto. Ya puedes verla en este proyecto. El archivo `playwright.config.ts` guarda `baseURL` una sola vez, así que los *tests* escriben `page.goto("/#/practice")` y no la dirección completa. El archivo *spec* `e2e/playground.spec.ts` también guarda en un solo lugar el primer paso de cada *test*. Un *hook* llamado `beforeEach` se ejecuta antes de cada *test*. El módulo 3 explica los *hooks*.
 
 ```ts
 test.beforeEach(async ({ page }) => {
@@ -179,7 +246,7 @@ test.beforeEach(async ({ page }) => {
 
 ### El límite para los tests
 
-Los tests tienen una regla especial: un test debe ser fácil de leer, como una historia. Un test con un poco de repetición que entiendes en diez segundos es mejor que un test que esconde sus pasos detrás de tres capas de helpers. Quita la repetición que es ruido, como la dirección y la preparación. Conserva los pasos que muestran lo que el test comprueba. Un test que esconde su historia es más difícil de corregir cuando falla.
+Los *tests* tienen una regla especial: un *test* debe ser fácil de leer, como una historia. Un *test* con un poco de repetición que entiendes en diez segundos es mejor que un *test* que esconde sus pasos detrás de tres capas de *helpers*. Quita la repetición que es ruido, como la dirección y la preparación. Conserva los pasos que muestran qué comprueba el *test*. Un *test* que esconde su historia es más difícil de arreglar cuando falla.
 
 ## Práctica
 
@@ -190,39 +257,85 @@ Los tests tienen una regla especial: un test debe ser fácil de leer, como una h
 node exercises/01-programming/13-dont-repeat-yourself.ts
 ```
 
-Haz que cada línea diga `OK`. Las comprobaciones solo ven el resultado, así que verifica tú mismo que cada regla tenga un solo hogar.
+Haz que cada línea diga `OK`. Las comprobaciones solo ven el resultado, así que revisa tú mismo que cada regla tenga un solo hogar.
 
-## Comprueba lo que sabes
+## Reto
 
-1. ¿Qué significa DRY?
+Elige tu propio mundo: una panadería, una liga de fútbol, un zoológico, una biblioteca, una empresa de autobuses. Escribe un programa pequeño con tres reglas que aparezcan cada una en al menos tres lugares. Por ejemplo, una panadería tiene un límite de envío gratis, una tarifa de envío y una lista de precios, y tres funciones los usan. Primero escribe la versión repetida y guarda su salida. Luego quita la repetición sin cambiar la salida. Después cambia una regla y mira cómo todo el programa la sigue.
+
+Crea el archivo `exercises/challenges/13-dont-repeat-yourself.ts`. No se da ninguna solución.
+
+Está terminado cuando:
+
+- El archivo corre con `node exercises/challenges/13-dont-repeat-yourself.ts` e imprime al menos tres líneas.
+- Cada una de las tres reglas está escrita una sola vez. Una búsqueda de su número o texto encuentra un solo lugar.
+- Cambias una regla, ejecutas el archivo otra vez, y cambia cada línea que usa esa regla.
+- Una de tus reglas es una tabla de precios o de nombres, y usas un bucle sobre ella.
+- Un lugar de tu código queda repetido a propósito, y un comentario de una frase dice por qué.
+
+Vas a necesitar algo que esta lección no enseñó: cómo recorrer con un bucle una tabla de nombres y valores. Busca: `typescript Object.entries loop` y `typescript Record string number`.
+
+## Piénsalo bien
+
+1. Un programa de zoológico tiene `const TICKET_AGE_LIMIT = 12` para las entradas de niños. Una segunda función dice `age < 12` para dar un paseo gratis en el trenecito. El zoológico cambia las entradas de niños a la edad de 14. La regla del paseo gratis debe seguir en 12. ¿Qué haces con los dos números y por qué?
 
 <details><summary>Respuesta</summary>
 
-"Don't Repeat Yourself" (no te repitas). Cada pieza de conocimiento, como una regla, un valor o un formato, tiene un solo hogar en el programa.
+Las dos reglas se ven iguales pero cambian por razones distintas. La regla de la entrada y la regla del tren son conocimiento distinto. Dale al tren su propia constante, por ejemplo `FREE_TRAIN_AGE`. Si reutilizaras `TICKET_AGE_LIMIT`, el cambio a 14 cambiaría también la regla del tren sin avisar. Un nombre compartido dice "estas cosas siempre cambian juntas", así que úsalo solo cuando eso sea cierto.
 
 </details>
 
-2. ¿Qué es la regla de tres?
+2. Encuentra el *bug*. El código corre e imprime una línea, pero una regla sigue copiada.
+
+```ts
+const TAX_RATE = 0.2;
+
+function priceWithTax(price: number): number {
+  return price * (1 + TAX_RATE);
+}
+
+function tip(price: number): number {
+  return price * 0.2;
+}
+```
+
+Un compañero dice: "Bien, la tasa de impuesto tiene una constante". ¿Cuál es el problema y qué revisarías antes de cambiarlo?
 
 <details><summary>Respuesta</summary>
 
-Espera a ver el mismo código tres veces antes de quitar la repetición. Con dos copias, quizá aún no sepas cuál es la diferencia real.
+El `0.2` de `tip` tiene el mismo texto pero puede ser una regla distinta. Si la propina es un 20 por ciento fijo que no tiene nada que ver con el impuesto, usar `TAX_RATE` ahí sería un *bug* esperando al próximo cambio de impuesto. Pregunta: si el impuesto pasa a 0.25, ¿la propina también debe cambiar? Si no, la propina necesita su propia constante, `TIP_RATE`. La constante del impuesto es correcta. El verdadero defecto es el `0.2` sin nombre, que esconde lo que significa.
 
 </details>
 
-3. Un colega quita la repetición con `doStep("pay", true, false, true, false, true)`. La función funciona. ¿Por qué es un problema?
+3. Dos versiones funcionan. La versión A tiene `printCat(name)` y `printDog(name)`, que se diferencian en una palabra. La versión B tiene `printAnimal(name, sound)`. ¿Cuál es mejor y cuándo elegirías la otra?
 
 <details><summary>Respuesta</summary>
 
-Nadie puede leer la llamada sin abrir la función. Cada caso nuevo agrega una bandera y la función se vuelve más difícil de cambiar. Dos funciones pequeñas con nombres claros son mejores. Una abstracción equivocada cuesta más que un poco de repetición.
+La versión B es mejor cuando las dos funciones cambian juntas, por ejemplo cuando cambia el formato de la línea. Un solo cambio arregla las dos. La versión A es mejor si la salida del gato y la del perro van a diferir después en muchas cosas. Entonces B se llena de banderas y se vuelve difícil de leer. Con solo dos copias, la regla de tres dice que puedes esperar. Con un tercer animal, B es la opción clara.
 
 </details>
 
-4. La tienda permite 10 productos en un carrito, y el título de una lista puede tener 10 caracteres. ¿Deben usar ambos una constante `LIMIT = 10`?
+4. ¿Qué se rompe si cambias el requisito del formulario del refugio: los campos siguen siendo los mismos, pero la etiqueta de "Age" debe ser "Age in years" y `color` es opcional? Piensa en la versión con bucle.
 
 <details><summary>Respuesta</summary>
 
-No. Las dos reglas cambian por razones distintas. Si el límite del carrito pasa a 20, el límite del título no debe cambiar. Usa dos constantes con dos nombres.
+La etiqueta es fácil: editas un objeto del array. El campo opcional es más difícil, porque el bucle trata cada elemento como obligatorio. Puedes agregar un `required: boolean` a cada objeto y revisarlo en el bucle. Eso vuelve a ser una bandera, pero vive en los datos, no en la llamada a una función, así que sigue siendo legible. Si más adelante agregas cinco tipos distintos de reglas, un bucle sobre datos simples puede dejar de bastar.
+
+</details>
+
+5. Explícale DRY a un amigo que cocina, en tres frases, sin usar la palabra "repetir". Usa un libro de recetas como ejemplo.
+
+<details><summary>Respuesta</summary>
+
+Una buena respuesta: "Escribe cada dato en un solo lugar. Si muchas recetas necesitan la misma salsa, escribe la salsa una vez y haz que las recetas apunten a ella. Cuando mejoras la salsa, todas las recetas mejoran". La prueba de una buena respuesta es que habla de datos y de un solo hogar, no de copiar texto. Si tu respuesta solo dice "no copies y pegues", se pierde la idea, porque dos salsas escritas con palabras distintas pueden guardar un mismo dato.
+
+</details>
+
+6. Un compañero nuevo quiere quitar todas las líneas repetidas de un programa de 500 líneas en una tarde. ¿Qué le dirías? No hay una única respuesta correcta.
+
+<details><summary>Respuesta</summary>
+
+Quitar la repetición es un compromiso. Ayuda cuando las copias cambian juntas, y hace daño cuando atas cosas que solo se parecen. También cuesta tiempo, y el riesgo crece con cada cambio en código que ya funciona. Una buena respuesta dice: quita las copias que tratan de una misma regla, empieza por las que ya causaron un *bug* y espera a la tercera copia en los casos poco claros. La mejor elección depende de con qué frecuencia cambia el código y de cuántas personas lo leen.
 
 </details>
 
@@ -232,15 +345,18 @@ Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu r
 
 1. **¿Qué es la "regla de tres" en la refactorización y por qué los desarrolladores esperan a la tercera copia?**
    - Busca: `rule of three refactoring duplication`
-   - Una buena respuesta explica: qué dice la regla, un caso donde ayuda y un caso donde la romperías.
+   - Pruébalo: escribe una función dos veces en un archivo de pruebas, con una pequeña diferencia. Luego cópiala una tercera vez con otra diferencia. Ahora intenta escribir una sola función para las tres. Fíjate qué diferencias solo fueron visibles después de la tercera copia.
+   - Una buena respuesta explica: qué dice la regla, un caso en que ayuda y un caso en que la romperías.
 
 2. **¿Qué significa el dicho "la duplicación es mucho más barata que la abstracción equivocada"?**
    - Busca: `duplication far cheaper than wrong abstraction`
-   - Una buena respuesta explica: qué es una abstracción equivocada, por qué empeora con el tiempo y cómo un equipo puede corregirla.
+   - Pruébalo: toma la función `formatSong` de esta lección y agrégale una cuarta bandera tuya. Cuenta cuántos lugares donde se llama se vuelven más difíciles de leer. Luego sepárala en dos funciones con nombre y compara.
+   - Una buena respuesta explica: qué es una abstracción equivocada, por qué empeora con el tiempo y cómo un equipo puede arreglarla.
 
-3. **¿Cuál es la diferencia entre DRY y DAMP en el código de tests?**
+3. **¿Cuál es la diferencia entre DRY y DAMP en el código de los tests?**
    - Busca: `DRY vs DAMP tests`
-   - Una buena respuesta explica: qué significa cada palabra, por qué los tests suelen preferir DAMP y un ejemplo de un test demasiado DRY.
+   - Pruébalo: abre `e2e/playground.spec.ts` y lee dos *tests*. Decide qué líneas moverías a un *helper* y cuáles dejarías en el *test*. Escribe una frase para cada decisión.
+   - Una buena respuesta explica: qué significa cada palabra, por qué los *tests* suelen preferir DAMP y un ejemplo de un *test* demasiado DRY.
 
 ## Siguiente paso
 

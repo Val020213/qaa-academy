@@ -1,74 +1,122 @@
 ---
 title: CSS selectors and data-testid
-summary: Write simple CSS selectors, see why class names break tests, and use the team data-testid convention.
-duration: 45 min
+summary: Write CSS selectors, see why class names make fragile choices, and follow the team data-testid convention.
+duration: 80 min
 ---
+
+## Start with a puzzle
+
+A dog shelter page has this list:
+
+```html
+<ul>
+  <li class="dog">Rex</li>
+  <li class="dog old">Bo</li>
+  <li class="cat">Luna</li>
+</ul>
+```
+
+Three selectors will search this page. How many elements does each one match?
+
+```text
+.dog
+.dog.old
+.dog .old
+```
+
+The last two differ only by one space. The numbers are not all the same.
+
+Write down your guess before you read on.
 
 ## Goal
 
-- Read and write tag, class, id and attribute selectors.
-- Explain why CSS classes make fragile test selectors.
-- Follow the team rule for `data-testid` names.
-- Test a selector in the DevTools console.
+- Predict how many elements a selector matches before you run it.
+- Choose a stable selector and explain why a class or a position is fragile.
+- Write a `data-testid` name that follows the team rule.
+- Check a selector in the DevTools Console, and read the error when it is wrong.
 
 ## What is a selector?
 
-A **selector** is a short piece of text that describes which elements you want in the DOM. The browser and Playwright both understand CSS selectors. CSS is the language that styles a page, such as colors and sizes. Its selectors are also used to find elements.
+A **selector** is a short piece of text that describes which elements you want in the DOM. The browser and Playwright both understand CSS selectors. CSS is the language that styles a page, such as colours and sizes. Its selectors are also used to find elements.
+
+Think of a school. The words "all students", "all students in class 5B" and "the student with number 17" are three different selectors. Each one picks a different group of people from the same school.
 
 ## The four basic selectors
 
-Here is one element from the Practice app:
+Here is one element from the shelter list:
 
 ```html
-<button type="submit" class="button" data-testid="login-submit">Sign in</button>
+<li class="dog old" id="bo" data-age="old">Bo</li>
 ```
 
 | Selector | Meaning | Matches |
 | --- | --- | --- |
-| `button` | by tag | every `button` on the page |
-| `.button` | by class | every element with the class `button` |
-| `#login` | by id | the one element with `id="login"` |
-| `[type="submit"]` | by attribute | every element with `type="submit"` |
+| `li` | by tag | every `li` on the page |
+| `.dog` | by class | every element with the class `dog` |
+| `#bo` | by id | the one element with `id="bo"` |
+| `[data-age="old"]` | by attribute | every element with `data-age="old"` |
 
 A class starts with a dot. An id starts with `#`. An attribute goes in square brackets.
 
-> **Note:** The Practice app has no `id` attributes. The `#` selector is shown here only so you can recognize it.
-
 ## Combining selectors
 
-Write selectors with no space to say "all of these at once":
+Now you can answer the puzzle. Write selectors with no space to say "all of these at once":
 
 ```text
-button.button
+li.dog
 input[type="password"]
 ```
 
-The first matches a `button` that also has the class `button`. The second matches an `input` whose type is `password`.
+The first matches an `li` that also has the class `dog`. The second matches an `input` whose type is `password`. So `.dog.old` means "an element that has both classes". It matches only Bo. The answer for `.dog` is 2 (Rex and Bo).
 
 Write a space to say "inside":
 
 ```text
-[data-testid="login-form"] button
+ul .dog
 ```
 
-This means: a `button` somewhere inside the element with `data-testid="login-form"`. It uses the nesting you learned about earlier.
+This means: an element with the class `dog` somewhere inside a `ul`. So `.dog .old` means "an element with the class `old` that is inside an element with the class `dog`". Bo has `old` itself, but it is not inside another `dog`. No element matches. The third answer is 0.
 
-## Why classes break tests
+### Back to the puzzle
 
-The class names in the Practice app are there for styling. `class="button"` makes the button look like a button. A designer can rename or remove a class on any day, and the page works the same for the user. The test breaks.
+The answers are 2, 1 and 0. A space or no space changes the meaning from "both at once" to "inside". In a test, a wrong count is not always an error message. A selector with a mistake can match nothing, or match too many, and nothing warns you.
 
-There is a second problem: classes repeat. In the Practice app, the selector `.button` matches the Sign in button, the Add button and the Load report button. A selector that matches many elements is not safe for a test.
+## Two more symbols
+
+Two small symbols are common. The `>` means "a direct child". The `+` means "the next sibling". A sibling is an element with the same parent. Try to predict how many elements each of these matches in the shelter list:
+
+```text
+.dog + .cat
+li:not(.dog)
+```
+
+The first matches `Luna`, because the cat comes right after a dog. The second matches `Luna` too, because `:not(.dog)` means "without the class `dog`". Both answers are 1. You can test these in the Console.
+
+## Why classes break
+
+The class names are there for styling. A designer can rename or remove a class on any day, and the page works the same for the user. The test breaks. Imagine that the designer renames `.dog` to `.pet-card`. The selector `.dog` finds nothing.
+
+There is a second problem: classes repeat. A selector that matches many elements is not safe.
+
+A third problem is in the real apps of this course. They use Tailwind, a tool that writes the style in the class itself. The class of the Sign in button starts like this:
+
+```html
+<button class="group/button inline-flex shrink-0 items-center ..." data-slot="button"
+        type="submit" data-testid="login-submit">Sign in</button>
+```
+
+These classes are not names for a feature. They are style words such as "inline flex" and "shrink-0". They change when someone changes the look. The attribute `data-slot="button"` is also for styling. It is on links that look like buttons too, so it does not mean "this is a `button` element".
 
 Selectors based on position are worse. A selector like "the third `div` inside the second `div`" breaks when someone adds one element.
 
-A good test selector is stable. It changes only when the feature changes, not when the design changes.
+A good selector is stable. It changes only when the feature changes, not when the design changes.
 
 ## data-testid
 
 The **`data-testid`** attribute exists only for tests. It has no effect on how the page looks. Any name that starts with `data-` is allowed by HTML.
 
 ```html
-<button type="submit" class="button" data-testid="login-submit">Sign in</button>
+<button type="submit" data-testid="login-submit">Sign in</button>
 ```
 
 The selector is:
@@ -99,7 +147,7 @@ Elements that repeat, such as rows, include the id of the row at the end:
 - `cases-toggle-3` is the checkbox of case 3.
 - In the practice shop, `products-row-5` is the row of product 5, and `products-delete-5` is its Delete button.
 
-The id comes from the data, so a test can find the row it created.
+The id comes from the data, so the name follows the data and not the position on the screen.
 
 ## Try selectors in the console
 
@@ -110,11 +158,13 @@ The DevTools **Console** lets you run one line of JavaScript on the page. Two co
 
 ```text
 > document.querySelector('[data-testid="login-submit"]')
-<button type="submit" class="button" data-testid="login-submit">Sign in</button>
+<button data-slot="button" type="submit" data-testid="login-submit">Sign in</button>
 
-> document.querySelectorAll(".button").length
-3
+> document.querySelectorAll("button").length
+6
 ```
+
+The Practice page has 6 `button` elements when no case exists: the language button, the theme button, Sign in, Sign out (hidden until you sign in), Add and Load report. Every case adds one Delete button.
 
 Put the whole selector in quotes. Use single quotes outside when the selector has double quotes inside.
 
@@ -126,7 +176,20 @@ document.querySelectorAll('[data-testid^="cases-delete-"]')
 
 This finds every Delete button of the case list, whatever the id.
 
-When you write a test, check the selector first. If `querySelectorAll` gives exactly one element, the selector is safe. The number of matches is the answer.
+When you write a test, check the selector first. If `querySelectorAll` gives exactly one element, the selector matches one element. But "one today" is not "right for ever". Ask also why it matches.
+
+### Read the documentation like a scanner
+
+You do not need to read a whole documentation page. Scan it for three things. First, the **signature**: the name and the input, such as `querySelector(selectors)`. Second, the **return value**: what you get back. Third, the **edge cases**: what happens when it goes wrong.
+
+Open the MDN page for `querySelector`. Find the three parts. Then check one edge case with an experiment:
+
+```text
+> document.querySelector("###")
+Uncaught SyntaxError: Failed to execute 'querySelector' on 'Document': '###' is not a valid selector.
+```
+
+A selector that is valid but matches nothing gives `null`. A selector that is not valid is a different thing: it stops with a `SyntaxError`.
 
 ## Go deeper
 
@@ -166,16 +229,16 @@ cases-delete-3
 
 In a test, you could then write `page.getByTestId(caseDelete(2)).click()`.
 
-Be careful. In tests, a clear story is more important than removing every repeat. `page.getByTestId("cases-delete-2")` in one test is easy to read. A helper is worth it when many tests use the same name, or when the name has a rule, as here.
+Be careful. DRY has a counterweight: **KISS** (Keep It Simple) and **YAGNI** ("You Aren't Gonna Need It": do not build for needs you only imagine). A generic function such as `testId(feature, element, id?, suffix?)` that can build any name is too much. You do not need it today. In tests, a clear story is more important than removing every repeat. `page.getByTestId("cases-delete-2")` in one test is easy to read. A helper is worth it when many tests use the same name, or when the name has a rule, as here.
 
 ## Practice
 
 1. Open `http://localhost:5180/#/practice`. Press `F12` and open the **Console** tab.
-2. Run each selector. Write down how many elements it matches, using `.length`. You should see 6, 3, 1 and 1. The page has 6 buttons, but only 3 have the class `button`. The Sign out button is hidden and has another class. The language and theme buttons in the top bar also have their own class:
+2. Predict, then run each selector. Write down how many elements it matches, using `.length`. You should see 6, a number bigger than 6, 1 and 1. The page has 6 `button` elements. The second number is bigger because links in the top bar and the side menu also carry `data-slot="button"`:
 
 ```text
 document.querySelectorAll("button").length
-document.querySelectorAll(".button").length
+document.querySelectorAll('[data-slot="button"]').length
 document.querySelectorAll('[data-testid="login-submit"]').length
 document.querySelectorAll('input[type="password"]').length
 ```
@@ -195,42 +258,33 @@ document.querySelector('[data-testid="cases-delete-2"]').click()
 
 6. Look at the list. Which case disappeared?
 7. Try a selector that does not exist, such as `[data-testid="cases-delete-99"]`. Read the result.
+8. Run `document.querySelector("###")`. Read the error. Compare it with step 7.
 
-## Check what you know
+## Challenge
 
-1. Why is `.button` a bad selector for a test?
+The Practice page has a list of cases, and you can tick them. Your task is to write selectors that pick exactly the elements below, using only a selector (no counting in JavaScript, no position numbers).
 
-<details><summary>Answer</summary>
+First add three cases, "One", "Two" and "Three", and tick the checkbox of "Two". Then write one selector for each of these goals:
 
-Classes are for styling, so they change often. They also repeat, so the selector can match many elements.
+1. Only the checkboxes that are **not** ticked.
+2. Only the Delete button inside the ticked row.
+3. Only the row that comes **right after** the ticked row.
+4. Only the title text of the ticked row.
 
-</details>
+Create the file `exercises/challenges/css-selectors.txt`. Write one line per goal: the selector, the count you expect, and the count you got.
 
-2. What does `[data-testid="login-form"] button` mean?
+It is done when:
 
-<details><summary>Answer</summary>
+- You ran each selector in the Console with `document.querySelectorAll("...").length` and you wrote down the real count. The counts are 2, 1, 1 and 1.
+- No selector uses a class, an id number such as `cases-delete-2`, or a position such as `nth-child`.
+- Each selector still works if the ticked case is "Three" instead of "Two" (tick another one and run them again; the counts stay right for that new state).
+- Below the four lines, you wrote two sentences that explain which one of your selectors you trust least, and why.
 
-A `button` element anywhere inside the element with `data-testid="login-form"`.
+You will need something this lesson did not teach: a way to select by a state such as ticked. Search for: `css :checked pseudo-class` and `css :not selector`. For "the row right after", use the `+` selector from earlier in this lesson.
 
-</details>
+## Think it through
 
-3. What is the team rule for `data-testid` names?
-
-<details><summary>Answer</summary>
-
-`<feature>-<element>`, in lowercase with hyphens. Repeating elements end with the row id, for example `cases-delete-3`.
-
-</details>
-
-4. What does `document.querySelector` return when nothing matches?
-
-<details><summary>Answer</summary>
-
-`null`.
-
-</details>
-
-5. Two cases are on the page. What do these two lines print, and why?
+1. Two cases are on the page. Predict what these two lines print, and say why.
 
 ```text
 document.querySelectorAll('[data-testid="cases-delete"]').length
@@ -240,16 +294,65 @@ document.querySelectorAll('[data-testid^="cases-delete"]').length
 <details>
 <summary>Answer</summary>
 
-The first prints `0`. The name `cases-delete` is exact, and no element has exactly this name. The real names are `cases-delete-1` and `cases-delete-2`. The second prints `2`, because `^=` means "starts with", and both names start with `cases-delete`.
+The first prints `0`. The name `cases-delete` is exact, and no element has exactly this name. The real names are `cases-delete-1` and `cases-delete-2`. The second prints `2`, because `^=` means "starts with", and both names start with `cases-delete`. A small difference in the symbol changes the meaning from "equals" to "starts with".
 
 </details>
 
-6. Which selector is better for the Delete button of the case with id 2? A) `.cases li:nth-child(2) button` B) `[data-testid="cases-delete-2"]`
+2. A selector is written for the shelter list. It runs without error and matches one element, but it is the wrong one. Find the bug.
+
+```html
+<ul>
+  <li class="dog">Rex</li>
+  <li class="dog old">Bo</li>
+</ul>
+```
+
+```text
+.dog:first-child
+```
+
+The goal: the old dog.
 
 <details>
 <summary>Answer</summary>
 
-B is better. In A, the number 2 is a position. If the first case is deleted, or the filter hides a case, the second `li` is a different case. In B, the number 2 is the id of the case, and it does not move. B also says clearly what it finds.
+The selector means "the first child that has the class `dog`". That is Rex, not Bo. The goal needed the class `old`, or the attribute `data-age="old"`. The selector `.dog.old` would find Bo. The bug is that the selector depends on position. If a new dog is added at the top, the same selector gives a different dog. A selector that matches one element is not the same as a selector that matches the right element.
+
+</details>
+
+3. For the Delete button of the case with id 2, which selector is better? A) `.cases li:nth-child(2) button` B) `[data-testid="cases-delete-2"]`. Say what would make you choose the other.
+
+<details>
+<summary>Answer</summary>
+
+B is better. In A, the number 2 is a position. If the first case is deleted, or the filter hides a case, the second `li` is a different case. In B, the number 2 is the id of the case, and it does not move. A may be right when the real question is "the second row on the screen", for example in a test of sorting. The choice depends on whether you care about the data or about the place.
+
+</details>
+
+4. The team decides to change every `data-testid` from `login-submit` style to camelCase, such as `loginSubmit`. What breaks, and what does this show about the name?
+
+<details>
+<summary>Answer</summary>
+
+Every test that uses the old names breaks, and nothing in the page looks different. The name is a promise between developer and tester, so changing it breaks the promise. It also shows why the team fixes the rules for names early, and why tests use a single place for names that repeat. A rename is not wrong, but it must be a decision of the team and a change in all places at once.
+
+</details>
+
+5. Explain to a teammate why a class such as `.button` is a bad choice for a test. Use three sentences. Do not use the word "design".
+
+<details>
+<summary>Answer</summary>
+
+A good answer could be: "A class is there so the page looks right, and someone can change it on any day without changing what the page does. Many elements can share the same class, so the selector may match too much. A `data-testid` has no other purpose, so it changes only when the feature changes." The reasoning has two parts: the class changes for unrelated reasons, and the class is not unique.
+
+</details>
+
+6. A page has no case yet. What does `document.querySelector('[data-testid="cases-item"]')` return? And what does this line do: `document.querySelector('[data-testid="cases-item"]').click()`?
+
+<details>
+<summary>Answer</summary>
+
+The first line returns `null`, because nothing matches. The second line stops with an error such as `Cannot read properties of null (reading 'click')`. The empty list is an edge case. `querySelector` does not give an error when it finds nothing. The error comes one step later, when the code uses the `null` as if it was an element. When a script breaks like this, ask first: did the selector find anything?
 
 </details>
 
@@ -259,12 +362,15 @@ These questions have no answer here. Search the internet, read, and write your a
 
 1. **What is CSS specificity, and why does one rule win over another?**
    - Search for: `CSS specificity MDN`
+   - Try it: in a small HTML file, write one rule with `p` and one with `.note`, both setting the colour. Give a paragraph the class `note`. Which colour wins? Then add `#top` to the paragraph and a rule for it. Look at the Styles pane to see the crossed-out rules.
    - A good answer explains: how id, class and tag selectors are ranked, with one small example.
 2. **What is the difference between a descendant selector (a space) and a child selector (`>`)?**
    - Search for: `CSS combinators descendant child selector`
+   - Try it: in a small HTML file, put a `ul` with a nested `ul`. Count the `li` elements matched by `ul li` and by `ul > li` in the Console.
    - A good answer explains: both forms with a small HTML example, and which elements each one matches.
 3. **Why does the Playwright documentation recommend user-facing locators over CSS selectors, and when do teams still use `data-testid`?**
    - Search for: `playwright best practices locators`
+   - Try it: on the Practice page, find the Sign in button in three ways in the Console: by `data-testid`, by its text with `[...document.querySelectorAll("button")].find((b) => b.textContent === "Sign in")`, and by `button[type="submit"]`. Change the button text in the Elements panel. Which ways still work?
    - A good answer explains: the reason for the advice, and one situation where a test id is the better choice.
 
 ## Next step

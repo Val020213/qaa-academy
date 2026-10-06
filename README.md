@@ -55,14 +55,15 @@ exercises/    TypeScript exercises that check themselves
 e2e/          Playwright specs against this site
   lib/test.ts   `test` and `expect`; specs import from here
   exercises/    Module 3 exercises (`test.fixme`) and their solutions
-src/          The code of the site
-  modules.ts    The course map: modules and planned lessons
-  content.ts    Loads the Markdown and turns it into HTML
-  progress.ts   Completed lessons (localStorage)
-  i18n.ts       Languages: site texts in English and Spanish
-  theme.ts      Light and dark theme
-  main.ts       Entry point and hash navigation
-  views/        Home, lesson, side menu and Practice app
+src/          The course site: a React app built with shadcn/ui components
+  main.tsx, App.tsx   Entry point and hash navigation
+  pages/        Home, lesson, Practice app, not found
+  practice/     The three panels of the Practice app
+  components/   Top bar, side menu, "On this page" list; ui/ holds the shadcn components
+  lib/          Lesson loading, languages, theme, progress, icons
+  typeset.css   shadcn/typeset: the base style of lesson text
+public/clips/ Short screen recordings shown inside lessons
+scripts/clips/  The scripts that record those clips (see its README)
 apps/
   practice-shop/  QA Shop back office: a Next.js app with its own e2e/ suite (module 5)
 ```
@@ -79,10 +80,12 @@ apps/
    ---
    ```
 
-2. Use the sections `## Goal`, the explanation sections, `## Go deeper`, `## Practice`, `## Check what you know`, `## Research on your own` and `## Next step`.
+2. Use these sections, in this order: `## Start with a puzzle`, `## Goal`, the explanation sections (with a `### Back to the puzzle`), `## Go deeper`, `## Practice`, `## Challenge`, `## Think it through`, `## Research on your own` and `## Next step`.
 3. If the lesson was in the `planned` list of its module in `src/modules.ts`, remove it from that list.
 
 The order inside a module comes from the number at the start of the file name.
+
+To show a screen recording in a lesson, put the file in `public/clips/` and write `![What the clip shows](/clips/name.webm)` on its own line.
 
 ## Languages
 

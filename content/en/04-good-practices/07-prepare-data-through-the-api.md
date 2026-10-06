@@ -1,15 +1,27 @@
 ---
 title: Prepare data through the API
-summary: Use the API to create and delete test data, and keep the UI for the one test about that UI.
-duration: 45 min
+summary: Use the API to create test data, keep the UI for the one test about that UI, and know what the API will refuse.
+duration: 75 min
 ---
+
+## Start with a puzzle
+
+You write a test for the shop. It needs a product with price `0`. The product form refuses a price of 0: it shows "Price must be greater than 0."
+
+A teammate says: "Skip the form. Send the product straight to the API. The API is just the back door, so it has no form rules."
+
+Another teammate says: "The API is the same server code. It will refuse too."
+
+One of them is right. If it is the second one, the test also cannot get the product it wants, and you have a second question: what should you do then?
+
+Write down your guess before you read on.
 
 ## Goal
 
-- Explain why test data is prepared through the API.
-- Read the helpers in `api-client.ts`.
-- Explain how `page.request` shares the browser cookies.
-- Explain why the reset endpoint exists only for tests.
+- Decide when a test may prepare data through the API and when it must use the UI.
+- Predict what the API answers to valid and invalid data, with the status code.
+- Explain how `page.request` and the `request` fixture differ.
+- Explain why a reset endpoint exists only for tests.
 
 ## One rule
 
@@ -20,6 +32,8 @@ So the rule is: **the UI is under test only in the test about that UI.** Everyth
 An **API** is the way programs talk to the server, without a screen. A request to the API is faster than clicking through a form. It also has fewer steps that can fail.
 
 To get a product to delete through the UI, you open the form, fill five fields and click save. A bug in the form then breaks your delete test. Through the API it is one request, and only the delete feature can break the test.
+
+This is **decomposition** for tests. Break the test into steps: prepare, act, check. Then ask for each step: "Is this step the thing I test?" If not, take the cheapest safe way.
 
 ## The API client helpers
 
@@ -79,11 +93,35 @@ export async function deleteProduct(request: APIRequestContext, id: number): Pro
 
 The status `204` means "done, nothing to return".
 
+### Predict before you run
+
+Look at `createProduct`. Three calls, and for each one say the status code you expect:
+
+1. `createProduct(request, { stock: 0 })`
+2. `createProduct(request, { stock: -1 })`
+3. `createProduct(request, { price: 0.001 })`
+
+The rules are in `apps/practice-shop/lib/validation.ts`. Stock must be a whole number, 0 or more. Price must be greater than 0.
+
+Call 1 gets `201`: 0 is allowed. Call 2 gets `422`: below the edge. Call 3 also gets `201`. The rule says "greater than 0", and 0.001 is greater than 0. The shop has no minimum price above zero. Whether that is a bug is a product question, and you will meet this kind of edge again in the last lesson of this module.
+
+A `422` response has a body. It names the field and the message:
+
+```json
+{ "errors": { "stock": "Stock must be a whole number, 0 or more." } }
+```
+
+### Back to the puzzle
+
+The second teammate is right. The API and the form both call the same function, `validateProduct`, so a price of 0 gets a `422` from both. The API is not a back door. It is the same door, without the screen around it.
+
+So your test cannot create a product with price 0, and it should not need one: the app does not allow it. If you want to test how the list shows an odd price, use an allowed small positive value, such as `0.01`. If the real need is "what does the form say for price 0", that is a test about the form, and it uses the UI.
+
 ## The cookies are shared
 
 The `request` fixture is a client for API calls. The config loads the saved admin cookies into it, as it does for `page`. So the request is signed in as admin.
 
-`page.request` is the same kind of client, but it belongs to the page. It uses the cookies of the page's browser context. When a cookie changes in one, the other sees it.
+`page.request` is the same kind of client, but it belongs to the page. It uses the cookies of the page's browser context. When a cookie changes in one, the other sees it. The `request` fixture has its own cookies. A login through the `request` fixture does not change the browser.
 
 You saw this in the sign out test: `loginViaApi(page.request, ADMIN)` gives the browser a session without opening the login page.
 
@@ -147,7 +185,7 @@ So the UI path does extra steps. The browser loads the page, React starts, five 
 
 Some people say a test is fake if the data did not come from the screen. This is not true. A test needs to be real about the thing it checks. The delete test checks the delete flow. It does not need to prove the create form works. One other test, "a new product appears at the top of the list", does that.
 
-A second wrong idea is the opposite: "the API accepts anything". It does not. The API applies the same rules as the form. Try this thought: what happens when a test calls `createProduct(request, { price: 0 })`? The server answers `422`, because the price must be greater than 0. The helper checks for `201`, so the test stops at the helper line with a clear message. You never write directly into the data and skip the rules.
+A second wrong idea is the opposite: "the API accepts anything". As the puzzle showed, it does not. You never write directly into the data and skip the rules.
 
 ### How it shows up in QA work: put the state in an override
 
@@ -173,6 +211,10 @@ The body of the product, with name, SKU, price and stock, is written once in the
 ### A trade-off
 
 The API helper ties your tests to the API. If the API changes, for example a new required field, `createProduct` breaks, and so do all tests that use it. You fix it in one place. That is a good deal. But it only works when the API is stable and your team gives you access. If there is no API, use the UI for setup and keep it short.
+
+### Read the response, not only the status
+
+A status code says "it worked" or "it did not". The body says what exactly. When you test through `request`, look at both. Ask yourself: if the API answered `201` but returned the wrong price, which line would notice? `createProduct` returns the body, so a test can check `product.price` against what it sent.
 
 ## Practice
 
@@ -204,50 +246,48 @@ pnpm shop:e2e products/api-practice.spec.ts
 
 4. The test never opens a browser page. Look at how fast it runs next to the UI tests.
 5. Write one sentence: why does this test not need `uniqueName` in its own code?
+6. Check your three predictions from "Predict before you run". Add this line at the top of the file: `import { uniqueSku } from "../lib/helpers"`. Then add this test to the same file and run it:
 
-## Check what you know
+```ts
+test("the API answers the edge cases", async ({ request }) => {
+  for (const change of [{ stock: 0 }, { stock: -1 }, { price: 0.001 }]) {
+    const response = await request.post("/api/products", {
+      data: { name: "Edge case", sku: uniqueSku(), price: 5, stock: 5, status: "draft", ...change },
+    })
+    console.log(JSON.stringify(change), response.status(), await response.text())
+  }
+})
+```
 
-1. When is the UI used to create data?
+7. Read the output. The test prints the status and the body for each change. Does the `422` body look like the JSON shown above? Which of your predictions was wrong, if any?
 
-<details><summary>Answer</summary>
+## Challenge
 
-Only in the test about that UI, such as the test for the create form.
+Brief: the products list shows 10 products per page. Bugs like to live where a total is an exact multiple of the page size, because "the last page" is easy to calculate wrong. You will test exactly that edge. Your test makes the total number of products an exact multiple of 10, with as few new products as needed, and then walks through every page.
 
-</details>
+Create the file `apps/practice-shop/e2e/challenges/pagination-edge.spec.ts`.
 
-2. What does `page.request` share with the page?
+It is done when:
 
-<details><summary>Answer</summary>
+- The test reads the real total with `GET /api/products`, and creates only as many products as needed, through `createProduct`, so the total is a multiple of 10.
+- `products-page` shows `Page 1 of N` where N is the total divided by 10. There is no empty extra page.
+- The test clicks `products-next-page` until the last page. After each click, it checks the text of `products-page`.
+- On the last page, `products-next-page` is disabled, and the page shows 10 rows.
+- `pnpm shop:e2e challenges/pagination-edge.spec.ts --repeat-each 2` passes both times.
 
-The cookies of the browser context.
+You will need something this lesson did not teach: how to read a number from a response body, how to calculate how many products are missing, and how to assert that a button is disabled. Search for: `playwright APIResponse json`, `javascript remainder operator`, `playwright toBeDisabled`, `playwright toHaveText regular expression`.
 
-</details>
+## Think it through
 
-3. Why does `createProduct` check for status 201?
-
-<details><summary>Answer</summary>
-
-If the API fails, the test stops at once with a clear error, not later on the screen.
-
-</details>
-
-4. Why does the reset endpoint answer 404 in production?
-
-<details><summary>Answer</summary>
-
-It erases all data. It must exist only for tests.
-
-</details>
-
-5. What happens when a test runs `createProduct(request, { price: 0 })`? Name the status code and say where the test stops.
+1. **Predict.** The seed data has 24 products and a fresh run starts from it. A test calls `createProduct(request, { stock: 0, price: 0.01 })` once and opens `/products`. What does `products-count` show, and what does `products-page` show? What changes if the test creates 6 products instead of 1?
 
 <details><summary>Answer</summary>
 
-The server rejects the price, because the rule says it must be greater than 0. It answers `422`. The helper expects `201`, so the check inside `createProduct` fails. The test stops on the `createProduct` line, before it opens any page. The error shows `422` against `201`.
+The helper gets `201`, because stock 0 and price 0.01 are on the allowed side of both edges. The total becomes 25, so the count shows "25 products" and the page shows "Page 1 of 3". With 6 products the total is 30. The page then shows "Page 1 of 3" again, and the last page holds 10 rows, not 5. The count text is the same in shape, and the page count did not grow. This is the edge you test in the challenge.
 
 </details>
 
-6. This test sometimes fails, because the new product is not in the list. Find the bug.
+2. **Find the bug.** This test sometimes passes and sometimes fails. The code runs without errors. What is wrong?
 
 ```ts
 test("the new product is in the list", async ({ page, request }) => {
@@ -261,7 +301,39 @@ test("the new product is in the list", async ({ page, request }) => {
 
 <details><summary>Answer</summary>
 
-The page loads the list once, when it opens. The product is created after that, so the list on screen does not include it. The test waits for a row that never comes. Create the product first, then open the page. Then the list that loads already contains the product.
+The list is loaded from the API once, after the page starts. The test creates the product after `goto`, so there is a race. If the product exists before the list request reaches the server, the row shows and the test passes. If the list request is faster, the row never shows and the test fails. The fix is to create the product first, then open the page, so the list that loads already contains the product.
+
+</details>
+
+3. **Two versions.** The delete test leaves nothing behind, but other tests leave products. Version A adds `afterEach` to delete every product the test made. Version B leaves them, because the setup resets the data on the next run. Which is better here, and when would you choose the other?
+
+<details><summary>Answer</summary>
+
+Version B is enough here, because the shop keeps data in memory and `global.setup.ts` resets it at the start of each run. Version A adds code and one more request per test, and it can fail by itself. Choose A when the tests run on a shared environment that is never reset, or when leftovers change what other tests see, such as a count of all products. A reasonable middle way is to clean only in the tests whose leftovers matter.
+
+</details>
+
+4. **What breaks if.** The developers add a required field, `category`, to the product. Which tests fail, on which line, and how many places must you edit?
+
+<details><summary>Answer</summary>
+
+Every test that calls `createProduct` fails on the `createProduct` line, because the API answers `422` and the helper expects `201`. The failure is clear and early, and you fix it in one place: add a default `category` to the helper. The form tests fail too, but for a different reason, because they fill the form and the new field stays empty. You edit those tests separately. The helper is the reason the first group costs one edit.
+
+</details>
+
+5. **Explain it.** A manager says: "Creating the product through the API is cheating. A real user uses the form." Answer in three sentences without the word "faster".
+
+<details><summary>Answer</summary>
+
+A good answer: "Each test checks one behaviour, and the delete test checks delete, not the form. If the form breaks, the delete test would fail for a reason that has nothing to do with delete, and the team would look in the wrong place. One other test already checks the form, so the form is still covered, once and in the right place." The main idea is that each test should fail for one reason only.
+
+</details>
+
+6. **Edge case.** Suppose the config allowed four workers, so tests ran at the same time. Each worker loads `helpers.ts` and starts `uniqueSku` at its own random number between 1000 and 9999. What can go wrong, how often, and what would the failure look like?
+
+<details><summary>Answer</summary>
+
+Two workers can get SKU numbers that touch, because each counts up from its own random start. Then the second `createProduct` gets `422`, with "This SKU is already used by another product." The chance is small. With four workers and about twenty products per worker, the chance of at least one clash is roughly 2.6 in 100, and across many runs it will happen, and it will look random. This is a flaky test with a real cause. Today the config uses one worker, so it cannot happen. If you ever add workers, give each worker its own range of numbers, for example by using the worker number in the SKU.
 
 </details>
 
@@ -271,14 +343,17 @@ These questions have no answer here. Search the internet, read, and write your a
 
 1. **What do the HTTP status codes 201, 204, 401, 403, 404 and 422 mean?**
    - Search for: `HTTP status codes MDN 422 403`
+   - Try it: in a scratch spec file, use the `request` fixture to call `GET /api/products/99999`. Then add `test.use({ storageState: { cookies: [], origins: [] } })` at the top of a second test file and call `GET /api/products`. Print `response.status()` for each.
    - A good answer explains: the meaning of each code in one sentence, and which ones the shop returns for which problem.
 
 2. **What do the HTTP methods GET, POST, PUT and DELETE do in a REST API?**
    - Search for: `REST API methods GET POST PUT DELETE`
+   - Try it: open the shop in your browser, then DevTools, then the Network tab. Edit a product and save. Find the request in the list, and read its method, its address and its response.
    - A good answer explains: what each method does, and which one the shop uses to create, change and delete a product.
 
 3. **Why do teams build test-only endpoints such as a reset, and what risks come with them?**
    - Search for: `test-only endpoints security risk production`
+   - Try it: in a scratch spec, call `POST /api/test/reset`, then `GET /api/products`, and print the `total`. Run it only when no other test is running. Then say why your own session still works after the reset.
    - A good answer explains: why the endpoint helps tests, and how a team keeps it away from production.
 
 ## Next step

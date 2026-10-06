@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card"
 import { useUser } from "@/components/user-context"
 import { api, formatMoney } from "@/lib/api"
 
@@ -24,39 +26,57 @@ export default function DashboardPage() {
 
   return (
     <>
-      <h1 data-testid="dashboard-title">Dashboard</h1>
-      <p className="muted" data-testid="dashboard-welcome">
-        Welcome, {user.name}.
-      </p>
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight" data-testid="dashboard-title">Dashboard</h1>
+        <p className="text-muted-foreground" data-testid="dashboard-welcome">
+          Welcome, {user.name}.
+        </p>
+      </div>
 
       {failed && (
-        <p className="alert alert-error" role="alert" data-testid="dashboard-error">
-          The numbers could not be loaded.
-        </p>
+        <Alert variant="destructive" role="alert" data-testid="dashboard-error">
+          <AlertDescription>The numbers could not be loaded.</AlertDescription>
+        </Alert>
       )}
       {!stats && !failed && (
-        <p className="muted" data-testid="dashboard-loading">
+        <p className="text-muted-foreground" data-testid="dashboard-loading">
           Loading the numbers…
         </p>
       )}
       {stats && (
-        <div className="stats" data-testid="dashboard-stats">
-          <article className="card">
-            <p className="muted">Products</p>
-            <p className="stat" data-testid="stat-products">{stats.products}</p>
-          </article>
-          <article className="card">
-            <p className="muted">Low stock</p>
-            <p className="stat" data-testid="stat-low-stock">{stats.lowStock}</p>
-          </article>
-          <article className="card">
-            <p className="muted">Pending orders</p>
-            <p className="stat" data-testid="stat-pending-orders">{stats.pendingOrders}</p>
-          </article>
-          <article className="card">
-            <p className="muted">Revenue</p>
-            <p className="stat" data-testid="stat-revenue">{formatMoney(stats.revenue)}</p>
-          </article>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="dashboard-stats">
+          <Card>
+            <CardHeader>
+              <CardDescription>Products</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold tabular-nums" data-testid="stat-products">{stats.products}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardDescription>Low stock</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold tabular-nums" data-testid="stat-low-stock">{stats.lowStock}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardDescription>Pending orders</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold tabular-nums" data-testid="stat-pending-orders">{stats.pendingOrders}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardDescription>Revenue</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold tabular-nums" data-testid="stat-revenue">{formatMoney(stats.revenue)}</p>
+            </CardContent>
+          </Card>
         </div>
       )}
     </>

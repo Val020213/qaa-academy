@@ -1,0 +1,20 @@
+import { record, SHOP } from "./lib.mjs"
+import { reset, signIn } from "./shop.mjs"
+await reset()
+await record("shop-form-validation", async ({ page, mark, click, type, pause }) => {
+  await page.goto(SHOP + "/login")
+  await signIn(page, async (l) => l.click(), async (l, t) => l.fill(t), "admin@qa-shop.test", "Admin123!")
+  await page.waitForURL(/dashboard/, { timeout: 60000 })
+  await page.goto(SHOP + "/products/new")
+  await page.getByTestId("product-form").waitFor()
+  await pause(500); mark()
+  await pause(600)
+  await click(page.getByTestId("product-save"))
+  await page.getByTestId("product-name-error").waitFor()
+  await pause(3000)
+  await type(page.getByTestId("product-name"), "Gaming Headset")
+  await pause(900)
+  await click(page.getByTestId("product-save"))
+  await pause(3500)
+})
+await reset()

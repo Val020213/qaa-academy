@@ -1,0 +1,23 @@
+import { record, SHOP } from "./lib.mjs"
+import { reset, signIn } from "./shop.mjs"
+await reset()
+await record("shop-tour", async ({ page, mark, click, type, pause }) => {
+  await page.goto(SHOP + "/login")
+  await page.getByTestId("login-email").waitFor()
+  await pause(600); mark()
+  await signIn(page, click, type, "admin@qa-shop.test", "Admin123!")
+  await page.getByTestId("dashboard-title").waitFor({ timeout: 60000 })
+  await page.getByTestId("stat-products").waitFor()
+  await pause(1800)
+  await click(page.getByRole("link", { name: "Products" }).first())
+  await page.getByTestId("products-table").waitFor()
+  await pause(1200)
+  await type(page.getByTestId("products-search"), "mouse")
+  await pause(1200)
+  await click(page.locator('[data-testid^="products-view-"]').first())
+  await page.getByTestId("product-detail").waitFor()
+  await pause(1800)
+  await click(page.getByTestId("product-detail-back"))
+  await page.getByTestId("products-table").waitFor()
+  await pause(1200)
+})

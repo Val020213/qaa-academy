@@ -1,13 +1,25 @@
 ---
 title: DRY in test automation
 summary: Remove repeated knowledge from a spec with constants, helpers, Page Objects and data tables, and keep each test readable.
-duration: 45 min
+duration: 80 min
 ---
+
+## Start with a puzzle
+
+Your team has 30 tests that fill in the product form. Two teammates argue.
+
+Ana wants every test to write out the 8 form steps, so each test shows what the user did.
+
+Ben wants one helper, `fillEverything(page, flags)`, with 6 flags, so no step is ever written twice.
+
+Next month the form gets a new required field. Later, one test fails at 3 a.m. and you must find out why. Count the edits for the new field in Ana's way and in Ben's way. Then ask which test is easier to read at 3 a.m. Is there a third way that does well in both cases?
+
+Write down your guess before you read on.
 
 ## Goal
 
-- Find repeated knowledge in a spec and count what one change costs.
-- Move each piece of knowledge to the right home: config, helper, fixture, Page Object or data table.
+- Count what one change costs in a spec, and find the repeated knowledge behind it.
+- Decide where each piece of knowledge lives: config, helper, fixture, Page Object or data table.
 - Explain why a test must stay readable, and what DAMP means.
 - Decide with three questions when to remove repetition and when to leave it.
 
@@ -71,7 +83,7 @@ test("the Active filter hides a new draft product", async ({ page }) => {
 })
 ```
 
-It works. Now a change request arrives: the developer renames `product-save` to `product-submit`. Count the edits. The id appears in 3 tests, so you make 3 edits. The next request adds a required field, "Category". That is 3 more edits. A suite with 30 such tests needs 30 edits each time, and you may miss one.
+It works. Before you read on, answer in your head: what is the first thing you would change here, and why? Now a change request arrives: the developer renames `product-save` to `product-submit`. Count the edits. The id appears in 3 tests, so you make 3 edits. The next request adds a required field, "Category". That is 3 more edits. A suite with 30 such tests needs 30 edits each time, and you may miss one.
 
 ## Where each piece of knowledge lives
 
@@ -235,11 +247,21 @@ await runProductScenario(page, request, {
 
 When it fails, you do not know what the user did. You must open the helper, read the flags and imagine the steps. The readable version is the third test above. It shows the product, the search, the filter and the check. Read it once and you know the story.
 
+### Back to the puzzle
+
+The third way is to split by what changes together. The form steps change together, so they live in one place: the `createProduct` helper for tests that only need a product, and one form test for the form itself. The behaviour of each test stays in the test, in plain steps: search, filter, check.
+
+Ana's way costs 30 edits for the new field. Ben's way costs one edit, but at 3 a.m. you open a helper and read six flags to guess what the user did. The rewritten spec costs two edits and every test still reads as a short story. Remove repetition of knowledge that changes together. Keep repetition that explains the story.
+
 ## Go deeper
 
 ### The cost of a wrong abstraction
 
 In the programming lesson "Don't repeat yourself (DRY)", you saw that a wrong abstraction costs more than a copy. In tests it looks like `runProductScenario` above. It starts with two flags. Every new test adds one more flag and one more `if`. Soon the helper is harder to read than the copies it replaced. If this happens, copy the code back into the tests and start again.
+
+### The counterweight: KISS and YAGNI
+
+DRY pulls toward more helpers. Two other ideas pull back. **KISS** means "keep it simple": the plain version that anyone can read is better than the clever one. **YAGNI** means "you are not going to need it": do not build for a need you only imagine. A helper with a flag for "maybe one day we will test this" is YAGNI broken. Write the helper when the third copy is real.
 
 ### A wrong idea: remove all repetition
 
@@ -276,41 +298,53 @@ pnpm shop:e2e products/dry-practice.spec.ts
 8. Pretend `product-save` is renamed. Count the places you must edit in your file.
 9. Delete the file when you finish, or keep it for your notes.
 
-## Check what you know
+## Challenge
 
-1. Name four places where test knowledge can live, instead of being repeated in each test.
+Brief: the orders page lets an admin move an order from one status to the next. The rules are the same on the page and in the API: a pending order can become paid or cancelled, a paid order can become shipped or cancelled, and a shipped or cancelled order is final. Write one spec for these moves with one test body and one table of cases, not one copy per case.
 
-<details><summary>Answer</summary>
+Create the file `apps/practice-shop/e2e/challenges/order-moves.spec.ts`. The shop has no way to create an order, so you must use seeded orders. A move is one-way, so each row of your table needs its own order. The existing `orders.spec.ts` already uses orders 1003 and 1005. Do not use those two.
 
-The config or a constant, an API helper such as `createProduct`, a Page Object such as `ProductsPage`, and a data table with a loop. Also fixtures and `beforeEach` for repeated setup.
+It is done when:
 
-</details>
+- The table has at least 4 rows, and each row names a different seeded order, the button to click and the status it should show afterwards.
+- One loop makes one test per row, and each title says the move, such as "a paid order can be marked as shipped". No two titles are the same.
+- Each test checks the new status in `orders-status-<id>` and that the buttons the new status no longer allows are gone. For example, after pending to paid, "Mark as paid" is gone, but "Cancel" stays and "Mark as shipped" appears.
+- At least one row covers a final status: the order has no action buttons at all.
+- `pnpm shop:e2e challenges/order-moves.spec.ts` passes. A comment in the file explains why running it with `--repeat-each 2` (or with `--no-deps`) against the same server fails, and how to get a fresh start. A normal second command passes, because the setup resets the seed.
 
-2. Where does the shop address live, and why does `page.goto("/products")` work?
+You will need something this lesson did not teach: how to find out which seeded order has which status, from the seed code in `apps/practice-shop/lib/store.ts`, and which moves are legal, from `app/(dashboard)/orders/page.tsx`. Search for: `javascript remainder operator modulo`, `typescript array of objects type`, `playwright toHaveCount 0`.
 
-<details><summary>Answer</summary>
+## Think it through
 
-It lives in `playwright.config.ts` as `baseURL`. Playwright adds it to a path that starts with a slash.
-
-</details>
-
-3. What does DAMP mean?
-
-<details><summary>Answer</summary>
-
-"Descriptive and meaningful phrases". It means a test may repeat a little if that makes the story clear to a reader.
-
-</details>
-
-4. What stays in the test, and what goes into helpers?
+1. **Predict.** Two rows of your data table have the same `title`. The loop creates a test from each row. What happens when you run the file, and what does that teach you about the table?
 
 <details><summary>Answer</summary>
 
-The behaviour under test and the assertions stay in the test. Setup, navigation, data creation and locators go into helpers.
+Playwright refuses to run the file and reports a duplicate test title. It does not run one of them silently. This is a helpful guard. Each row must say something different, because a title that is the same means two rows probably test the same thing. If the rows really differ, the difference belongs in the title.
 
 </details>
 
-5. A developer changes the message to "Name is too short." by mistake. Version A of the test writes the expected message as text. Version B imports the message from the app code. Which version catches the mistake, and why?
+2. **Find the bug.** This version of the loop from the lesson runs, and every row passes. Why is it still wrong?
+
+```ts
+const values = { name: uniqueName("Valid"), sku: uniqueSku(), price: "12.50", stock: "7" }
+
+for (const row of invalidInputs) {
+  test(`the form shows an error when ${row.title}`, async ({ page }) => {
+    Object.assign(values, row.change)
+    // ...open the form, fill it with `values`, click save
+    await expect(page.getByTestId(`product-${row.field}-error`)).toHaveText(row.message)
+  })
+}
+```
+
+<details><summary>Answer</summary>
+
+The object `values` is created once and shared by all tests. `Object.assign` changes it, so each row keeps the faults of the rows before it. The third row sends a bad name, a bad SKU and a bad price, but it only checks the price message, so it passes. Run alone, with `--grep`, the same row sends only the price fault, so the result depends on which tests ran before. Each test must build its own values, as the lesson does with `{ ...base, ...row.change }` inside the test. Also, the SKU is the same for all tests, because it is made only once.
+
+</details>
+
+3. **Two versions.** A developer changes the message to "Name is too short." by mistake. Version A of the test writes the expected message as text. Version B imports the message from the app code. Which version catches the mistake, and why?
 
 <details><summary>Answer</summary>
 
@@ -318,11 +352,27 @@ Version A catches it. It has its own copy of what the user should read, so the t
 
 </details>
 
-6. Two tests share the same four setup lines. A teammate wants a helper right now. Another says to wait. Who is right?
+4. **What breaks if.** The form gets a new required field, "Category". Count the edits in the first, repetitive spec, in the rewritten spec, and in the data-table spec. What does the table spec need besides the helper?
 
 <details><summary>Answer</summary>
 
-It depends, and both can be right. Two copies are cheap, so waiting is safe. A third copy shows a real pattern, and then you extract. But if the four lines are one clear step that you can name well, such as "open the new product form", extracting early is fine. Do not extract when the only name you can find is a vague one.
+The repetitive spec needs 3 edits, one per test. The rewritten spec needs 2: one line in the form test and one default in `createProduct`. The data-table spec fills the form in the same way as the form test, so it needs the same line, and it also needs a new row if "Category" has its own rule. A new rule is a new row, not a new test. The cost stays small because the knowledge is in a few places.
+
+</details>
+
+5. **Explain it.** Explain the difference between DRY and DAMP to a teammate in three sentences. Do not use the word "repeat" or "repetition".
+
+<details><summary>Answer</summary>
+
+A good answer: "DRY says one piece of knowledge should live in one place, so a change is made once. DAMP says a test should read like a clear story, even if some lines look the same in two tests. I use DRY for things like locators and data creation, and DAMP for the steps and checks that tell what the user does." The key idea is that both are about cost: DRY lowers the cost of change, and DAMP lowers the cost of reading.
+
+</details>
+
+6. **Judgement.** Two tests share the same four setup lines. A teammate wants a helper right now. Another says to wait. Who is right?
+
+<details><summary>Answer</summary>
+
+It depends, and both can be right. Two copies are cheap, so waiting is safe. A third copy shows a real pattern, and then you extract. But if the four lines are one clear step that you can name well, such as "open the new product form", extracting early is fine. Do not extract when the only name you can find is a vague one, and do not build for a need you only imagine.
 
 </details>
 
@@ -332,16 +382,19 @@ These questions have no answer here. Search the internet, read, and write your a
 
 1. **What did the authors of The Pragmatic Programmer mean by DRY, and why is it about knowledge and not only lines of code?**
    - Search for: `DRY principle pragmatic programmer duplication of knowledge`
+   - Try it: in PowerShell, run `Get-ChildItem apps/practice-shop -Recurse -Include *.ts,*.tsx,*.md | Select-String "Admin123"`. Write down which file is the one home of the knowledge, which files hold a copy, and whether each copy is a mistake.
    - A good answer explains: the original definition, and an example of repeated knowledge in two different forms.
 
 2. **What is the difference between DRY and DAMP in tests, and when does each win?**
    - Search for: `DAMP vs DRY tests descriptive and meaningful phrases`
+   - Try it: take the helper-hidden version `runProductScenario(...)` from this lesson and write the same test with plain steps. Count the lines. Then show both to a friend for 30 seconds each, and ask what the test does.
    - A good answer explains: why test code is judged on readability, and one case where repetition is better.
 
 3. **How do you generate several tests from one table of data in Playwright?**
    - Search for: `playwright parameterize tests loop test.describe`
+   - Try it: in your `dry-practice.spec.ts`, add a `test.describe` around the loop and run the file. Then change one row so it passes when it should fail, and see how the report names the failing row.
    - A good answer explains: the loop pattern, how to give each test a clear title, and how a failing row appears in the report.
 
 ## Next step
 
-You finished the good practices. In the next module, "Real project", you use these skills on the full QA Shop suite, run it, read a report and close a coverage gap.
+In the next lesson, "From test cases to test data", you turn the test cases you already design as a manual tester into a table of rows and a loop.

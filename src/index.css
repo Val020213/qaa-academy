@@ -1,0 +1,346 @@
+@import "tailwindcss";
+@import "./typeset.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+/* The Markdown lessons are not source code for Tailwind: do not scan them. */
+@source not "../content";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', system-ui, sans-serif;
+    --font-mono: 'Geist Mono Variable', ui-monospace, Consolas, monospace;
+    --color-link: var(--link);
+    --color-ok: var(--ok);
+    --color-ok-bg: var(--ok-bg);
+    --color-ok-border: var(--ok-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.205 0 0);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.6 0.19 255);
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    color-scheme: light;
+
+    /* Extra colours for links, success messages, callouts and code. */
+    --link: #0068d6;
+    --ok: #0f7b3f;
+    --ok-bg: #ecfdf3;
+    --ok-border: #b9e9cb;
+    --warn: #a35200;
+    --note-bg: #f5f9ff;
+    --note-border: #0068d6;
+    --text-secondary: #4d4d4d;
+    --code-bg: #fafafa;
+    --hl-keyword: #c41562;
+    --hl-string: #107d32;
+    --hl-number: #0068d6;
+    --hl-comment: #6f6f6f;
+    --hl-function: #7d00cc;
+    --hl-type: #aa4d00;
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.7 0.15 250);
+    color-scheme: dark;
+    --link: #52a8ff;
+    --ok: #62d68f;
+    --ok-bg: #0d2318;
+    --ok-border: #1b4a30;
+    --warn: #ff9300;
+    --note-bg: #0c1626;
+    --note-border: #52a8ff;
+    --text-secondary: #c4c4c4;
+    --code-bg: #111111;
+    --hl-keyword: #ff4d8d;
+    --hl-string: #62c073;
+    --hl-number: #52a8ff;
+    --hl-comment: #8f8f8f;
+    --hl-function: #c472fb;
+    --hl-type: #ff9300;
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  button:not(:disabled), [role="button"]:not(:disabled) {
+    cursor: pointer;
+    }
+  html {
+    @apply font-sans;
+    /* Room for the sticky top bar when the page scrolls to a section. */
+    scroll-padding-top: 5rem;
+    }
+  body {
+    @apply antialiased;
+    }
+  /* A clear focus ring for links, summaries and scrollable boxes.
+     The shadcn components draw their own ring. */
+  a:focus-visible,
+  summary:focus-visible,
+  [tabindex="0"]:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+
+/* ---------- Lesson text ----------
+   The Markdown of a lesson becomes plain HTML (h2, p, pre, table...).
+   The base look of those tags comes from shadcn/typeset (src/typeset.css):
+   the box has the classes "typeset typeset-docs". The rules below are our
+   preset: the reading size, and the extras typeset does not know about
+   (section icons, code block labels, callouts, answer boxes). */
+
+@layer components {
+  .typeset-docs {
+    --typeset-size: 1.0625rem; /* 17px body text */
+    --typeset-leading: 1.75;
+    --typeset-flow: 1.25em;
+    color: var(--text-secondary);
+  }
+
+  .typeset-docs :where(h2, h3, h4, strong, summary, th) { color: var(--foreground); }
+
+  /* A section heading sits next to its icon. */
+  .typeset-docs h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block-start: calc(var(--typeset-flow) * 2.6);
+    letter-spacing: -0.029em;
+    scroll-margin-top: 5rem;
+  }
+  .typeset-docs h3 { margin-block-start: calc(var(--typeset-flow) * 1.8); letter-spacing: -0.02em; }
+
+  .typeset-docs .section-icon {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    color: var(--text-secondary);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .typeset-docs .section-icon svg { vertical-align: 0; }
+
+  /* Links are underlined, so colour is not the only clue. */
+  .typeset-docs a {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .typeset-docs :not(pre) > code { color: var(--foreground); }
+
+  .typeset-docs pre {
+    position: relative;
+    padding: 20px;
+    font-size: 14px;
+    line-height: 24px;
+    color: var(--foreground);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+  }
+  /* The language name in the corner of a code block. */
+  .typeset-docs pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted-foreground);
+  }
+
+  /* Syntax colours. The class names come from highlight.js. */
+  .hljs-keyword, .hljs-literal, .hljs-selector-tag, .hljs-meta, .hljs-tag .hljs-name { color: var(--hl-keyword); }
+  .hljs-string, .hljs-regexp, .hljs-addition, .hljs-template-variable, .hljs-subst { color: var(--hl-string); }
+  .hljs-number, .hljs-attr, .hljs-attribute, .hljs-variable, .hljs-symbol, .hljs-bullet { color: var(--hl-number); }
+  .hljs-comment, .hljs-quote { color: var(--hl-comment); font-style: italic; }
+  .hljs-title, .hljs-title.function_, .hljs-section, .hljs-selector-id, .hljs-selector-class { color: var(--hl-function); }
+  .hljs-built_in, .hljs-type, .hljs-title.class_, .hljs-params .hljs-type { color: var(--hl-type); }
+  .hljs-deletion { color: var(--destructive); }
+
+  /* Callouts: a blockquote that starts with Note, Tip or Careful. */
+  .typeset-docs .callout {
+    display: flex;
+    gap: 12px;
+    padding: 14px 18px;
+    font-size: 0.94em;
+    background: var(--callout-bg);
+    border: 1px solid var(--callout-border);
+    border-radius: var(--radius);
+  }
+  .typeset-docs .callout > svg { flex: none; margin-top: 0.35em; color: var(--callout-icon); vertical-align: 0; }
+  .typeset-docs .callout > div { min-width: 0; }
+  .typeset-docs .callout > div > :first-child { margin-block-start: 0; }
+  .callout-note { --callout-bg: var(--note-bg); --callout-border: color-mix(in srgb, var(--note-border) 30%, transparent); --callout-icon: var(--note-border); }
+  .callout-tip { --callout-bg: var(--ok-bg); --callout-border: var(--ok-border); --callout-icon: var(--ok); }
+  .callout-careful { --callout-bg: color-mix(in srgb, var(--warn) 9%, transparent); --callout-border: color-mix(in srgb, var(--warn) 35%, transparent); --callout-icon: var(--warn); }
+
+  /* Answer boxes (<details>). The browser's black triangle is replaced by a
+     chevron icon that turns when the box opens. */
+  .typeset-docs details {
+    margin-block-start: 0.75em;
+    padding: 10px 16px;
+    font-size: 0.94em;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .typeset-docs details[open] { background: var(--code-bg); }
+  .typeset-docs summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    list-style: none;
+    border-radius: 4px;
+  }
+  .typeset-docs summary::-webkit-details-marker { display: none; }
+  .typeset-docs summary::before {
+    content: "";
+    flex: none;
+    width: 16px;
+    height: 16px;
+    background-color: var(--muted-foreground);
+    /* The Lucide "chevron-right" icon, used as a mask so it takes the text colour. */
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+    transition: transform 0.15s;
+  }
+  .typeset-docs details[open] > summary::before { transform: rotate(90deg); }
+  .typeset-docs details[open] > summary { margin-bottom: 6px; }
+  .typeset-docs details > :not(summary):first-of-type { margin-block-start: 0; }
+
+  /* Screen recordings inside a lesson. */
+  .typeset-docs .clip { margin-block-start: var(--typeset-flow); margin-inline: 0; }
+  .typeset-docs .clip video {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .typeset-docs .clip figcaption {
+    margin-block-start: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--muted-foreground);
+    text-align: center;
+  }
+
+  .typeset-docs .table-wrap { margin-block-start: var(--typeset-flow); overflow-x: auto; }
+  .typeset-docs .table-wrap table { margin-block-start: 0; }
+}

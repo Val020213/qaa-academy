@@ -6,20 +6,22 @@
     <title>QAA Academy</title>
     <script>
       // Apply the saved theme and language before the first paint
-      // (see src/theme.ts and src/i18n.ts).
+      // (see src/lib/theme.ts and src/lib/i18n.ts). The theme is set twice:
+      // data-theme (our tests read it) and the class "dark" (shadcn/ui uses it).
       try {
         if (localStorage.getItem("qaa-academy:locale") === "es") {
           document.documentElement.lang = "es"
         }
-        document.documentElement.dataset.theme =
-          localStorage.getItem("qaa-academy:theme") === "dark" ? "dark" : "light"
+        const dark = localStorage.getItem("qaa-academy:theme") === "dark"
+        document.documentElement.dataset.theme = dark ? "dark" : "light"
+        document.documentElement.classList.toggle("dark", dark)
       } catch {
         document.documentElement.dataset.theme = "light"
       }
     </script>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

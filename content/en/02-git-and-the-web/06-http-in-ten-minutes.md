@@ -1,20 +1,30 @@
 ---
 title: HTTP in ten minutes
 summary: Learn requests, responses, methods, status codes and JSON, and read them in the Network panel of the practice shop.
-duration: 45 min
+duration: 80 min
 ---
+
+## Start with a puzzle
+
+A library keeps a list of books on a screen. The page is slow, so you press **Remove "Book 7"** twice. Then, in the same hurry, you press **Add "Dune"** twice.
+
+Now look at the list. Is "Book 7" gone? How many copies of "Dune" are there? And what message does the librarian give for the second press of each button?
+
+The two buttons look alike, but a good system treats them in different ways. Think about which action is safe to repeat, and which one is not.
+
+Write down your guess before you read on.
 
 ## Goal
 
-- Explain client, server, request and response.
-- Name the HTTP methods and the status code families.
-- Recognize the status codes a tester sees most.
-- Read a JSON body.
-- Find a request in the Network panel and read it.
+- Predict the method and the status code for an action you describe in words.
+- Decide which status code family fits a failure, and who is at fault.
+- Explain why repeating some actions is safe and repeating others is not.
+- Read a JSON body and find the field you need.
+- Find a request in the Network panel and read its method, status and response.
 
 ## Client and server
 
-A **client** asks for something. A **server** answers. Your browser is a client. The computer that holds the data is the server.
+A **client** asks for something. A **server** answers. Think of a restaurant: you are the client, the waiter carries your order, the kitchen is the server. Your browser is a client. The computer that holds the data is the server.
 
 When you click a button that needs data, the browser sends a **request** to the server. The server sends back a **response**. **HTTP** is the set of rules for these messages.
 
@@ -39,7 +49,7 @@ A response has these parts:
 
 ## Methods
 
-The method says what the request does. These five are the most common:
+The method says what the request does. In the library, `GET` is "show me the list". `POST` is "add a new book". `PUT` is "replace the card of this book with a new card". `PATCH` is "fix one line on the card". `DELETE` is "take this book off the list".
 
 | Method | Meaning | Example |
 | --- | --- | --- |
@@ -51,6 +61,8 @@ The method says what the request does. These five are the most common:
 
 A `GET` request must not change data. It is safe to repeat.
 
+Here is the case that breaks if you ignore this rule. Imagine a shop where the link `/delete-everything` is a `GET`. A browser can load links before you click them, to be faster. A search robot follows every link on a page. Both would delete the data, and nobody pressed a button. This is why a request that changes data must use `POST`, `PUT`, `PATCH` or `DELETE`.
+
 ## Status codes
 
 The **status code** is the first thing to look at. The first digit tells the family:
@@ -61,6 +73,12 @@ The **status code** is the first thing to look at. The first digit tells the fam
 | 3xx | Redirect: go to another address |
 | 4xx | Client error: the request is wrong or not allowed |
 | 5xx | Server error: the server failed |
+
+Back to the restaurant. A 4xx is "your order is wrong": "we have no such dish", "this room is for staff only", "you did not fill in the table number". A 5xx is "our fault": "the kitchen is on fire". The first digit tells you who should fix it.
+
+Watch which status DevTools shows after a wrong password.
+
+![A wrong password sends a login request, and DevTools Network shows status 401.](/clips/devtools-network.webm)
 
 The codes you will see most:
 
@@ -76,11 +94,35 @@ The codes you will see most:
 | 422 | Unprocessable Content | The data is not valid. The shop returns it for a bad product form |
 | 500 | Internal Server Error | The server has a bug |
 
-A good tester checks the status code and the body. A 4xx code is not always a bug. It is the correct answer to a bad request.
+A 4xx code is not always a bug. It is the correct answer to a bad request.
+
+### An experiment: what do you expect?
+
+You are signed in to the shop as admin. You ask for page 999 of the products list. The shop has fewer than 999 pages. What status do you expect? 404, because there is no page 999? Or something else?
+
+You can try it. Open the shop, sign in, open DevTools, and type this in the Console:
+
+```text
+> await (await fetch("/api/products?page=999")).json()
+```
+
+The answer is `200`, with `items` as an empty list and `total` still showing the real number of products. The shop does not treat "page 999" as a missing thing. It treats it as a valid question with an empty answer. Now guess a harder one: what does `?page=abc` return? The code uses page 1 when the number is not valid, so you get the first page and the answer is `200` too. Not every strange request gets a 4xx. The rule is written in the server code, and a tester must find out what the rule is.
 
 ## JSON
 
-Most APIs send data as **JSON**. JSON is text that looks like a TypeScript object. You know this shape from module 1.
+Most APIs send data as **JSON**. JSON is text that looks like a JavaScript object. You know this shape from module 1. The same shape can describe a dog, a song or a product.
+
+```json
+{
+  "name": "Rex",
+  "age": 3,
+  "tricks": ["sit", "roll"]
+}
+```
+
+Names are in double quotes. Text is in double quotes. A list uses square brackets. There is no trailing comma and no comment.
+
+Guess what happens when you ask JavaScript to read `{ name: 'Rex' }`. Names have no quotes and the text has single quotes. The result is a `SyntaxError`: the text is a JavaScript object, but it is not valid JSON. Also guess what `JSON.stringify` does with a field whose value is `undefined`. The field is dropped. A date becomes text.
 
 This is the real response of the shop after a successful sign-in:
 
@@ -92,8 +134,6 @@ This is the real response of the shop after a successful sign-in:
 }
 ```
 
-Names are in double quotes. Text is in double quotes. A list uses square brackets.
-
 ## The practice shop API
 
 The API routes are in `apps/practice-shop/app/api`. Some of them:
@@ -103,9 +143,14 @@ The API routes are in `apps/practice-shop/app/api`. Some of them:
 | `POST /api/auth/login` | Sign in. Returns 401 for a wrong password |
 | `GET /api/products` | List products. Returns 401 without a session |
 | `POST /api/products` | Create a product. Returns 201, 403 or 422 |
+| `DELETE /api/products/<id>` | Delete a product. Returns 204, or 404 if it does not exist |
 | `GET /api/stats` | Numbers for the dashboard. It waits 1.2 seconds on purpose |
 
 The viewer user can read, but gets 403 when creating, editing or deleting.
+
+### Back to the puzzle
+
+Removing "Book 7" twice leaves the same list: the book is gone. Only the message differs. The first press works, and the second finds nothing to remove. Adding "Dune" twice makes two copies, because each add is a new thing. This is the promise of each method. `DELETE` is safe to repeat in its result. `POST` is not. That is why a browser asks "Do you want to send the form again?" before it repeats a `POST`.
 
 ## Go deeper
 
@@ -178,55 +223,83 @@ pnpm shop:dev
 10. Click **Sign out**. Click the **All** filter in the Network panel. Open `http://localhost:5190/products`. The page sends you to the login page. Find the request `products` with status `307`. That is a redirect (3xx). Read the `Location` header.
 11. Stop the shop with `Ctrl + C`.
 
-## Check what you know
+## Challenge
 
-1. What is the difference between 401 and 403?
+Write the rules of the shop API as a table of data, and let a loop turn each row into one test. Each row says who asks, which method, which address, which body, and which status you expect. Choose the rules yourself. You decide which six or more rules are the most important to protect.
 
-<details><summary>Answer</summary>
+**It is done when:**
 
-401 means you are not signed in. 403 means you are signed in, but your role is not allowed to do this.
+1. You run `pnpm shop:e2e challenges/api-status-table` and all tests pass.
+2. The table has at least six rows. Together they expect a 401, a 403, a 404, a 422 and at least one 2xx status.
+3. Each test title is built from its row, for example `viewer POST /api/products gives 403`, so a failure names the rule that broke.
+4. No row depends on another row. A row that needs a product creates its own.
+5. You change one expected number on purpose, see the failing title, then fix it.
 
-</details>
+You will need something this lesson did not teach: how to make many tests from one array, and how to start a test as the viewer. For a signed-out test, reuse the empty `storageState` from the earlier example. Search for `playwright parameterized tests loop` and `playwright test.use storageState`. The file `apps/practice-shop/e2e/lib/fixtures/api-client.ts` already has helpers you can read and reuse.
 
-2. Which method creates a new item, and which status code do you expect?
+Create the file `apps/practice-shop/e2e/challenges/api-status-table.spec.ts` yourself. Import from `../lib/test`. Do not copy a solution from anywhere. Read the route code in `apps/practice-shop/app/api` to find out what each rule really returns.
 
-<details><summary>Answer</summary>
+## Think it through
 
-`POST`, and `201 Created`.
-
-</details>
-
-3. A test sends invalid data and the server returns 422. Is it a bug?
-
-<details><summary>Answer</summary>
-
-No. It is the correct answer. The server refuses invalid data. It is a bug if the server returns 200 or 500.
-
-</details>
-
-4. Where in DevTools do you read the JSON that the server sent?
-
-<details><summary>Answer</summary>
-
-In the Network panel: click the request and open the Response tab.
-
-</details>
-
-5. A server answers `200 OK` to `POST /api/products`. The body is `{ "errors": { "sku": "This SKU is already used by another product." } }`. What is wrong with this answer, and which status code is right?
+1. You are signed in as admin. Predict the status and the `page` field of three calls: `GET /api/products?page=999`, `GET /api/products?page=abc` and `GET /api/products?page=-5`. Say why.
 
 <details>
 <summary>Answer</summary>
 
-The status says "success" but the body says that the request failed. A client or a test that checks only the status will think a product was created. The right code is `422`, which means the data is not valid. The shop already does this.
+All three return `200`. For `page=999` the list `items` is empty, because there are not so many products. For `abc` and `-5` the server falls back to page 1, so `page` is `1` and `items` has the first products. The route code turns an invalid number into 1 and never returns an error for this. You cannot guess these rules from the name of the API. You must read the code or try it.
 
 </details>
 
-6. Your test sends `GET /api/products` and gets `401`. In the browser, the same request works. Give one likely reason.
+2. A test deletes a product and then checks the answer:
+
+```ts
+const response = await request.delete(`/api/products/${product.id}`)
+expect(response.status()).toBe(204)
+expect(await response.json()).toEqual({})
+```
+
+The status check passes, but the test fails. Why?
 
 <details>
 <summary>Answer</summary>
 
-The browser has the session cookie from your sign-in, and the test does not. The server needs a session for this route, so without the cookie it answers 401, which means "not signed in". The fix is to sign in first in the test, or to start the test with a saved session.
+The status `204` means "No Content": the response has no body. Reading `json()` on an empty body throws an error, so the test fails on the last line. The test asks for something that, by the rules of HTTP, does not exist. The fix is to remove that line, or to check the state in another request.
+
+</details>
+
+3. After a delete you can check in two ways. Version A: expect `204`. Version B: expect `204`, then `GET` the product and expect `404`. Both work. Which do you prefer, and what would make you choose the other?
+
+<details>
+<summary>Answer</summary>
+
+Version B proves the effect, not only the promise: the product is really gone. It costs one more request. Use version A when many other tests already prove that deleting works, and this test is about something else, such as the role. Choose B when the delete itself is the thing you test.
+
+</details>
+
+4. A developer adds the link `GET /api/products/5/delete`, which deletes product 5. What can break, even if nobody clicks the link?
+
+<details>
+<summary>Answer</summary>
+
+A `GET` is promised to be safe, so browsers, robots and tools may call it without a person. A browser that loads links early, or a search robot, could delete products. Also a tester who repeats all `GET` calls to check them would delete data. The method must be `DELETE`, because the promise of the method tells every tool what is safe.
+
+</details>
+
+5. Explain to a teammate the difference between 401 and 403 in three sentences. Do not use the words "sign in" or "role". Use a cinema or a train if it helps.
+
+<details>
+<summary>Answer</summary>
+
+A model answer: At a cinema, 401 is "I do not know who you are, show me your ticket". 403 is "I know who you are, but your ticket is not for this room". The difference matters for tests, because 401 is fixed by getting a session, and 403 is fixed only by a user with more rights.
+
+</details>
+
+6. The shop answers `200` with an empty list for page 999. Another design answers `404`. Which is better?
+
+<details>
+<summary>Answer</summary>
+
+There is no single right answer. A `200` with an empty list is simple for the page code: it draws "no results". A `404` says that the page does not exist, which helps an API that must tell a robot to stop. It depends on who uses the API and what the page does with an empty answer. The important thing is that the choice is written down, and that tests check it.
 
 </details>
 
@@ -236,13 +309,16 @@ These questions have no answer here. Search the internet, read, and write your a
 
 1. **What does it mean that an HTTP method is "idempotent", and which methods are?**
    - Search for: `HTTP idempotent methods MDN`
-   - A good answer explains: the meaning with one example, and why `PUT` is idempotent and `POST` is not.
+   - Try it: in the shop, create a product in the page. Read its id in the address. In the Console, run `fetch("/api/products/<id>", { method: "DELETE" }).then((r) => r.status)` twice, with your real id, and write down both numbers.
+   - A good answer explains: the meaning with one example, why `PUT` is idempotent and `POST` is not, and your two numbers.
 2. **What is the difference between the HTTP status codes 301, 302 and 307?**
    - Search for: `HTTP redirect 301 302 307 difference`
-   - A good answer explains: which redirects are permanent, and which keep the method of the request.
+   - Try it: with the shop running and signed out, run `curl.exe -i http://localhost:5190/products` in PowerShell. Read the first line and the `location` line.
+   - A good answer explains: which redirects are permanent, which keep the method of the request, and what your command printed.
 3. **What should a tester check in an API response besides the status code?**
    - Search for: `API testing what to verify response`
-   - A good answer explains: at least three checks, such as the body, the headers and the response time.
+   - Try it: open the response of the request `products?` in DevTools. List three things in it, besides the status, that a test could check. Write one `expect` line for each.
+   - A good answer explains: at least three checks, such as the body, the headers and the response time, and why each one can catch a bug the status misses.
 
 ## Next step
 

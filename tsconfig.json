@@ -18,6 +18,10 @@
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
 
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] },
+
     "noEmit": true,
     "skipLibCheck": true
   },

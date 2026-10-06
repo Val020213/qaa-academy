@@ -1,0 +1,15 @@
+import { record, SITE } from "./lib.mjs"
+await record("theme-and-language", async ({ page, mark, click, pause }) => {
+  await page.goto(SITE + "/#/lesson/00-get-started/04-your-first-project")
+  await page.getByTestId("lesson-title").waitFor()
+  await pause(700); mark()
+  await pause(700)
+  await click(page.getByTestId("theme-toggle"))
+  await pause(1600)
+  await click(page.getByTestId("locale-toggle"))
+  await pause(1800)
+  await click(page.getByTestId("lesson-complete-toggle"))
+  await pause(1200)
+  await page.getByTestId("sidebar-lesson-link").first().scrollIntoViewIfNeeded()
+  await pause(1800)
+})

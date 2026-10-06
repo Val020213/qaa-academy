@@ -1,6 +1,12 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { StatusBadge } from "@/components/status-badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useUser } from "@/components/user-context"
 import { api, ApiError, formatMoney } from "@/lib/api"
 import type { Order, OrderStatus } from "@/lib/types"
@@ -50,86 +56,89 @@ export default function OrdersPage() {
 
   return (
     <>
-      <h1 data-testid="orders-title">Orders</h1>
+      <h1 className="text-2xl font-semibold tracking-tight" data-testid="orders-title">Orders</h1>
 
-      <div className="toolbar">
-        <label>
-          Status
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-            data-testid="orders-status-filter"
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="paid">Paid</option>
-            <option value="shipped">Shipped</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </label>
+      <div className="grid w-60 gap-2">
+        <Label htmlFor="orders-status-filter">Status</Label>
+        {/* A native <select>, so Playwright's selectOption works on it. */}
+        <NativeSelect
+          id="orders-status-filter"
+          className="w-full"
+          value={status}
+          onChange={(event) => setStatus(event.target.value)}
+          data-testid="orders-status-filter"
+        >
+          <NativeSelectOption value="all">All</NativeSelectOption>
+          <NativeSelectOption value="pending">Pending</NativeSelectOption>
+          <NativeSelectOption value="paid">Paid</NativeSelectOption>
+          <NativeSelectOption value="shipped">Shipped</NativeSelectOption>
+          <NativeSelectOption value="cancelled">Cancelled</NativeSelectOption>
+        </NativeSelect>
       </div>
 
       {error && (
-        <p className="alert alert-error" role="alert" data-testid="orders-error">
-          {error}
-        </p>
+        <Alert variant="destructive" role="alert" data-testid="orders-error">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
       {!orders && !error && (
-        <p className="muted" data-testid="orders-loading">
+        <p className="text-muted-foreground" data-testid="orders-loading">
           Loading…
         </p>
       )}
 
       {orders && (
         <>
-          <table className="table" data-testid="orders-table">
-            <thead>
-              <tr>
-                <th>Order</th>
-                <th>Customer</th>
-                <th>Date</th>
-                <th className="number">Total</th>
-                <th>Status</th>
-                {isAdmin && <th>Actions</th>}
-              </tr>
-            </thead>
-            <tbody>
+          <Table aria-label="Orders" data-testid="orders-table">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Order</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead>Status</TableHead>
+                {isAdmin && <TableHead>Actions</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {orders.map((order) => (
-                <tr key={order.id} data-testid={`orders-row-${order.id}`}>
-                  <td>#{order.id}</td>
-                  <td>{order.customer}</td>
-                  <td>{order.createdAt}</td>
-                  <td className="number">{formatMoney(order.total)}</td>
-                  <td>
-                    <span className={`badge badge-${order.status}`} data-testid={`orders-status-${order.id}`}>
-                      {order.status}
-                    </span>
-                  </td>
+                <TableRow key={order.id} data-testid={`orders-row-${order.id}`}>
+                  <TableCell>#{order.id}</TableCell>
+                  <TableCell>{order.customer}</TableCell>
+                  <TableCell>{order.createdAt}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatMoney(order.total)}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={order.status} data-testid={`orders-status-${order.id}`} />
+                  </TableCell>
                   {isAdmin && (
-                    <td className="row-actions">
-                      {NEXT_STEPS[order.status].map((step) => (
-                        <button
-                          key={step.status}
-                          className="link-button"
-                          type="button"
-                          onClick={() => change(order, step.status)}
-                          data-testid={`${step.testId}-${order.id}`}
-                        >
-                          {step.label}
-                        </button>
-                      ))}
-                    </td>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {NEXT_STEPS[order.status].map((step) => (
+                          <Button
+                            key={step.status}
+                            variant="link"
+                            size="sm"
+                            className="underline"
+                            type="button"
+                            onClick={() => change(order, step.status)}
+                            data-testid={`${step.testId}-${order.id}`}
+                          >
+                            {step.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
           {orders.length === 0 && (
-            <p className="muted empty" data-testid="orders-empty">
+            <p className="py-5 text-center text-muted-foreground" data-testid="orders-empty">
               No orders with this status.
             </p>
           )}
-          <p className="muted" data-testid="orders-count">
+          <p className="text-sm text-muted-foreground" data-testid="orders-count">
             {orders.length} {orders.length === 1 ? "order" : "orders"}
           </p>
         </>

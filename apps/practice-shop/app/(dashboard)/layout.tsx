@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <UserProvider user={publicUser}>
       <SiteHeader />
-      <main className="content" data-testid="content">
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-6 pt-8 pb-16" data-testid="content">
         {children}
       </main>
     </UserProvider>

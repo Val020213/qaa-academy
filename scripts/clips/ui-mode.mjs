@@ -1,0 +1,19 @@
+// Needs: QAA_E2E_PORT=5186 `playwright test --ui-host 127.0.0.1 --ui-port 5188` (see README.md).
+import { record } from "./lib.mjs"
+await record("ui-mode", async ({ page, mark, click, moveTo, pause }) => {
+  await page.goto("http://127.0.0.1:5188/")
+  await page.getByText("playground.spec.ts").first().waitFor()
+  await pause(2500); mark()
+  const entry = (t) => page.locator(".tree-view-entry").filter({ has: page.locator(".ui-mode-tree-item-title", { hasText: t }) }).last()
+  await click(entry("login").locator(".codicon-chevron-right").first()); await pause(1200)
+  const row = entry("accepts the test credentials")
+  await moveTo(row); await pause(900)
+  await click(row.getByTitle("Run"))
+  await page.locator(".action-title", { hasText: "Click" }).first().waitFor({ timeout: 60000 })
+  await pause(2500)
+  const act = (t) => page.locator(".action-title", { hasText: t }).first()
+  await click(act('Fill "qa@example.com"')); await pause(2000)
+  await click(act('Fill "Playwright123"')); await pause(2000)
+  await click(act("Click")); await pause(2000)
+  await click(act("toContainText")); await pause(2500)
+})

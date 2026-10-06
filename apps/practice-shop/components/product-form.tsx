@@ -3,6 +3,12 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { api, ApiError } from "@/lib/api"
 import type { FieldErrors, Product } from "@/lib/types"
 
@@ -46,59 +52,101 @@ export function ProductForm({ product }: { product?: Product }) {
     }
   }
 
+  // The error text under a field. The input points to it with aria-describedby,
+  // so a screen reader reads the error together with the field.
   const fieldError = (field: string) =>
     errors[field] && (
-      <span className="field-error" data-testid={`product-${field}-error`}>
+      <p id={`product-${field}-error`} className="text-sm text-destructive" data-testid={`product-${field}-error`}>
         {errors[field]}
-      </span>
+      </p>
     )
+  // The two accessibility attributes every input needs when it has an error.
+  const errorProps = (field: string) => ({
+    "aria-invalid": errors[field] ? true : undefined,
+    "aria-describedby": errors[field] ? `product-${field}-error` : undefined,
+  })
 
   return (
-    <form className="form card" onSubmit={submit} noValidate data-testid="product-form">
-      <label>
-        Name
-        <input value={values.name} onChange={set("name")} data-testid="product-name" />
-        {fieldError("name")}
-      </label>
-      <label>
-        SKU
-        <input value={values.sku} onChange={set("sku")} placeholder="SKU-0001" data-testid="product-sku" />
-        {fieldError("sku")}
-      </label>
-      <label>
-        Price
-        <input value={values.price} onChange={set("price")} inputMode="decimal" data-testid="product-price" />
-        {fieldError("price")}
-      </label>
-      <label>
-        Stock
-        <input value={values.stock} onChange={set("stock")} inputMode="numeric" data-testid="product-stock" />
-        {fieldError("stock")}
-      </label>
-      <label>
-        Status
-        <select value={values.status} onChange={set("status")} data-testid="product-status">
-          <option value="draft">Draft</option>
-          <option value="active">Active</option>
-          <option value="archived">Archived</option>
-        </select>
-        {fieldError("status")}
-      </label>
+    <Card className="max-w-lg">
+      <CardContent>
+        <form className="grid gap-4" onSubmit={submit} noValidate data-testid="product-form">
+          <div className="grid gap-2">
+            <Label htmlFor="product-name">Name</Label>
+            <Input id="product-name" value={values.name} onChange={set("name")} {...errorProps("name")} data-testid="product-name" />
+            {fieldError("name")}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="product-sku">SKU</Label>
+            <Input
+              id="product-sku"
+              value={values.sku}
+              onChange={set("sku")}
+              placeholder="SKU-0001"
+              {...errorProps("sku")}
+              data-testid="product-sku"
+            />
+            {fieldError("sku")}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="product-price">Price</Label>
+            <Input
+              id="product-price"
+              value={values.price}
+              onChange={set("price")}
+              inputMode="decimal"
+              {...errorProps("price")}
+              data-testid="product-price"
+            />
+            {fieldError("price")}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="product-stock">Stock</Label>
+            <Input
+              id="product-stock"
+              value={values.stock}
+              onChange={set("stock")}
+              inputMode="numeric"
+              {...errorProps("stock")}
+              data-testid="product-stock"
+            />
+            {fieldError("stock")}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="product-status">Status</Label>
+            {/* A native <select>, so Playwright's selectOption works on it. */}
+            <NativeSelect
+              id="product-status"
+              className="w-full"
+              value={values.status}
+              onChange={set("status")}
+              {...errorProps("status")}
+              data-testid="product-status"
+            >
+              <NativeSelectOption value="draft">Draft</NativeSelectOption>
+              <NativeSelectOption value="active">Active</NativeSelectOption>
+              <NativeSelectOption value="archived">Archived</NativeSelectOption>
+            </NativeSelect>
+            {fieldError("status")}
+          </div>
 
-      {formError && (
-        <p className="alert alert-error" role="alert" data-testid="product-form-error">
-          {formError}
-        </p>
-      )}
+          {formError && (
+            <Alert variant="destructive" role="alert" data-testid="product-form-error">
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          )}
 
-      <div className="actions">
-        <Link className="button button-secondary" href="/products" data-testid="product-cancel">
-          Cancel
-        </Link>
-        <button className="button" type="submit" disabled={saving} data-testid="product-save">
-          {saving ? "Saving…" : "Save"}
-        </button>
-      </div>
-    </form>
+          <div className="flex items-center justify-end gap-2">
+            <Button asChild variant="outline">
+              <Link href="/products" data-testid="product-cancel">
+                Cancel
+              </Link>
+            </Button>
+            <Button type="submit" disabled={saving} data-testid="product-save">
+              {saving ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
