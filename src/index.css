@@ -329,6 +329,8 @@
     display: block;
     width: 100%;
     height: auto;
+    /* All clips are 1280x720. The ratio keeps the box the right size while the file loads. */
+    aspect-ratio: 16 / 9;
     background: var(--code-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius);
