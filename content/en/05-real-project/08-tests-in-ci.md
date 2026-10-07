@@ -16,7 +16,7 @@ You will read the project's automated checks and find the cause of a test that f
 
 **CI** means continuous integration. Automated checks accompany the integration of changes into the team's repository. In this project, GitHub Actions runs the type check and both suites on a new machine, without the files or servers left over on your computer.
 
-A change that breaks a test cannot be merged by mistake. A test must be **R**epeatable: it gives the same result on every machine. Your computer cannot prove that. A clean machine can.
+CI reports a failing test. To block merging, the repository must require that check through its protection rules. A test must be **R**epeatable: under the same conditions, it gives the same result. A clean Ubuntu run with Chromium provides evidence in that environment.
 
 ## Read the workflow
 
@@ -56,7 +56,9 @@ The type check comes before the browser download. If it finds an error, the job 
 
 If a step fails, GitHub Actions skips subsequent steps without a condition that allows them to run after a failure. The upload step has `if: ${{ !cancelled() }}`: it runs even after a failure, provided the run has not been cancelled.
 
-The workflow does not run `pnpm --filter practice-shop typecheck`. A wrong type in a shop spec is not caught in CI. Run that command before pushing, as lesson 7 instructs.
+![A failure skips later normal steps; upload can preserve the available reports.](/images/05-ci-failure-flow.en.svg)
+
+The workflow does not run `pnpm --filter practice-shop typecheck`. CI does not run that shop type check; a type-related defect that affects execution can still fail a test. Run that command before pushing, as lesson 7 instructs.
 
 ## CI settings
 
@@ -66,7 +68,7 @@ GitHub sets the environment variable `CI`. Both `playwright.config.ts` files rea
 | --- | --- | --- |
 | `forbidOnly` | off | on: a `test.only` fails the run |
 | `retries` | 0 | 2: a failed test runs again up to 2 times |
-| `reuseExistingServer` | on | off: Playwright always starts its own server |
+| `reuseExistingServer` | on | off: starts the server if the URL does not answer; fails if it already answers |
 
 A test that fails and then passes on a retry is marked **flaky** in the report. Investigate the cause of the failure even if the retry passes.
 
@@ -109,7 +111,7 @@ $env:CI = "false"
 pnpm shop:e2e
 ```
 
-JavaScript treats nonempty text as true. So `process.env.CI` is true, `retries` is 2, and `forbidOnly` is on. If a test fails on all three attempts, Playwright reports it as failed.
+JavaScript treats nonempty text as true. The value of `process.env.CI` remains the string `"false"`; its boolean conversion is `true`, `retries` is 2, and `forbidOnly` is on. If a test fails on all three attempts, Playwright reports it as failed.
 
 The setting `reuseExistingServer` is off too. Stop a shop that is already running before running the suite. To switch CI mode off, remove the variable.
 
@@ -117,8 +119,8 @@ The setting `reuseExistingServer` is off too. Stop a shop that is already runnin
 
 1. Open your pull request. Click the failed check, then **Details**.
 2. Open the run **Summary**. Scroll to **Artifacts**.
-3. Download `playwright-reports` and unzip the file.
-4. The zip holds two folders: one for the course site suite and one for the shop suite. If the course site suite failed, the shop suite did not run, so the shop folder is missing.
+3. If `playwright-reports` exists, download it and unzip the file. A failure before the tests can leave the run without reports.
+4. Look for `playwright-report/` for the course and `apps/practice-shop/playwright-report/` for the shop. The artifact preserves these paths from their common root. If the course suite failed, the shop did not run and did not generate its report.
 5. Open a report with the folder path:
 
 ```bash
@@ -131,12 +133,12 @@ Replace the path with your real one. Click the failed test and open its trace to
 
 Read the trace and choose a hypothesis based on the failure. Test that hypothesis by changing one thing:
 
-- The CI machine is slower. A fixed wait or a short timeout fails there. Use web-first assertions.
+- A response can take longer in CI because of load or network delays. Check the timings in the trace; a fixed wait or short timeout can expire before it arrives. Use web-first assertions.
 - A test may rely on data left over from a previous run. CI starts clean.
 - CI runs Linux, where file names are case-sensitive: `Products.page.ts` is not `products.page.ts`.
-- An old server on your machine may hide a problem. CI always starts a fresh one.
+- An old server on your machine may hide a problem. With the URL free, Playwright in CI starts a fresh one; if it already answers, it fails.
 
-To copy the CI conditions, set the variable. Stop the shop first, because CI mode does not reuse a running server. In PowerShell:
+To reproduce the CI Playwright settings on your machine, set the variable. This does not change your operating system or create a clean environment. Stop the shop first, because CI mode does not reuse a running server. In PowerShell:
 
 ```bash
 $env:CI = "1"
@@ -172,7 +174,7 @@ Create `exercises/challenges/ci-flag.ts` with a function `isCiOn(value)` that ta
 It is done when:
 
 - `node exercises/challenges/ci-flag.ts` prints one line for each of at least eight values, such as `"false" -> off`. Include `undefined`, empty text, `"1"`, `"0"`, `"false"` and `" FALSE "`.
-- The file compares the results with a table of expected answers and prints `all cases match` at the end. If a case does not match, it prints that case.
+- The file compares the results with a table of expected answers and prints `all cases match` when the case checks finish, before the environment message. If a case does not match, it prints that case.
 - The last line prints `CI mode from the environment: on` or `off`, read from the real `CI` variable. It prints `on` after `$env:CI = "1"`, and `off` after `$env:CI = "0"` and when the variable is removed.
 - `pnpm typecheck` passes with your file in place.
 
@@ -200,7 +202,7 @@ The report marks the test as flaky. The retry passed, but the team still needs t
 
 <details><summary>Answer</summary>
 
-In CI, pnpm is frozen by default when a lock file exists. The installation still fails because it differs from `package.json`. `--no-frozen-lockfile` is the option that allows updates during installation.
+In this project, pnpm enables frozen installation by default in CI because the lock file is not empty. The installation still fails because it differs from `package.json`. `--no-frozen-lockfile` is the option that allows updates during installation.
 
 </details>
 

@@ -14,7 +14,7 @@ In this lesson you record a test run and review the evidence of a failure in the
 
 ## What a trace stores
 
-A **trace** is a recording of a test run. It is a file that keeps, for every step, a copy of the page, the console messages and the network calls.
+A **trace** is a recording of a test run. The file stores actions, DOM snapshots for operations that support them, console messages and network activity from the run. Not every step has a snapshot.
 
 The trace viewer displays those records after the test has finished, so you can review the page and the steps that led to the failure.
 
@@ -26,7 +26,7 @@ Open `playwright.config.ts`. In the `use` section you find:
 trace: "on-first-retry",
 ```
 
-It means: record a trace only when a test is run again after a failure. Running the test again is a **retry**.
+It means: record a trace only on the first **retry**, the second attempt after a failure. This mode does not record the initial attempt or the second retry.
 
 The project enables retries in CI and disables them on your machine. With this configuration, a local run records no traces. To record them without changing the config file:
 
@@ -36,7 +36,7 @@ pnpm e2e e2e/playground.spec.ts --trace on
 
 The option `--trace on` records a trace for every test in this run. Limit recording to the file you are reviewing.
 
-> **Note:** The config also has `screenshot: "only-on-failure"`. A failed test always has a picture of the page at the end. A trace gives you much more.
+> **Note:** The config also has `screenshot: "only-on-failure"`. Playwright tries to capture the pages of a failed test. The image can be missing if there was no page or the capture failed. A trace also provides actions and saved DOM.
 
 ## Open the HTML report
 
@@ -52,7 +52,7 @@ In the report, a failed test has a red mark. Click it to see the error message, 
 
 ![The report lists passed and failed tests. Open the failed one to see the error and trace.](/clips/html-report.webm)
 
-The terminal also prints a command to open a trace directly:
+You can also open a trace directly with this command:
 
 ```text
 pnpm exec playwright show-trace test-results/<test-folder>/trace.zip
@@ -62,7 +62,7 @@ pnpm exec playwright show-trace test-results/<test-folder>/trace.zip
 
 **Actions.** On the left is the list of steps in order: `page.goto`, `locator.fill`, `expect.toHaveText` and so on. A step that failed is in red. Click a step to see the page at that moment.
 
-**Before and after snapshots.** The "Before" and "After" tabs show the page around the action. The viewer displays the saved DOM, which you can inspect with the browser developer tools. The highlighted element is the one the action used.
+**Before and after snapshots.** The "Before" and "After" tabs show the page around the action. The viewer displays the saved DOM, which you can inspect with the browser developer tools. For an assertion, inspect the prior state in "Before" and the observed target in "After" and "Call"; "Before" may not highlight it because Playwright marks it while running the check.
 
 **Console.** Shows messages the page wrote to its console and errors in the page code.
 
@@ -84,14 +84,14 @@ Review the evidence before changing the test:
 
 1. Read the error message: assertion, locator, Expected and Received.
 2. Open the trace and select the red step.
-3. Check the page state in the "Before" snapshot and the highlighted element.
+3. Inspect the prior state in "Before"; then check "After" and "Call" for the target and observed result.
 4. Review earlier steps to find an unexpected action.
 5. Look for page errors in Console and failed calls in Network.
 6. Compare the result with the requirement to decide whether to fix the test or report a bug. After fixing it, run the test again.
 
-For example, a test clicks "Load report" and waits for the text `12 tests`. You have two guesses. Guess one: the app never showed the report. Guess two: the test looked at the wrong element. The error message is the same for both.
+For example, a test clicks "Load report" and waits for the text `12 tests`. You have two guesses. Guess one: the app never showed the report. Guess two: the test looked at the wrong element. Both cases can cause the same assertion to fail; the locator and received value help distinguish them.
 
-In the snapshot, look at the highlighted element. If it is the wrong element, guess two is true: your locator is wrong. If it is the right element and it still shows only `Loading…` or nothing, guess one is true. Then the Console and Network tabs can tell you why: a page error, or a request with a bad status.
+Check the target in "After" and the locator in "Call". If they point to another element, correct the locator. If the target is right but does not show `12 tests`, you only know that the check did not find that text within its deadline. Compare the final observed state and timeout with the requirement before attributing it to the app. Console can show errors; this simulated load has no report request to inspect in Network.
 
 ## Go deeper
 
@@ -111,14 +111,16 @@ use: {
 
 - `"off"` never records.
 - `"on"` records every test and keeps every trace.
-- `"on-first-retry"` records only when a test runs again. This project uses it. It costs little, but it needs retries.
+- `"on-first-retry"` records only the first retry and keeps that trace even if the retry passes. This project uses it; it needs retries.
 - `"retain-on-failure"` records every test and deletes the trace of tests that pass. You get a trace for every failure, without retries.
 
 Keeping the failed run helps when the failure is hard to reproduce. Recording only a retry reduces the work of recording, but leaves the first run without a trace.
 
+![Three attempts of the same test: each mode records and keeps different traces.](/images/03-trace-attempts.en.svg)
+
 ## Practice
 
-1. Make a copy of the test "rejects wrong credentials" in a new file `e2e/exercises/03-playwright/trace-practice.spec.ts`. Import from `../../lib/test`.
+1. Make a copy of the test "rejects wrong credentials" in a new file `e2e/exercises/03-playwright/trace-practice.spec.ts`. Import from `../../lib/test`. Before filling the fields, add `await page.goto("/#/practice")`: the original file's navigation is outside the test.
 2. Change the expected text to `"Wrong password."` so the test fails.
 3. Run it with a trace:
 

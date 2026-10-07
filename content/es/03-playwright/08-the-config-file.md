@@ -29,13 +29,15 @@ Node.js expone las **variables de entorno** en `process.env`: valores con nombre
 
 El operador `??` usa el valor de la derecha cuando el de la izquierda es `null` o `undefined`. Si no defines `QAA_E2E_PORT`, el puerto es `5180`. `BASE_URL` usa ese puerto para construir la dirección del sitio.
 
+![PORT alimenta el comando del servidor; BASE_URL alimenta la comprobación del servidor y las rutas relativas.](/images/03-port-consumers.es.svg)
+
 ## defineConfig
 
 ```ts
 export default defineConfig({
 ```
 
-`defineConfig` es un *helper* de Playwright. Revisa los tipos de tus opciones, así el editor puede ayudarte. Todo lo que sigue está dentro de él.
+`defineConfig` es un *helper* de Playwright con una firma de tipos que usa el verificador de TypeScript para revisar las opciones en el editor. Al ejecutarse, devuelve la configuración; no comprueba los tipos. Todo lo que sigue está dentro de él.
 
 ## testDir
 
@@ -84,7 +86,7 @@ undefined 0 false
 "false" 2 true
 ```
 
-Los valores de las variables de entorno son texto. `"0"` y `"false"` cuentan como verdaderos porque no están vacíos. Una variable que falta o un texto vacío cuenta como falso. La comprobación significa "la variable existe", no "la variable dice que sí".
+Los valores de las variables de entorno son texto. `"0"` y `"false"` cuentan como verdaderos porque no están vacíos. Una variable que falta o un texto vacío cuenta como falso. La condición comprueba que el valor de la variable sea un texto no vacío; no interpreta palabras como "false".
 
 Si ejecutas `$env:CI="false"`, activas las opciones de CI. Para quitar la variable en PowerShell, usa `Remove-Item Env:CI`. Para desactivar solo los reintentos en una ejecución, usa `--retries=0` en el comando.
 
@@ -114,9 +116,9 @@ use: {
 
 `use` guarda opciones para todos los tests.
 
-- `baseURL` es el comienzo de cada dirección. Por eso `page.goto("/#/practice")` funciona.
-- `trace` graba un *trace* (traza) solo cuando un test se reintenta. En local, agrega `--trace on`.
-- `screenshot` toma una captura solo cuando un test falla.
+- `baseURL` se usa para resolver direcciones relativas con el constructor `URL`. Por eso `page.goto("/#/practice")` funciona. Una dirección absoluta conserva su propio origen.
+- `trace` graba un *trace* (traza) solo en el primer reintento. En local, agrega `--trace on`.
+- `screenshot` intenta capturar las páginas solo cuando un test falla.
 
 Con `baseURL`, los tests usan rutas relativas y el inicio de la dirección se escribe una vez. Un cambio de puerto no requiere editar cada test.
 
@@ -146,7 +148,7 @@ webServer: {
 },
 ```
 
-`webServer` le dice a Playwright que inicie la app antes de los tests y la detenga al final. Por eso no necesitas ejecutar `pnpm dev` antes.
+`webServer` le dice a Playwright que compruebe la dirección y, si no hay un servidor disponible, inicie la app antes de los tests. Al final detiene el proceso que inició. Un servidor reutilizado queda corriendo. Por eso no necesitas ejecutar `pnpm dev` antes.
 
 - `command` inicia la app en el puerto elegido.
 - `url` es la dirección que Playwright revisa para saber que la app está lista.

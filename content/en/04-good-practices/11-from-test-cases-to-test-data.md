@@ -34,7 +34,7 @@ The form sends the values to the API. The server validates them and returns erro
 | Price | a finite number, greater than 0 | not a number; infinite (`Infinity`, `1e309`); zero or less; above zero | `"abc"`, `"0"`, `"-1"` rejected; `"0.01"` accepted |
 | Stock | a whole number, 0 or more | not a number; negative; not whole; whole and 0 or more | `"-1"`, `"1.5"`, `""` rejected; `"0"` accepted |
 
-The name has no upper limit. The price has no upper limit. A row such as "a 10000 character name" tests a rule that does not exist.
+The code sets no maximum name length or business price maximum, but requires a finite price. A row with a 10000 character name needs a purpose based on requirements or risk; it can reveal a missing maximum.
 
 > **Careful:** The code is not the requirement. If the requirement says "name: 3 to 50 characters" and the code has no maximum, a validation check is missing. Compare the rules with the requirements and discuss the difference with the product owner.
 
@@ -103,7 +103,7 @@ for (const row of cases) {
 
 The loop calls `test` once per row, and Playwright's test runner registers nine tests with distinct titles. If one fails, the report identifies its input.
 
-Each test creates its own SKU inside its body. The setup builds valid values and applies the row's change. The actions fill and save the form; the assertions check the result. One test, one Act. If you need two Acts, you have two tests.
+Each test creates its own SKU inside its body. The setup builds valid values and applies the row's change. The actions fill and save the form; the assertions check the result. One test checks one behavior, which may require several actions, such as filling fields and saving.
 
 ## Rows for the API and the browser
 
@@ -127,7 +127,7 @@ test("the API rejects a price of 0", async ({ page }) => {
 
 With price 0 and the other fields valid, the server returns status 422 and the price error. The test checks both the status and the response body.
 
-This test runs in a few milliseconds. Put all the rule rows here, and keep two or three rows in the browser to show that the error reaches the user.
+This request avoids opening the form and filling its fields, although the test asks for `page` and creates a browser context. Test rules through the API and choose browser rows that cover each field’s messages and what happens on saving.
 
 ## Review a test with FIRST
 
@@ -135,11 +135,11 @@ Use **FIRST** as a review checklist:
 
 1. **Fast:** does it do only what it needs and prepare data through the API when the UI is not under test?
 2. **Independent:** can it run alone and in any order?
-3. **Repeatable:** does it give the same result every run, thanks to unique data and no sleeps?
+3. **Repeatable:** does it give the same result with controlled starting state and dependencies, its own data and condition-based waits?
 4. **Self-checking:** does it contain an assertion that decides whether it passes or fails?
 5. **Timely:** was it written together with the feature, while the rules were fresh?
 
-Every row must be able to find a bug that no other row finds. Ask of each row: "which wrong line of code would make only this row fail?" If you cannot name one, delete the row.
+Each row needs a coverage purpose: a class, boundary or interaction. Identify the defect it can detect, including a missing validation. Several rows may detect the same defect; remove one only if it adds no useful coverage.
 
 ## Go deeper
 
@@ -163,7 +163,7 @@ It is done when:
 
 - The table has at least 8 rows, with a comment naming each equivalence class, and covers the accepted and rejected sides of every boundary you found.
 - The duplicate-SKU row creates its first product through the API.
-- You can name, for every row, one wrong line of code that would make it fail.
+- You can explain each row’s purpose and which defect or missing validation it can detect.
 - `pnpm shop:e2e products/sku-boundaries.spec.ts` passes.
 
 To read the pattern `^SKU-\d{4}$` and find its boundaries, search for `regular expression anchors` and `regex digit quantifier`.
@@ -190,7 +190,7 @@ Accepted rows try to save the same SKU. After the first product, the server reje
 
 <details><summary>Answer</summary>
 
-The rows for 2 and 3 characters stay valid. Names from `uniqueName("Boundary")` have fewer than 50 characters, so the other rows do not change either. Add 50 characters as an accepted input and 51 as a rejected input, with the message from the new validation check.
+The expected results of the 2 and 3 character rows stay the same. Names from `uniqueName("Boundary")` have fewer than 50 characters, so the other rows do not change either. Add 50 characters as an accepted input and 51 as a rejected input, with the message from the new validation check.
 
 </details>
 

@@ -44,7 +44,7 @@ In this test, **Arrange, Act, Assert** breaks down as follows:
 
 The first assertion is a **guard**: it checks the status the test needs before the click. If an earlier run left the order paid, the test fails there and shows the unexpected status.
 
-Without the guard, the click would fail with "element not found" for the button that no longer exists.
+Without the guard, Playwright would wait for the missing button until the action timeout expired; the click would fail with a timeout error.
 
 The assertions check visible behavior: the status changes and the action that is no longer allowed disappears. A component change can preserve these tests if it keeps the test ids and texts.
 
@@ -94,7 +94,7 @@ Before choosing it, search all specs for `1001` with `Ctrl+Shift+F` in VS Code. 
 
 The card `stat-pending-orders` counts pending orders: 3 in the seed data, 2 after 1005 is paid and 1 after 1001 is cancelled. A test that always expects 3 depends on running before those changes.
 
-Playwright runs files in a fixed order, so it may pass for months and then fail the day someone renames a folder.
+This suite uses one worker and discovers files sorted by name. A test that relies on that order can pass until the names or configuration change.
 
 `dashboard.spec.ts` checks that the card shows a number with `/^\d+$/`. If you need to check an exact total, prepare the data that determines that total inside the test.
 
@@ -221,20 +221,20 @@ pnpm --filter practice-shop e2e e2e/orders/orders.spec.ts -g "cancels"
 
 Check that a viewer cannot change orders through either the page or the API.
 
-Create `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` with one test. Sign in as the viewer and open `/orders`. Check that order 1009 is visible, with no **Mark as paid** or **Cancel** buttons. Send a request to change it and check that the server refuses it for lack of permission. The test must not change data or sign out of the shared admin session.
+Create `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` with one test. Sign in as the viewer and open `/orders`. Check that order 1009 is visible, with no **Mark as paid** or **Cancel** buttons. First check that `user-role` shows `viewer`; then send a request to change it and check that the server refuses it for lack of permission. The test must not change data or sign out of the shared admin session.
 
 It is done when:
 
 - The test passes when you run the file twice in a row.
 - The test never signs out. The text `logout-button` does not appear in your file.
 - The request is sent from the test, which checks the status code and that order 1009 is still `pending` on the page afterwards. A comment explains why you use 1009 rather than 1005 or 1001.
-- You ran the same test once as admin on purpose, saw it fail and then put the viewer back.
+- You ran the same test once as admin on purpose and it failed at the role check before sending the request. You then put the viewer back.
 
 Search for: `playwright override storageState in a test`, `playwright page.request patch`, `playwright apirequestcontext cookies shared with page`. Look at `loginViaApi` in `lib/fixtures/api-client.ts` and the sign out test in `auth/auth.spec.ts`.
 
 ## Think it through
 
-1. Find the bug. This cancel test runs and passes, but it does not check anything.
+1. Find the bug. This test starts an asynchronous assertion but does not wait for its result.
 
 ```ts
 test("an admin cancels a pending order", async ({ page }) => {
@@ -247,7 +247,7 @@ test("an admin cancels a pending order", async ({ page }) => {
 <details>
 <summary>Answer</summary>
 
-The `await` is missing before `expect`. The assertion returns a promise that nobody waits for. It may start to poll, but the test does not wait for it. So a wrong status may not fail the test in a clear way. Always write `await expect(...)` for web-first assertions.
+The `await` is missing before `expect`. The assertion starts and returns a promise that nobody waits for. The test body can finish and Playwright can close the page while the assertion is still pending. Neither passing nor completing the status check is guaranteed. Always write `await expect(...)` for web-first assertions.
 
 </details>
 

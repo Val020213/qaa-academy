@@ -37,9 +37,9 @@ If the create API fails, tests that use it to prepare their data also fail. Keep
 
 You can open `/products/<id>/edit` directly with `page.goto` or start on the list and click **Edit**. The suite uses the second path.
 
-The shop generates the form's HTML on the server. The browser can display it before React attaches its event handlers during hydration. Text typed in that gap can be erased.
+The shop generates the form's HTML on the server. The browser can display it before React attaches its event handlers during hydration. Typing before those handlers exist can leave React state unchanged; a later render can restore that value in the controlled input.
 
-The list rows come from a request the browser sends after React runs. The test waits for the product's row, then clicks **Edit**. A click inside the app happens after React is running, so the form is ready.
+The list rows come from a request the browser sends after React runs. The test waits for the product's row, then clicks **Edit**. That row confirms React has loaded the list. The Next.js link allows navigation to the form within the app; a visible link alone does not prove that any form is ready.
 
 The new product is on page 1 because the API sorts products by id, newest first.
 
@@ -128,7 +128,11 @@ Waiting for `products.row(product.id)` states which product must be available be
 
 The third test checks the error on screen and the saved price through the API. The form stays on screen after an error; that alone does not prove that the server kept the data unchanged.
 
-The test waits for the error text before reading the API. That text appears once the server has answered the save attempt. Reading the API immediately after the click can return the old price while the save is still pending.
+The test waits for the error text before reading the API. That text appears once the server has answered the save attempt.
+
+![The test waits for the PUT error before reading the saved price through the API.](/images/05-validation-read.en.svg)
+
+Reading the API immediately after the click can return the old price while the save is still pending.
 
 ## Choose another gap
 

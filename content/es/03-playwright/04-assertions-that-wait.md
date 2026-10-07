@@ -18,6 +18,8 @@ Después de una acción, la página puede tardar en mostrar el resultado. En la 
 
 Las **aserciones web-first** reintentan la comprobación hasta que se cumple o vence el timeout. En cada intento, Playwright busca de nuevo con el locator y comprueba el estado actual del DOM. El timeout por defecto es de 5 segundos.
 
+![La aserción sobre el locator repite la búsqueda y la comprobación; un valor guardado se compara una sola vez.](/images/03-assertion-retries.es.svg)
+
 ```ts
 await page.getByTestId("report-load").click()
 
@@ -26,7 +28,7 @@ await expect(page.getByTestId("report-result")).toContainText("12 tests")
 
 Después del clic, Playwright vuelve a comprobar el texto de `report-result` hasta encontrar `12 tests`. En esta app, la aserción pasa después de aproximadamente 1.5 segundos; si el texto no aparece dentro del timeout, falla.
 
-![Después del clic el botón se deshabilita y dice Loading, luego aparece el resultado.](/clips/auto-wait-report.webm)
+![Después del clic el botón se deshabilita y aparece Loading… en un mensaje aparte; luego aparece el resultado.](/clips/auto-wait-report.webm)
 
 Estas aserciones son asíncronas y necesitan `await` para que la función del test espere su resultado.
 
@@ -52,7 +54,7 @@ await expect(page.getByTestId("login-welcome")).toContainText("qa@example.com")
 await expect(page.getByTestId("login-email")).toHaveValue("qa@example.com")
 ```
 
-`toHaveText` compara el texto completo. `toContainText` comprueba que contiene una parte. `toHaveValue` comprueba el valor de un campo de entrada.
+`toHaveText` compara el texto completo. `toContainText` comprueba que contiene una parte. Con un texto esperado, ambas normalizan los espacios y saltos de línea antes de comparar. `toHaveValue` comprueba el valor de un campo de entrada.
 
 Cantidad, atributo y dirección:
 
@@ -141,9 +143,9 @@ Received: "0 of 1 passed"
 Timeout:  5000ms
 
 Call log:
-  - Expect "toHaveText" with timeout 5000ms
+  - Expect "to.have.text" with timeout 5000ms
   - waiting for getByTestId('cases-counter')
-    9 × locator resolved to <p data-testid="cases-counter" class="font-mono ...">0 of 1 passed</p>
+    9 × locator resolved to <p data-testid="cases-counter" class="font-mono text-[13px] text-muted-foreground">0 of 1 passed</p>
       - unexpected value "0 of 1 passed"
 ```
 

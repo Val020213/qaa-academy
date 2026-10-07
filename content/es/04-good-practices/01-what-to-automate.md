@@ -24,7 +24,7 @@ La pirámide propone muchos tests unitarios, menos tests de integración y pocos
 
 Supón que un test unitario tarda 2 milisegundos, uno de API tarda 40 milisegundos y uno de navegador tarda 6 segundos. Son tiempos de ejemplo, no mediciones de la tienda.
 
-La tienda tiene 12 reglas, cada una con 8 entradas para comprobar: 96 comprobaciones. El siguiente cálculo suma sus tiempos si se ejecutan una tras otra.
+Para este cálculo, supón 12 reglas, cada una con 8 entradas para comprobar: 96 comprobaciones. El siguiente cálculo suma sus tiempos si se ejecutan una tras otra.
 
 Guarda esto como `exercises/challenges/cost.ts` y ejecútalo con `node exercises/challenges/cost.ts`:
 
@@ -56,7 +56,7 @@ Con estos tiempos, comprobar todas las entradas en el navegador toma casi 10 min
 
 ## El costo y la cobertura de un test E2E
 
-Un test E2E inicia un navegador, carga páginas y espera la pantalla. Toca todo el sistema, así que puede fallar por muchas razones: la página, el servidor, los datos o la red.
+En Playwright, los tests de un worker comparten el navegador; cada test recibe un contexto aislado y una página nueva. El test carga páginas y espera resultados visibles. Recorre varias partes de la aplicación, así que puede fallar por muchas razones: la página, el servidor, los datos o la red.
 
 Además del tiempo de ejecución, debes contar el trabajo de investigar fallos y mantener los pasos cuando cambia la pantalla. Reserva los tests E2E para recorridos importantes, como iniciar sesión, crear un producto y verlo en la lista.
 
@@ -154,7 +154,7 @@ for (const row of rows) {
 
 Imprime cinco líneas, y cada una termina en `ok`. La función recorta los espacios y convierte el texto a mayúsculas antes de comprobar el formato.
 
-Las filas de la tabla también son **valores límite** y **clases de equivalencia**: `SKU-1` y `SKU-12345` quedan justo fuera del largo permitido, y `""` es el caso vacío.
+Las filas representan **clases de equivalencia**: formato válido, cantidad incorrecta de dígitos y caso vacío. `SKU-12345` tiene un dígito de más; `SKU-1` tiene tres de menos. El límite inferior inmediato sería `SKU-123`.
 
 ### Comprobar la respuesta de la API
 
@@ -216,7 +216,7 @@ Está terminado cuando:
 - Cada valor incorrecto se prueba por `/api/products` y espera el estado `422` y el mensaje exacto del campo elegido.
 - Cada valor tiene su propio test, cuyo nombre contiene el valor que se prueba.
 - El test de navegador comprueba el mensaje bajo el campo elegido y que no existen elementos de error para los otros campos.
-- Ejecutaste `pnpm shop:e2e challenges/pyramid-split.spec.ts`, todos los tests pasaron, y puedes ver en la salida que cada test de API es mucho más rápido que el test de navegador.
+- Ejecutaste `pnpm shop:e2e challenges/pyramid-split.spec.ts`, todos los tests pasaron, y comparaste en la salida los tiempos de los tests de API y del navegador.
 
 Para crear tests desde un array y enviar datos incorrectos en un solo campo, busca: `playwright parameterize tests for loop`, `playwright list reporter test duration`.
 

@@ -16,7 +16,7 @@ You will save changes with Git, check what goes into each commit, and share your
 
 Git records versions of a repository's files so you can review changes and recover an earlier version. A **commit** saves the state of the files Git tracks, with a message describing the change.
 
-Each commit has a long unique ID and stores the ID of the commit it starts from, its **parent**. The first commit of a repository has no parent, and a commit that joins two branches (a *merge*) has two. The IDs are shortened in `git log --oneline`:
+Each commit has a long unique ID and stores the ID of the commit it starts from, its **parent**. The first commit of a repository has no parent, and a *merge* commit has two or more parents. The IDs are shortened in `git log --oneline`:
 
 ```text
 a1b2c3d Add login test for valid user
@@ -25,7 +25,7 @@ a1b2c3d Add login test for valid user
 
 Your IDs will be different. A **branch** is a reference that points to a commit. When you commit on that branch, Git moves the reference to the new commit. Creating a branch does not require copying all the files.
 
-A **remote** is a copy of the repository on a server, such as GitHub, where you share changes with your team.
+A **remote** is a name configured in Git for the address of another repository. For example, `origin` can point to the repository on GitHub where you share changes with your team.
 
 ## First-time setup
 
@@ -91,7 +91,7 @@ git commit -m "Use chili instead of salt in the soup"
 git push -u origin try-spicy
 ```
 
-The `-u` option links your local branch to the branch on the remote. After that first push, `git push` and `git pull` with no arguments already know where to go.
+The `-u` option configures the remote branch your local branch tracks. With Git's usual configuration, later `git push` and `git pull` can use that tracking without arguments.
 
 **7. Open a pull request.** A **pull request** (PR) asks to integrate your branch's changes into `main`. You create it on GitHub so a teammate can review the changes before merging them.
 
@@ -130,13 +130,15 @@ Changes not staged for commit:
 
 The first list shows staged changes relative to the last commit. The second shows changes in the folder relative to the staged version.
 
-`git add .` stages every new and modified file in the current folder and its subfolders, except the ones `.gitignore` excludes. Run `git status` before using it and check that all the files belong to the task. To include just one file, name it as in `git add soup.txt`.
+![The staging area keeps the salt; pepper stays only in the working folder and outside the commit.](/images/02-git-staging.en.svg)
+
+`git add .` stages new files, modifications and deletions in the current folder and its subfolders. It excludes new files ignored by `.gitignore`, but still stages changes to files Git already tracks. Run `git status` before using it and check that all the files belong to the task. To include just one file, name it as in `git add soup.txt`.
 
 ## Branches change your files
 
 Suppose that on `main`, `soup.txt` contains "Add one spoon of salt." You create `try-spicy`, change the line to "Add one spoon of chili.", and commit. Then you return to `main`, with no pending changes.
 
-When you switch to `main`, `soup.txt` says "Add one spoon of salt." again. Git rewrites the files in your folder so that they match the commit that branch points to. Here every change is in a commit; if you had unsaved changes in a file that differs between the two branches, Git would refuse to switch so as not to lose them. Returning to `try-spicy` brings back the chili version.
+When you switch to `main`, `soup.txt` says "Add one spoon of salt." again. Git rewrites the files in your folder so that they match the commit that branch points to. Here every change is in a commit. Git preserves compatible local changes, but refuses to switch branches if that would overwrite uncommitted changes. Returning to `try-spicy` brings back the chili version.
 
 ## Read a diff
 
@@ -159,7 +161,7 @@ A line starting with `-` was removed and one starting with `+` was added. A chan
 
 ## The .gitignore file
 
-A file named `.gitignore` lists what Git must ignore. Each line is a pattern: a file name, a folder that ends in `/`, or a name with `*` as a wildcard. Lines that start with `#` are comments.
+A file named `.gitignore` lists what Git must ignore. Each line is a pattern: a file name, a folder that ends in `/`, or a name with `*` as a wildcard. Lines that start with `#` are comments; blank lines are ignored.
 
 ```text
 node_modules
@@ -167,7 +169,7 @@ test-results
 .env
 ```
 
-Git will not track these. `.gitignore` only affects files that Git does not track yet. If a file was committed before, adding its name to `.gitignore` does not stop Git from tracking it.
+Git excludes these files from `git add` if it does not track them yet. If a file was committed before, adding its name to `.gitignore` does not stop Git from tracking it.
 
 Keep these out of your commits:
 
@@ -179,7 +181,7 @@ Keep these out of your commits:
 
 ### Deleting a file does not delete its history
 
-If you commit a password in `.env` and then delete the file in another commit, Git keeps the earlier version:
+If you commit a password in `.env` and then delete the file in another commit, Git keeps the earlier version. This outline shows the two commits:
 
 ```text
 commit 2: Remove .env file      (the file is gone here)
@@ -260,7 +262,7 @@ git commit -m "Fix typo in soup"
 
 </details>
 
-3. Git already tracks `soup.txt` and `exercises/notes.txt`, and you changed both files. The staging area is empty and you are at the project root. Only the recipe belongs to the task. What would the next commit include if you run `git add .`? What if you run `git add soup.txt`?
+3. Git already tracks `soup.txt` and `exercises/notes.txt`, and you changed both files. There are no staged changes and you are at the project root. Only the recipe belongs to the task. What would the next commit include if you run `git add .`? What if you run `git add soup.txt`?
 
 <details>
 <summary>Answer</summary>

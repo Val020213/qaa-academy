@@ -16,9 +16,11 @@ Prepara los datos de un test por la API y usa la interfaz para comprobar el comp
 
 En un test de borrado, crear el producto es preparación. El clic en borrar y la confirmación son las acciones que quieres probar. Preparar el producto por la API evita que un bug en el formulario de creación haga fallar ese test.
 
-Por la API es una sola petición, y solo la función de borrar puede romper el test.
+La API prepara el producto en una petición, sin depender del formulario de creación. La preparación, la autenticación o la carga de la lista todavía pueden hacer fallar el test.
 
 El formulario envía `POST /api/products` al guardar un producto nuevo. El helper de preparación envía la misma petición sin abrir el formulario ni llenar sus campos. El servidor procesa los datos por la misma ruta.
+
+![Con una sesión admin válida, el formulario y el helper llegan a la misma validación del servidor.](/images/04-api-preparation.es.svg)
 
 Si el test comprueba la creación desde el formulario, usa la interfaz para crear el producto. Si tu entorno no ofrece una API para preparar datos, usa la interfaz y mantén esa preparación corta.
 
@@ -96,7 +98,7 @@ Una respuesta `422` identifica el campo inválido y su mensaje:
 { "errors": { "stock": "Stock must be a whole number, 0 or more." } }
 ```
 
-La API y el formulario llaman a la misma función, `validateProduct`, así que un precio de 0 recibe un `422` en los dos.
+Tanto el helper como el formulario envían los datos a la API. La ruta del servidor llama a `validateProduct` y devuelve `422` para un precio de 0; el formulario muestra el error recibido.
 
 Para probar cómo muestra la lista un precio pequeño, usa un valor permitido como `0.01`. Para probar el mensaje del formulario con precio 0, introduce ese valor desde la interfaz.
 
@@ -150,7 +152,7 @@ export async function POST() {
 
 El test de `global.setup.ts` llama a este endpoint al inicio de cada ejecución para restaurar los datos iniciales.
 
-Existe solo para tests, por eso está bloqueado en producción. Un endpoint que borra todos los datos sería peligroso en un sistema real. En un proyecto real, pide a los desarrolladores una herramienta así solo para tu entorno de pruebas.
+Es una herramienta de tests. En producción responde `404` si `ENABLE_TEST_API` está ausente o vacío; cualquier texto no vacío, incluso `"false"`, permite el reinicio. El comentario expresa la intención, pero la condición permite esa excepción. Un endpoint que borra todos los datos sería peligroso en un sistema real. En un proyecto real, pide a los desarrolladores una herramienta así solo para tu entorno de pruebas.
 
 > **Cuidado:** Nunca apuntes tus tests a un sistema real de producción. Usa un entorno de pruebas que puedas reiniciar.
 
@@ -263,7 +265,7 @@ test("the new product is in the list", async ({ page, request }) => {
 
 <details><summary>Respuesta</summary>
 
-La lista se carga desde la API una vez, después de que la página arranca. El test crea el producto después de `goto`, así que hay una carrera (*race*). Si el servidor atiende la petición de la lista antes de crear el producto, la fila no aparece. Crea primero el producto y luego abre la página.
+Al abrir la página, React inicia la carga de la lista desde la API. En este ejemplo no hay otra acción que vuelva a cargarla. El test crea el producto después de `goto`, así que hay una carrera (*race*). Si el servidor atiende la petición de la lista antes de crear el producto, la fila no aparece. Crea primero el producto y luego abre la página.
 
 </details>
 

@@ -16,7 +16,7 @@ Vas a guardar cambios con Git, revisar qué entra en cada commit y compartir tu 
 
 Git registra versiones de los archivos de un repositorio para que puedas revisar cambios y recuperar una versión anterior. Un **commit** guarda el estado de los archivos que Git sigue, con un mensaje que describe el cambio.
 
-Cada commit tiene un ID largo y único, y guarda el ID del commit del que parte, su **padre**. El primer commit de un repositorio no tiene padre, y un commit que une dos branches (*merge*) tiene dos. Los IDs se acortan en `git log --oneline`:
+Cada commit tiene un ID largo y único, y guarda el ID del commit del que parte, su **padre**. El primer commit de un repositorio no tiene padre, y un commit de *merge* tiene dos o más padres. Los IDs se acortan en `git log --oneline`:
 
 ```text
 a1b2c3d Add login test for valid user
@@ -25,7 +25,7 @@ a1b2c3d Add login test for valid user
 
 Tus IDs serán distintos. Un **branch** (rama) es una referencia que apunta a un commit. Cuando haces un commit en ese branch, Git mueve la referencia al commit nuevo. Crear un branch no requiere copiar todos los archivos.
 
-Un **remote** (remoto) es una copia del repositorio en un servidor, como GitHub, donde compartes los cambios con tu equipo.
+Un **remote** (remoto) es un nombre configurado en Git para la dirección de otro repositorio. Por ejemplo, `origin` puede apuntar al repositorio en GitHub donde compartes cambios con tu equipo.
 
 ## Configuración inicial
 
@@ -91,7 +91,7 @@ git commit -m "Use chili instead of salt in the soup"
 git push -u origin try-spicy
 ```
 
-La opción `-u` enlaza tu branch local con el branch del remoto. Después de ese primer push, `git push` y `git pull` sin argumentos ya saben a dónde ir.
+La opción `-u` configura el branch remoto que tu branch local sigue. Con la configuración habitual de Git, los siguientes `git push` y `git pull` pueden usar ese seguimiento sin argumentos.
 
 **7. Abre un pull request.** Un **pull request** (PR) pide integrar los cambios de tu branch en `main`. Lo creas en GitHub para que un compañero revise los cambios antes de hacer *merge* (fusionarlos).
 
@@ -130,13 +130,15 @@ Changes not staged for commit:
 
 La primera lista muestra cambios preparados respecto al último commit. La segunda muestra cambios en la carpeta respecto a la versión preparada.
 
-`git add .` prepara todos los archivos nuevos y modificados de la carpeta actual y de sus subcarpetas, excepto los que `.gitignore` excluye. Ejecuta `git status` antes de usarlo y comprueba que todos pertenecen a la tarea. Si solo quieres incluir un archivo, nómbralo como en `git add soup.txt`.
+![El área de preparación guarda la sal; la pimienta queda solo en la carpeta y fuera del commit.](/images/02-git-staging.es.svg)
+
+`git add .` prepara archivos nuevos, modificaciones y eliminaciones en la carpeta actual y sus subcarpetas. Excluye los archivos nuevos ignorados por `.gitignore`, pero sigue preparando cambios de archivos que Git ya sigue. Ejecuta `git status` antes de usarlo y comprueba que todos pertenecen a la tarea. Si solo quieres incluir un archivo, nómbralo como en `git add soup.txt`.
 
 ## Los branches cambian tus archivos
 
 Supón que en `main` el archivo `soup.txt` contiene "Add one spoon of salt." Creas `try-spicy`, cambias la línea a "Add one spoon of chili." y haces un commit. Luego vuelves a `main`, sin cambios pendientes.
 
-Cuando cambias a `main`, `soup.txt` vuelve a decir "Add one spoon of salt." Git reescribe los archivos de tu carpeta para que coincidan con el commit al que apunta ese branch. Aquí todos los cambios están en commits; si tuvieras cambios sin guardar en un archivo que difiere entre los dos branches, Git se negaría a cambiar para no perderlos. Si vuelves a `try-spicy`, recuperas la versión con chile.
+Cuando cambias a `main`, `soup.txt` vuelve a decir "Add one spoon of salt." Git reescribe los archivos de tu carpeta para que coincidan con el commit al que apunta ese branch. Aquí todos los cambios están en commits. Git conserva cambios locales compatibles, pero impide el cambio de branch si sobrescribiría cambios sin commit. Si vuelves a `try-spicy`, recuperas la versión con chile.
 
 ## Lee un diff
 
@@ -159,7 +161,7 @@ Una línea que empieza con `-` fue eliminada y una que empieza con `+` fue agreg
 
 ## El archivo .gitignore
 
-Un archivo llamado `.gitignore` lista lo que Git debe ignorar. Cada línea es un patrón: un nombre de archivo, una carpeta que termina en `/`, o un nombre con `*` como comodín. Las líneas que empiezan con `#` son comentarios.
+Un archivo llamado `.gitignore` lista lo que Git debe ignorar. Cada línea es un patrón: un nombre de archivo, una carpeta que termina en `/`, o un nombre con `*` como comodín. Las líneas que empiezan con `#` son comentarios; las líneas vacías se ignoran.
 
 ```text
 node_modules
@@ -167,7 +169,7 @@ test-results
 .env
 ```
 
-Git no hará seguimiento de estos. `.gitignore` solo afecta a archivos que Git todavía no sigue. Si un archivo se subió antes, agregar su nombre a `.gitignore` no hace que Git deje de seguirlo.
+Git excluye estos archivos de `git add` si todavía no los sigue. Si un archivo se subió antes, agregar su nombre a `.gitignore` no hace que Git deje de seguirlo.
 
 Deja fuera de tus commits:
 
@@ -179,7 +181,7 @@ Deja fuera de tus commits:
 
 ### Borrar un archivo no borra su historial
 
-Si haces un commit con una contraseña en `.env` y luego borras el archivo en otro commit, Git conserva la versión anterior:
+Si haces un commit con una contraseña en `.env` y luego borras el archivo en otro commit, Git conserva la versión anterior. Este esquema muestra los dos commits:
 
 ```text
 commit 2: Remove .env file      (the file is gone here)
@@ -260,7 +262,7 @@ Falta `git add`. La edición está en la carpeta, pero el área de preparación 
 
 </details>
 
-3. Git ya sigue `soup.txt` y `exercises/notes.txt`, y cambiaste ambos archivos. El área de preparación está vacía y estás en la raíz del proyecto. Solo la receta pertenece a la tarea. ¿Qué incluiría el siguiente commit si ejecutas `git add .`? ¿Y si ejecutas `git add soup.txt`?
+3. Git ya sigue `soup.txt` y `exercises/notes.txt`, y cambiaste ambos archivos. No hay cambios preparados y estás en la raíz del proyecto. Solo la receta pertenece a la tarea. ¿Qué incluiría el siguiente commit si ejecutas `git add .`? ¿Y si ejecutas `git add soup.txt`?
 
 <details>
 <summary>Respuesta</summary>

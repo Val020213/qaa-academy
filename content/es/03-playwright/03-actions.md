@@ -90,15 +90,17 @@ El control es un elemento `<select>` nativo. `selectOption` funciona solo con es
 
 ## Playwright espera antes de actuar
 
-Antes de una acción, Playwright comprueba que el elemento está listo. Estas comprobaciones se llaman **actionability** (aptitud para la acción). En palabras simples, el elemento debe:
+Antes de un clic, Playwright exige una sola coincidencia y comprueba que el elemento está listo. Estas comprobaciones se llaman **actionability** (aptitud para la acción). Para hacer clic, el elemento debe:
 
 - existir en la página,
 - ser visible,
 - ser estable, es decir, no estar moviéndose,
 - estar habilitado, es decir, no estar deshabilitado,
-- no estar tapado por otro elemento.
+- recibir el clic en el punto elegido, sin que otro elemento lo intercepte.
 
-Si una comprobación falla, Playwright espera y lo intenta de nuevo. Se detiene cuando termina el timeout del test, que por defecto es de 30 segundos. Entonces el test falla y el mensaje te dice qué comprobación no fue verdadera.
+Las comprobaciones dependen de la acción: `fill` y `clear` esperan visibilidad, habilitación y que el campo sea editable. `press` enfoca el elemento y envía la tecla sin esas comprobaciones.
+
+Si una comprobación falla, Playwright espera y lo intenta de nuevo. Con la configuración de este proyecto, la acción puede esperar hasta que se agote el tiempo restante del test, cuyo límite total por defecto es de 30 segundos. Entonces el test falla y el mensaje te dice qué comprobación no fue verdadera.
 
 En la Practice app, Load report deshabilita el botón durante aproximadamente un segundo y medio. Este test intenta hacer clic dos veces seguidas:
 
@@ -111,6 +113,8 @@ await expect(page.getByTestId("report-result")).toContainText("12 tests")
 Playwright espera hasta que el botón esté habilitado, unos 1.5 segundos, y entonces hace clic. El segundo clic inicia un segundo reporte. El texto "12 tests" está listo unos 3 segundos después del primer clic.
 
 La app puede seguir trabajando después de que termine el clic. La aserción comprueba el resultado del reporte.
+
+![El segundo clic espera la habilitación del botón; la aserción espera el resultado de la nueva carga.](/images/03-click-and-result.es.svg)
 
 ## Un test de login
 
@@ -184,7 +188,7 @@ Si el comportamiento que pruebas depende de eventos de teclado, usa `pressSequen
 await page.getByTestId("cases-input").pressSequentially("Login", { delay: 100 })
 ```
 
-El `delay` es el tiempo en milisegundos entre dos teclas. Usa esta acción cuando `fill` no activa el comportamiento que quieres probar.
+El `delay` ralentiza la escritura en milisegundos por carácter. Para las letras de este ejemplo, Playwright espera ese tiempo entre presionar la tecla (`keydown`) y soltarla (`keyup`). Usa esta acción cuando `fill` no activa el comportamiento que quieres probar.
 
 ### Los límites de force
 
@@ -194,7 +198,7 @@ Si otro elemento tapa el botón, un clic puede esperar y fallar. La opción `for
 await page.getByTestId("report-load").click({ force: true })
 ```
 
-`force` se salta las comprobaciones de actionability. El clic se envía aunque el botón esté tapado o deshabilitado. Pero no promete que tu botón reciba el clic: una capa puede recibirlo, y un botón deshabilitado no hace nada. El test puede ponerse en verde de todos modos. Pero un usuario real no puede hacer clic en un botón tapado. El test ahora esconde un bug real.
+En un clic, `force` omite las comprobaciones de visibilidad, estabilidad, habilitación y recepción del evento. Todavía exige un solo elemento y un punto donde hacer clic: un botón sin geometría visible puede causar un error. Una capa puede recibir el clic, y un botón deshabilitado no ejecuta su acción. Si el test pasa sin comprobar el resultado, puede ocultar un bug que impide al usuario usar el botón.
 
 Lee el mensaje de fallo antes de forzar una acción. Si un usuario tampoco puede usar el botón, revisa el problema en la app.
 
@@ -240,7 +244,7 @@ La cantidad es 1 y el campo está vacío. El primer Enter envía el formulario; 
 
 </details>
 
-2. Este test pasa, pero puede pasar por la razón equivocada. Encuentra la debilidad y arréglala.
+2. Este test pasa en la app actual. ¿Qué debilidad tendría si agregar casos fuera una operación asíncrona?
 
 ```ts
 test("ignores a title with only spaces", async ({ page }) => {
@@ -253,7 +257,7 @@ test("ignores a title with only spaces", async ({ page }) => {
 
 <details><summary>Respuesta</summary>
 
-La aserción dice que no existe nada. Eso es cierto al inicio, así que puede pasar antes de que la app haya reaccionado. Si la app agregara una fila 200 milisegundos después, el test estaría en verde y el bug pasaría. Para probar que el clic fue procesado, agrega una segunda acción que tenga un resultado visible. Por ejemplo, agrega un caso real después de los espacios y comprueba que la cantidad es 1, y no 2. Una comprobación de "no pasó nada" es fuerte solo cuando después viene algo observable.
+En la app actual, el manejador del formulario procesa el título sin una espera asíncrona y descarta los espacios; la comprobación es válida. Si una versión con un bug agregara la fila 200 milisegundos después, la aserción podría pasar antes. En ese caso, espera una señal de que terminó esa operación antes de contar. Agregar otro caso no garantiza que la operación anterior haya terminado.
 
 </details>
 

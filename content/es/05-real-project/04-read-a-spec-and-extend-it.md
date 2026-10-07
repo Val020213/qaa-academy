@@ -44,7 +44,7 @@ En este test, **Arrange, Act, Assert** queda así:
 
 La primera aserción es una **guarda**: comprueba el estado que necesita el test antes del clic. Si una ejecución anterior dejó el pedido pagado, el test falla ahí y muestra el estado inesperado.
 
-Sin la guarda, el clic fallaría con "element not found" para el botón que ya no existe.
+Sin la guarda, Playwright esperaría el botón que ya no existe hasta agotar el timeout de la acción; el clic fallaría con un error de timeout.
 
 Las aserciones comprueban el comportamiento visible: el estado cambia y desaparece la acción que ya no está permitida. Un cambio en los componentes puede conservar estos tests si mantiene los test ids y los textos.
 
@@ -94,7 +94,7 @@ Antes de elegirlo, busca `1001` en todos los specs con `Ctrl+Shift+F` en VS Code
 
 La tarjeta `stat-pending-orders` cuenta los pedidos pendientes: 3 en los datos iniciales, 2 después de pagar el 1005 y 1 después de cancelar el 1001. Un test que espere siempre 3 depende de ejecutarse antes de esos cambios.
 
-Playwright ejecuta los archivos en un orden fijo, así que puede pasar durante meses y fallar el día que alguien renombre una carpeta.
+Esta suite usa un solo worker y descubre los archivos ordenados por nombre. Un test que dependa de ese orden puede pasar hasta que cambien los nombres o la configuración.
 
 `dashboard.spec.ts` comprueba que la tarjeta muestre un número con `/^\d+$/`. Si necesitas comprobar un total exacto, prepara los datos que determinan ese total dentro del test.
 
@@ -221,20 +221,20 @@ pnpm --filter practice-shop e2e e2e/orders/orders.spec.ts -g "cancels"
 
 Comprueba que un viewer no puede cambiar pedidos desde la página ni desde la API.
 
-Crea `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` con un test. Entra como viewer y abre `/orders`. Comprueba que el pedido 1009 es visible, sin botones **Mark as paid** ni **Cancel**. Envía una petición para cambiarlo y comprueba que el servidor la rechaza por falta de permiso. El test no debe cambiar datos ni cerrar la sesión compartida del admin.
+Crea `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` con un test. Entra como viewer y abre `/orders`. Comprueba que el pedido 1009 es visible, sin botones **Mark as paid** ni **Cancel**. Comprueba primero que `user-role` muestra `viewer`; después envía una petición para cambiarlo y comprueba que el servidor la rechaza por falta de permiso. El test no debe cambiar datos ni cerrar la sesión compartida del admin.
 
 Está terminado cuando:
 
 - El test pasa al ejecutar el archivo dos veces seguidas.
 - El test nunca cierra sesión. El texto `logout-button` no aparece en tu archivo.
 - La petición se envía desde el test, que comprueba el código de estado y que el pedido 1009 sigue `pending` en la página después. Un comentario explica por qué usas 1009 y no 1005 ni 1001.
-- Ejecutaste el mismo test una vez como admin a propósito, viste que fallaba y luego volviste a poner el viewer.
+- Ejecutaste el mismo test una vez como admin a propósito y falló en la comprobación del rol antes de enviar la petición. Luego volviste a poner el viewer.
 
 Busca: `playwright override storageState in a test`, `playwright page.request patch`, `playwright apirequestcontext cookies shared with page`. Mira `loginViaApi` en `lib/fixtures/api-client.ts` y el test de cerrar sesión en `auth/auth.spec.ts`.
 
 ## Piénsalo bien
 
-1. Encuentra el bug. Este test de cancelar se ejecuta y pasa, pero no comprueba nada.
+1. Encuentra el bug. Este test inicia una aserción asíncrona, pero no espera su resultado.
 
 ```ts
 test("an admin cancels a pending order", async ({ page }) => {
@@ -247,7 +247,7 @@ test("an admin cancels a pending order", async ({ page }) => {
 <details>
 <summary>Respuesta</summary>
 
-Falta el `await` antes de `expect`. La aserción devuelve una promesa que nadie espera. Puede empezar a reintentar, pero el test no la espera. Por eso un estado incorrecto puede no hacer fallar el test de forma clara. Escribe siempre `await expect(...)` en las aserciones web-first.
+Falta el `await` antes de `expect`. La aserción empieza y devuelve una promesa que nadie espera. El cuerpo del test puede terminar y Playwright puede cerrar la página mientras la aserción sigue pendiente. No está garantizado que el test pase ni que termine de comprobar el estado. Escribe siempre `await expect(...)` en las aserciones web-first.
 
 </details>
 

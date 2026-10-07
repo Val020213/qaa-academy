@@ -26,7 +26,7 @@ Este elemento tiene una etiqueta, dos clases, un id y un atributo:
 | --- | --- | --- |
 | `li` | por etiqueta | cada `li` de la página |
 | `.dog` | por clase | cada elemento con la clase `dog` |
-| `#bo` | por id | el único elemento con `id="bo"` |
+| `#bo` | por id | cada elemento con `id="bo"` (el id debe ser único) |
 | `[data-age="old"]` | por atributo | cada elemento con `data-age="old"` |
 
 Una clase empieza con un punto. Un id empieza con `#`. Un atributo va entre corchetes.
@@ -68,6 +68,8 @@ Encuentra los elementos con la clase `dog` dentro de un `ul`. Compara estas tres
 
 `.dog` encuentra a Rex y Bo: dos elementos. `.dog.old` encuentra solo a Bo, que tiene ambas clases. `.dog .old` no encuentra ninguno: Bo tiene ambas clases, pero no está dentro de otro elemento con la clase `dog`.
 
+![Bo coincide con .dog.old; .dog .old no coincide porque exige un descendiente.](/images/02-selector-matches.es.svg)
+
 ## Hijos, hermanos y exclusiones
 
 `>` selecciona un hijo directo, un nivel por debajo del padre. El espacio permite cualquier profundidad. `+` selecciona el elemento que viene inmediatamente después de otro y tiene el mismo padre.
@@ -83,7 +85,7 @@ El primero encuentra a `Luna`, porque ese elemento con la clase `cat` viene just
 
 Las clases se usan para dar estilo. Si el equipo renombra `.dog` a `.pet-card`, el selector `.dog` deja de encontrar elementos aunque la funcionalidad siga igual.
 
-Las clases también se repiten. Un selector que encuentra muchos elementos no es seguro.
+Las clases también se repiten. Si quieres un solo control, comprueba que el selector encuentre uno; para contar una lista necesitas varias coincidencias.
 
 Las apps del curso usan Tailwind. Sus clases expresan reglas de estilo, como en el botón Sign in:
 
@@ -96,11 +98,11 @@ Estas clases pueden cambiar al cambiar el aspecto. El atributo `data-slot="butto
 
 Un selector basado en la posición puede elegir otro elemento si alguien agrega una fila antes. Por ejemplo, "el tercer `div` dentro del segundo `div`" depende de esa estructura.
 
-Un buen selector es estable. Cambia solo cuando cambia la funcionalidad, no cuando cambia el diseño.
+Elige atributos que el equipo mantenga estables cuando cambia el diseño. Si el equipo los renombra, tendrás que actualizar el selector.
 
 ## data-testid y la convención del equipo
 
-El atributo **`data-testid`** existe solo para los tests. No tiene ningún efecto en el aspecto de la página. HTML permite cualquier nombre que empiece con `data-`.
+El equipo usa **`data-testid`** para identificar elementos en los tests. Por sí solo no cambia el aspecto, aunque CSS puede seleccionarlo. Es un atributo de datos de HTML: después de `data-` va un nombre válido, no vacío y sin mayúsculas ASCII.
 
 ```html
 <button type="submit" data-testid="login-submit">Sign in</button>
@@ -112,7 +114,7 @@ Se busca por su atributo:
 [data-testid="login-submit"]
 ```
 
-Un `data-testid` es una promesa entre quien desarrolla y quien prueba: "este nombre se va a quedar, así que tu test puede confiar en él". Por eso un test que lo usa se rompe solo cuando cambia la funcionalidad.
+Un `data-testid` es una promesa entre quien desarrolla y quien prueba: "este nombre se va a quedar, así que tu test puede confiar en él". Renombrar ese atributo rompe el selector aunque la funcionalidad siga igual; el equipo debe conservar el acuerdo.
 
 El equipo sigue estas reglas:
 
@@ -122,7 +124,7 @@ El equipo sigue estas reglas:
 
 Ejemplos de la Practice app: `login-email`, `login-password`, `login-submit`, `cases-input`, `cases-add`, `report-load`.
 
-Los elementos que se repiten, como las filas, llevan el id de la fila al final:
+Los controles de un caso y las filas de productos llevan el id del dato al final. Las filas de casos comparten `cases-item`, y sus títulos comparten `cases-item-title`:
 
 - `cases-delete-1` es el botón Delete del caso 1.
 - `cases-toggle-3` es la casilla del caso 3.
@@ -132,7 +134,7 @@ El id viene de los datos, así que el nombre sigue al caso o producto aunque cam
 
 ## Prueba selectores en la consola
 
-En la **Console** de las DevTools puedes ejecutar JavaScript sobre el DOM de la página:
+En la **Console** de las DevTools puedes ejecutar JavaScript sobre el DOM de la página. La salida del botón de abajo omite sus atributos de estilo:
 
 - `document.querySelector("...")` devuelve el primer elemento que coincide, o `null` si no hay coincidencias.
 - `document.querySelectorAll("...")` devuelve una lista de todos los elementos que coinciden.
@@ -172,7 +174,7 @@ Consulta la [documentación de MDN sobre `querySelector`](https://developer.mozi
 
 ### Los ids generados pueden cambiar
 
-Un `id` debe ser único. Pero algunas herramientas crean ids por sí solas, con nombres como `:r1:`. Pueden cambiar cuando la página recibe un elemento más antes. Un nombre estable que una persona eligió, y sobre el que hubo acuerdo, es mejor que un nombre hecho por una máquina.
+Un `id` debe ser único. Algunas herramientas generan ids, por ejemplo con un contador que cambia al insertar un elemento antes. Un nombre como `:r1:` es ilustrativo: su estabilidad depende de cómo se genera, no de su aspecto. Elige un atributo cuyo valor el equipo mantenga estable.
 
 ### Una coincidencia depende de los datos presentes
 
@@ -182,11 +184,11 @@ Este selector encuentra un elemento cuando hay un caso y dos cuando hay dos caso
 [data-testid^="cases-delete-"]
 ```
 
-El conteo es correcto solo para este momento. Un buen selector es exacto, como `cases-delete-2`, y sabes por qué coincide.
+El conteo es correcto solo para este momento. Para elegir un caso concreto, usa su id, como `cases-delete-2`. Para contar todos sus botones Delete, el prefijo es adecuado.
 
 ## Práctica
 
-1. Abre `http://localhost:5180/#/practice`. Presiona `F12` y abre la pestaña **Console**.
+1. Abre `http://localhost:5180/#/practice` y recarga para empezar sin casos y con el siguiente id en 1. Presiona `F12` y abre la pestaña **Console**.
 2. Ejecuta cada selector y anota cuántos elementos encuentra. Deberías ver 6, un número mayor que 6, 1 y 1. El segundo número incluye enlaces de la barra superior y del menú lateral con `data-slot="button"`:
 
 ```text
@@ -214,7 +216,7 @@ document.querySelector('[data-testid="cases-delete-2"]').click()
 
 ## Reto
 
-Agrega tres casos, "One", "Two" y "Three", y marca la casilla de "Two". Escribe un selector para cada objetivo:
+Recarga la página Practice. Agrega tres casos, "One", "Two" y "Three", y marca solo la casilla de "Two". Escribe un selector para cada objetivo:
 
 1. Las casillas que no están marcadas.
 2. El botón Delete dentro de la fila marcada.
@@ -227,9 +229,9 @@ Está terminado cuando:
 
 - Ejecutaste cada selector en la Console con `document.querySelectorAll("...").length` y anotaste el conteo real. Los conteos son 2, 1, 1 y 1.
 - Ningún selector usa una clase, un número de id como `cases-delete-2`, o una posición como `nth-child`.
-- Cada selector sigue funcionando si el caso marcado es "Three" en lugar de "Two" (marca otro y ejecútalos de nuevo; los conteos siguen correctos para ese nuevo estado).
+- Cada selector sigue funcionando si el caso marcado es "Three" en lugar de "Two" (desmarca "Two", marca "Three" y ejecútalos de nuevo; los conteos son 2, 1, 0 y 1 porque la última fila no tiene una siguiente).
 
-Vas a necesitar algo que esta lección no enseñó: una forma de seleccionar por un estado como marcado. Busca: `css :checked pseudo-class` y `css :not selector`. Para "la fila justo después", usa el selector `+` de más arriba en esta lección.
+Vas a necesitar algo que esta lección no enseñó: una forma de seleccionar por un estado como marcado. Busca: `css :checked pseudo-class`, `css :not selector` y `css :has selector` para elegir la fila que contiene la casilla marcada. Para "la fila justo después", usa el selector `+` de más arriba en esta lección.
 
 ## Piénsalo bien
 
@@ -247,7 +249,7 @@ La primera imprime `0`: ningún elemento tiene exactamente el nombre `cases-dele
 
 </details>
 
-2. Un test busca el botón Delete del caso con id 2. ¿Qué se rompe al borrar el primer caso si usa `.cases li:nth-child(2) button` en lugar de `[data-testid="cases-delete-2"]`?
+2. En una página hipotética cuyo contenedor tiene la clase `cases`, un test busca el botón Delete del caso con id 2. ¿Qué se rompe al borrar el primer caso si usa `.cases li:nth-child(2) button` en lugar de `[data-testid="cases-delete-2"]`?
 
 <details>
 <summary>Respuesta</summary>

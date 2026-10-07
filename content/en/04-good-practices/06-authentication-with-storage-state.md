@@ -20,6 +20,8 @@ After login, the shop's server returns a cookie containing a session token. The 
 
 Playwright can save a browser context's cookies to a **storage state** file. Each test gets a new context that loads those values: the contexts are separate, but they use the same session token.
 
+![Two contexts load the same token; logout invalidates its server session while the file remains.](/images/04-session-token.en.svg)
+
 The shop's cookie is called `shop_session`. The server creates it in `app/api/auth/login/route.ts` with `httpOnly: true`, which prevents JavaScript on the page from reading it. Playwright can save it because it accesses the browser from outside the page.
 
 Storage state can also save `localStorage`. The shop does not use it to authenticate users, so `origins` is empty in its session file.
@@ -47,7 +49,7 @@ projects: [
 
 The `setup` project runs `global.setup.ts`. The `dependencies: ["setup"]` dependency makes the runner execute that project before the `chromium` tests.
 
-If you remove the dependency and run a single file, such as `pnpm shop:e2e products/products.spec.ts`, the runner selects tests matching that file. `global.setup.ts` does not match. On a fresh checkout `e2e/.auth/admin.json` does not exist, so every test fails because it cannot read the file.
+If you remove the dependency and run a single file, such as `pnpm shop:e2e products/products.spec.ts`, the runner selects tests matching that file. `global.setup.ts` does not match. On a fresh checkout `e2e/.auth/admin.json` does not exist, so tests loading that state fail while creating the browser context or API client because they cannot read the file.
 
 Empty storage in `setup` prevents it from inheriting `storageState: "e2e/.auth/admin.json"` from the general config. Without that option, setup would try to read the file before it could create it.
 
@@ -59,7 +61,7 @@ Open `apps/practice-shop/e2e/global.setup.ts`. After filling in the form, the te
 await page.getByTestId("login-submit").click()
 await expect(page).toHaveURL(/\/dashboard/)
 
-// Save the cookies. Every other test starts with this session.
+// Save the cookies for tests that keep the default storageState.
 await page.context().storageState({ path: AUTH_FILE })
 ```
 
@@ -68,7 +70,7 @@ The assertion waits for the dashboard URL before saving the state. The file `e2e
 The general `use` setting loads that file:
 
 ```ts
-// Every test starts already signed in as admin (saved by the setup project).
+// Tests using this default start signed in as admin (saved by setup).
 storageState: "e2e/.auth/admin.json",
 ```
 
@@ -84,7 +86,7 @@ The folder is listed in `apps/practice-shop/e2e/.gitignore`:
 .auth/
 ```
 
-Git skips ignored files, so the session is never committed. Each person and each CI run makes a new one when the setup runs.
+Git skips untracked ignored files when adding changes normally. An already tracked or force-added file can still enter a commit; do not add the session. Each person and each CI run makes a new one when the setup runs.
 
 ## Testing signed out
 
@@ -203,7 +205,7 @@ Search for how to create an API client without the config's saved session, save 
 <details>
 <summary>Answer</summary>
 
-The runner does not select `global.setup.ts`, because it does not match the requested file and is no longer a dependency. Tests that load `e2e/.auth/admin.json` fail while creating the context: the file does not exist yet.
+The runner does not select `global.setup.ts`, because it does not match the requested file and is no longer a dependency. Tests that load `e2e/.auth/admin.json` fail while creating the browser context or API client: the file does not exist yet.
 
 </details>
 
@@ -233,7 +235,7 @@ test("signing out returns to the login page", async ({ page, request }) => {
 <details>
 <summary>Answer</summary>
 
-The saved token is made once at the start. After 5 minutes the server rejects it, so every test that starts after that moment is sent to the login page. The tests fail in the second half of the run, and each one passes if you run it alone and early. One fix is to make the session last longer in the test environment only. A second fix is to sign in again through the API at the start of each test file, so no session is older than a few minutes.
+The saved token is made once at the start. After 5 minutes the server rejects requests with that token, including requests from a test already running. Protected navigation redirects to login and the API returns `401`. One fix is a duration longer than the entire run, only in tests. Another is an API login for each test’s own session, provided it finishes within 5 minutes; longer tests need to renew the session.
 
 </details>
 

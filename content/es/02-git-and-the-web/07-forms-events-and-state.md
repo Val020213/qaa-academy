@@ -33,7 +33,7 @@ El atributo HTML y la propiedad pueden tener valores distintos. Este ejemplo cre
 
 La propiedad contiene "Luna", mientras que el atributo conserva "Rex". Para leer lo que escribió el usuario, usa la propiedad `value`.
 
-La app Practice está hecha con React, y React mantiene el atributo igual al valor en los inputs que controla. En la página Practice, después de escribir, ambas lecturas muestran el texto escrito.
+La app Practice está hecha con React, y en estos campos de correo y contraseña React sincroniza el atributo con el valor que guarda en su estado. En la página Practice, después de escribir, ambas lecturas muestran el texto escrito.
 
 ## Eventos y manejadores
 
@@ -41,9 +41,9 @@ El navegador genera **eventos** cuando interactúas con la página. El código p
 
 | Evento | Cuándo ocurre |
 | --- | --- |
-| `click` | El usuario hace clic en un elemento |
-| `input` | El usuario cambia el texto de un campo, en cada tecla |
-| `change` | El usuario termina un cambio, como elegir una opción en un `select` o marcar una casilla |
+| `click` | El usuario hace clic en un elemento o activa un botón con `Enter` o `Space` |
+| `input` | El usuario modifica el valor de un campo, por ejemplo al escribir o pegar |
+| `change` | El usuario confirma un cambio: elige una opción en un `select`, marca una casilla o sale de un campo de texto que editó |
 | `submit` | El usuario envía un formulario, haciendo clic en el botón de envío o pulsando `Enter` |
 
 En la app Practice, el manejador de `submit` comprueba el correo y la contraseña. El filtro de casos responde a `change`, y el botón Delete a `click`.
@@ -61,6 +61,8 @@ Cambiar una propiedad desde un script no genera el evento que produciría la int
 
 `addEventListener` registra una función que incrementa `n` cuando el navegador genera un evento `input`. La asignación cambia el texto del campo, pero no genera ese evento, así que `n` sigue en 0.
 
+![Una edición del usuario genera input; asignar box.value desde un script cambia el valor sin ejecutar ese manejador.](/images/02-input-events.es.svg)
+
 ## Dónde vive el estado
 
 El **estado** son los datos que la página usa en este momento: el texto de los campos, la lista de casos o si el usuario inició sesión. El lugar donde la página los guarda determina cuánto duran.
@@ -70,13 +72,13 @@ El **estado** son los datos que la página usa en este momento: el texto de los 
 | Memoria | Recargas o cierras la página | La lista de casos de la app Practice |
 | URL | Cambias la dirección | La dirección `#/practice`, o `?next=%2Fproducts` en la tienda |
 | `localStorage` | Lo borras. Sigue ahí después de recargar y de cerrar el navegador | Las lecciones que marcaste como completadas |
-| Cookie | Expira o la borras. El navegador la envía al servidor con cada petición | El inicio de sesión de la tienda |
+| Cookie | Expira o la borras; una cookie de sesión puede terminar al cerrar la sesión del navegador. Se envía con peticiones que cumplen sus reglas | El inicio de sesión de la tienda |
 
 La app Practice guarda la lista de casos, el filtro y el login en variables en **memoria**. Al recargar, el navegador ejecuta de nuevo el código de la página con sus valores iniciales.
 
-El curso guarda las lecciones completadas como texto en `localStorage`, bajo la clave `qaa-academy:completed`. Cuando la página carga de nuevo, el código lee ese texto y recupera las marcas. Otro navegador u otra computadora no tiene esos datos.
+El curso guarda las lecciones completadas como texto en `localStorage`, bajo la clave `qaa-academy:completed`. Cuando la página carga de nuevo, el código lee ese texto y recupera las marcas. Los datos pertenecen al origen de la página en ese perfil del navegador; otro navegador u otra computadora no los comparte.
 
-La tienda usa una cookie llamada `shop_session` para saber quién eres. El navegador la devuelve con cada petición.
+La tienda usa una cookie llamada `shop_session` para saber quién eres. La cookie contiene un token que el servidor asocia con un usuario. El navegador la envía a ese host y a rutas permitidas, según las reglas de la cookie; no a cualquier servidor.
 
 > **Nota:** La cookie de la tienda está marcada como `HttpOnly`. El código de la página no puede leerla, pero tú puedes verla en las DevTools, en el panel **Application** (Aplicación).
 

@@ -55,6 +55,8 @@ It prints `B, A, B: false true true`. The first call to B finds one product; the
 
 The practice shop keeps its data in server memory. The tests read and change that same data.
 
+![Example of two tests creating and reading products on the same server.](/images/04-shared-server-data.en.svg)
+
 A test that creates a product with the fixed value `SKU-5000` fails if it creates it again without deleting the previous product or resetting the data. The server responds "This SKU is already used by another product." because the SKU is taken.
 
 Another test may expect one row when searching for "Lamp" and find two if an earlier test left another product with that word. The search depends on all stored names, even those the test did not create.
@@ -81,7 +83,7 @@ const reset = await request.post("/api/test/reset")
 expect(reset.ok()).toBeTruthy()
 ```
 
-The reset restores the seed data: 24 products and 12 orders. It happens once per run, not before each test.
+The reset restores the seed data: 24 products and 12 orders. In a normal run, setup requests it once before the Chromium tests, not before each test. A setup retry can repeat it.
 
 Resetting before each test adds one request per test and can hide dependencies on a clean shop. For example, a search that expects one match never encounters a product left by another test. In this suite, each test must work alongside data added by the others.
 
@@ -92,7 +94,7 @@ Each test prepares the records it needs. The file `apps/practice-shop/e2e/lib/he
 `uniqueName` adds a random suffix to the name:
 
 ```ts
-/** A name that no other test uses, e.g. "Mouse 3fa9c1d2". */
+/** A name with a random suffix, e.g. "Mouse 3fa9c1d2". */
 export function uniqueName(prefix: string): string {
   return `${prefix} ${crypto.randomUUID().slice(0, 8)}`
 }
@@ -109,7 +111,7 @@ export function uniqueSku(): string {
 }
 ```
 
-The seed uses `SKU-0001` to `SKU-0024`. The helper starts at a random number from 1000 and counts up. Two tests never get the same SKU.
+The seed uses `SKU-0001` to `SKU-0024`. The helper starts at a random number from 1000 and counts up. In one worker process, the first 9,000 calls produce distinct SKUs; after that the counter repeats values.
 
 The creation test in `e2e/products/products.spec.ts` uses both helpers:
 
@@ -126,7 +128,7 @@ The generated name lets the test search for the product it created, rather than 
 
 In `e2e/orders/orders.spec.ts`, an order status only moves forward. Once it is "paid", it cannot return to "pending".
 
-Each test uses its own seeded order: 1003 for the filter and 1005 to mark it as paid. If both used 1005, the second test would fail.
+The filter reads order 1003, which is already shipped, and the payment test changes 1005, which is pending. If two tests tried to pay 1005, the second would find it already paid. Repeating that test without resetting the seed also fails.
 
 The first test in `products.spec.ts` needs to check the total product count, which changes when other tests create or delete records:
 
@@ -167,7 +169,7 @@ It prints about `42 percent of runs had a clash`. The result varies because Node
 
 Each of the eight characters in the suffix from `uniqueName` has 16 choices: 4,294,967,296 possible values. The chance of a clash among 1,000 names is about 1 in 8,600. The SKU space is much smaller.
 
-Counting up produces 9,000 different SKUs before repeating the first. The counter in `uniqueSku` lives in one worker process; it does not guarantee different values across workers or runs.
+Counting up produces 9,000 different SKUs before repeating the first. The counter in `uniqueSku` lives in one worker process; it does not guarantee different values across workers or runs. Retries and `--repeat-each` can start another process with a new counter, even though `workers: 1` limits execution to one process at a time.
 
 ```ts
 let next = 9998
@@ -192,13 +194,13 @@ This prints `SKU-9998 SKU-9999 SKU-1000`. At the end of the range, the counter r
 pnpm shop:e2e products/products.spec.ts
 ```
 
-5. Run the same file again, with no restart:
+5. Run two repetitions within one execution:
 
 ```bash
-pnpm shop:e2e products/products.spec.ts
+pnpm shop:e2e products/products.spec.ts --repeat-each=2
 ```
 
-Both runs should pass. This proves rule 3: twice in a row.
+Setup resets the data once before the repetitions. Check both without another reset; two separate commands would run setup again. Each repetition uses another worker, so the SKU counter starts again and can still collide with existing data.
 
 6. Run one test by a word from its name. With `-g`, Playwright filters tests by name:
 

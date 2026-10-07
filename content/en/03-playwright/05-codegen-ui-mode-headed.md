@@ -23,7 +23,7 @@ Words after the script name go to Playwright. This lets you specify a file path 
 
 The file has four tests and the config enables `fullyParallel`. Playwright can run them in parallel, so you may see several windows at once. Headed mode helps you watch a test's flow; following several at the same time is harder.
 
-Headed and headless runs use the same browser engine. The only difference is the window. So a result is almost always the same in both.
+In this project, both modes use Chromium, but Playwright selects different binaries: `chromium` for headed and `chromium-headless-shell` for headless. Launch options also differ; if a failure appears in only one mode, investigate it in that mode.
 
 ## UI mode: run and inspect
 
@@ -44,7 +44,7 @@ The tests appear on the left. Press the triangle next to one to run it. Select a
 
 Run "adds a case and updates the counter" and select the `click` action on `cases-add`. The "Before" and "After" tabs show the page before and after the click: the new row and updated counter appear afterwards.
 
-Use "Pick locator" on the Add button. Playwright may show `getByRole('button', { name: 'Add' })`, while the test uses `getByTestId("cases-add")`. Both find one element on this page. If another panel adds a button named "Add", the role locator matches both; the test id still identifies the list's button.
+Use "Pick locator" on the Add button. Compare the locator it shows with `getByTestId("cases-add")`. A role locator such as `getByRole('button', { name: 'Add' })` also finds one element on this page. If another panel adds a button named "Add", the role locator matches both; the test id still identifies the list's button.
 
 UI mode uses the project config. Close the window when you finish or press Ctrl+C in the terminal.
 
@@ -87,10 +87,10 @@ Review the draft before using it as a project test:
 3. Use `"/#/practice"` instead of the full address, because the config has `baseURL`.
 4. Remove the `click` before `fill`: `fill` already focuses the field.
 5. Use `getByTestId` where a test id exists, following the project's convention. The checkbox locator depends on the title `"Buy milk"`; if you change that data, review the locator too.
-6. There is no assertion. The test cannot fail when the app is wrong.
+6. There is no assertion about the result. Actions can fail, but they do not detect an incorrect counter on their own.
 7. Check that the test creates its own data and does not need another test.
 
-The draft never reads the counter, so it can pass even if the counter shows `NaN of 1 passed`. A test with no assertion checks only that the page did not crash.
+The draft never reads the counter, so it can pass even if the counter shows `NaN of 1 passed`. If its actions finish without an error, this test passes without checking the counter's value.
 
 Add a check for the text the counter should show:
 
@@ -159,7 +159,7 @@ It is done when:
 - `pnpm e2e e2e/challenges/05-codegen-filter.spec.ts --repeat-each=5` passes all five runs.
 - If you change one expected title in the test, the test fails. Try it, then change it back.
 
-You will need something this lesson did not teach: how to check the text of the visible rows, and how to choose an option in a select. Search for: `playwright selectOption`, `playwright toHaveText array of strings`.
+For the filter, use `selectOption`, which you saw in the actions lesson. Look up how to check the text of several visible rows. Search for: `playwright selectOption`, `playwright toHaveText array of strings`.
 
 ## Think it through
 

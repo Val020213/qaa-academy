@@ -32,7 +32,7 @@ The **element picker** is the arrow icon at the top left of DevTools. Click it, 
 
 Watch how DevTools finds the email input and shows its `data-testid`.
 
-![DevTools Elements finds the email input and shows its data-testid attribute.](/clips/devtools-elements.webm)
+![DevTools Elements finds the email input and shows its data-testid attribute. The clip uses port 5186; in practice you will use 5180.](/clips/devtools-elements.webm)
 
 When you select an element, check:
 
@@ -68,7 +68,7 @@ A Console with no errors does not prove that the page is correct. The code can r
 
 When a page loads a file or asks a server for data, the browser sends a **request**. The **Network** panel shows one row per request. Loading a page can involve separate requests for the document, scripts, styles and data.
 
-1. Open the Network panel **before** the action you want to study. It records only while it is open.
+1. Open the Network panel **before** the action you want to study. DevTools records requests while it is open and recording is active, even if you switch panels.
 2. Do the action on the page, such as clicking a button.
 3. Review the requests in the list.
 
@@ -85,7 +85,7 @@ To see the data calls, click the **Fetch/XHR** filter. Then click a request to s
 - **Payload**: the data the page sent. It appears for requests that send data.
 - **Response**: the data the server sent back.
 
-Without **Preserve log**, the list is cleared when the page changes, and the request you wanted is gone. Turn it on before signing in to keep the request and its response after navigation.
+Without **Preserve log**, the list is cleared when a new document loads, and the request you wanted is gone. Turn it on before signing in to keep the request and its response after navigation.
 
 ## Investigate a bug with DevTools
 
@@ -103,7 +103,7 @@ Choose the panel based on the symptom. If a page does not respond to an action, 
 
 Right-click a request in the Network panel, choose **Copy**, then **Copy as cURL**. You get a command that repeats the request and that you can attach to a bug report.
 
-A copied request can include your cookie, and a cookie can be a password. Remove it before you paste it into a ticket that many people read.
+A copied request can include the session cookie. In the shop it contains a token that allows access to your session. Remove it before you paste it into a ticket that many people read.
 
 ### Simulate a slow connection
 
@@ -129,7 +129,7 @@ pnpm shop:dev
 
 ## Challenge
 
-Write a Playwright test that opens the Practice page or a lesson page, records every browser request and reports what it saw. The test must fail when a request fails.
+Write a Playwright test that opens the Practice page or a lesson page, records every browser request and reports what it saw. The test must fail when a request cannot complete because of a transport failure. An HTTP response such as 404 or 500 does not trigger `requestfailed`.
 
 Create the file `e2e/challenges/devtools-network.spec.ts`. Import `test` and `expect` from `../lib/test`. Do not use `waitForTimeout`.
 
@@ -153,7 +153,7 @@ You get 5. Each row adds a checkbox, which is an `input` element. The three orig
 
 </details>
 
-2. The shop dashboard shows "Products 0". The Console is clean. The Network panel shows the request `stats` with status `200`, and its Response says `"products": 24`. Where is the bug, and why did you not see a red error?
+2. You know the shop has 24 products, but the dashboard shows "Products 0". The Console is clean. The Network panel shows the request `stats` with status `200`, and its Response says `"products": 24`. Where is the bug, and why did you not see a red error?
 
 <details>
 <summary>Answer</summary>

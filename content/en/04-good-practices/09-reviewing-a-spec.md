@@ -40,7 +40,7 @@ Read the test name first and check that its steps and assertions cover that beha
 - The test name says what the user sees, such as "confirming in the dialog removes the product".
 - One behaviour per test.
 - Steps are in the order: prepare, act, check. A blank line separates them.
-- When a locator or setup appears a third time, move it to a page object, a fixture or a helper.
+- When a locator or setup appears for the third time, consider extracting it if it represents knowledge that should change together.
 
 **Detecting failures**
 
@@ -127,10 +127,11 @@ test("searching by name shows only that product", async ({ page, request }) => {
   await products.search(product.name)
 
   await expect(products.rows).toHaveCount(1)
+  await expect(products.row(product.id)).toBeVisible()
 })
 ```
 
-The assertions wait for the row to appear before acting. The deletion check uses the same locator to confirm that the row disappears.
+The assertions wait for the row to appear before acting. The deletion check uses the same locator to confirm that the row disappears. The search checks both that only one row remains and that it belongs to the created product’s id.
 
 ## Check that the test can fail
 
@@ -153,7 +154,7 @@ The last line looks for `product-row-` plus the id. The real test id is `product
 
 The initial check uses `products.row(product.id)`, but the final check uses another locator. Check that the row was visible and that it disappears with the same locator, as in the corrected version.
 
-To check that the test detects the failure, comment out the delete line or change the expected value and run it. If it still passes, it does not check anything. This is a small, manual version of **mutation testing**: change the code a little and see whether the tests notice. Restore the change after the check.
+To check that the test detects the failure, comment out the delete line or change the expected value and run it. If it still passes, it does not detect that change. This is a small, manual version of **mutation testing**: change the code a little and see whether the tests notice. Restore the change after the check.
 
 ## Go deeper
 

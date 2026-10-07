@@ -90,16 +90,16 @@ test.afterEach(async ({}, testInfo) => {
 })
 ```
 
-Esto imprime el nombre y el resultado del test, por ejemplo `starts empty: passed`.
+Esto imprime el nombre y el estado del test en ese momento, por ejemplo `starts empty: passed`. Un error posterior durante el cierre todavía puede hacerlo fallar.
 
 ## Aislamiento: cada test empieza limpio
 
-Cada test recibe una `page` nueva en un **browser context** (contexto de navegador) nuevo. Un contexto de navegador es como un perfil de navegador recién creado: sin cookies, sin datos guardados, sin pestañas abiertas por otros tests.
+Cuando un test solicita `page`, Playwright le da una pestaña nueva en un **browser context** (contexto de navegador) nuevo. Un contexto de navegador es como un perfil de navegador recién creado: sin cookies, sin datos guardados, sin pestañas abiertas por otros tests.
 
-Esto se llama **aislamiento**. Tiene dos resultados.
+Esto se llama **aislamiento** del navegador.
 
-- Un test no puede romperse por lo que hizo otro test.
-- Los tests pueden ejecutarse en paralelo, al mismo tiempo, y en cualquier orden.
+- Las cookies y el estado de la página de otro test no se transfieren al contexto nuevo.
+- Para ejecutar tests en paralelo y en cualquier orden, también deben ser independientes de variables compartidas y datos de servidores.
 
 En la app Practice, la lista de casos vive en el estado de la página. Cuando otro test abre su página, la lista está vacía. Cada test debe crear los datos que necesita sin depender de otro test.
 
@@ -124,6 +124,8 @@ test("second", async () => {
 ```
 
 Con `fullyParallel: true` y `--workers=1`, los dos tests corren uno después del otro en el mismo proceso. La salida es `first sees 1` y `second sees 2`. Con `--workers=2`, normalmente cada test corre en un worker distinto, así que los dos imprimen `1`.
+
+![Ejemplo de dos tests que usan page y un contador del archivo en el mismo worker: los contextos se separan y la variable persiste.](/images/03-worker-isolation.es.svg)
 
 Esta dependencia también aparece si un test escribe un valor que otro necesita:
 

@@ -28,7 +28,7 @@ Buenos nombres: `tests/cancel-pending-order`, `tests/edit-product`. En esta lecc
 
 Haz un commit por cada pieza terminada, junto con su cambio en `COVERAGE.md`.
 
-Como cada commit es independiente, Git puede deshacer uno sin tocar los demás. Con un solo commit grande, no puedes deshacer solo la parte mala.
+Los commits pequeños facilitan revertir una pieza con otro commit. Si cambios posteriores dependen de ella, la reversión puede causar conflictos. También puedes corregir parte de un commit grande con una nueva edición.
 
 ```bash
 git add apps/practice-shop/e2e/orders/orders.spec.ts apps/practice-shop/e2e/COVERAGE.md
@@ -74,7 +74,7 @@ pnpm shop:e2e
 - `pnpm --filter practice-shop typecheck` revisa los tipos de la tienda y sus tests. Un tipo incorrecto en un spec falla aquí.
 - `pnpm shop:e2e` ejecuta la suite de la tienda. Ejecútala al menos dos veces si cambiaste la preparación de datos.
 
-El workflow `.github/workflows/e2e.yml` ejecuta el primero y el tercero, pero no `pnpm --filter practice-shop typecheck`. Así que CI no detectará un tipo incorrecto en un spec de la tienda. Debes ejecutar esa comprobación en local.
+El workflow `.github/workflows/e2e.yml` ejecuta el primero y el tercero, pero no `pnpm --filter practice-shop typecheck`. CI no ejecuta esa revisión de tipos; un test aún puede fallar si el defecto afecta su ejecución. Debes ejecutar esa comprobación en local.
 
 Si tocaste el sitio del curso, ejecuta también `pnpm e2e`. CI ejecuta las dos suites.
 
@@ -98,13 +98,15 @@ Describe qué cubren los tests, cómo ejecutarlos y qué datos usan. Usa esta pl
 ## What is covered
 - An admin cancels a pending order (order 1001).
 - Editing a product: four scenarios.
+- Viewer: no New, Edit or Delete controls; product creation returns 403.
 
 ## How to run
 pnpm --filter practice-shop e2e e2e/orders/orders.spec.ts
 pnpm --filter practice-shop e2e e2e/products/product-edit.spec.ts
+pnpm --filter practice-shop e2e e2e/products/viewer.spec.ts
 
 ## Notes
-- COVERAGE.md is updated: two gaps removed.
+- COVERAGE.md is updated: three gaps removed.
 - Product tests create their own data. The cancel test uses the seeded order 1001, and only that test uses it.
 ```
 
@@ -114,11 +116,13 @@ Comprueba que la descripción coincide con los cambios del pull request. La nota
 
 El test de Ana cancela el pedido pendiente 1001. El de Ben marca ese mismo pedido como pagado. Cada test pasa por separado sobre una semilla nueva.
 
-Git combina los cambios en archivos distintos sin conflicto, pero ambos tests modifican el mismo pedido. Si el test de cancelar corre primero, el servidor rechaza el cambio de cancelado a pagado. Si el de pagar corre primero, falla la guarda del test de cancelar que espera un pedido pendiente. Los dos tests no pueden compartir el pedido 1001.
+Git combina los cambios en archivos distintos sin conflicto, pero ambos tests modifican el mismo pedido. En ambos órdenes, la guarda del segundo test encuentra un pedido que ya no está pendiente y falla antes del clic. Si cancelar corre primero y el test de pagar omite su guarda, Playwright espera el botón ausente hasta agotar el timeout. En el orden contrario, Cancel sigue disponible después de pagar. Los dos tests no pueden compartir el pedido 1001.
+
+![En ambos órdenes de ejecución, el segundo test encuentra que el pedido compartido ya no está pendiente.](/images/05-shared-order.es.svg)
 
 - Antes del merge, actualiza tu branch con el `main` más reciente y ejecuta la suite otra vez.
 - Escribe en la descripción qué datos de la semilla usa tu test para que los revisores puedan buscar el mismo id.
-- Mejor aún, crea el pedido que tu test necesita. Así ningún test es dueño de un registro compartido.
+- Esta API no permite crear pedidos. Reserva un id distinto de la semilla para cada test que lo modifique y registra esa reserva en el comentario del spec.
 
 ## 6. Responde a la revisión
 
@@ -176,7 +180,7 @@ Crea `exercises/challenges/pr-description.md` con una descripción de estos camb
 Está terminado cuando:
 
 - `git log --oneline main..HEAD` muestra exactamente tres commits, con mensajes que empiezan con un verbo y dicen qué cambia cada uno.
-- `git show --stat` de los dos primeros commits lista solo `COVERAGE.md`, y cada uno cambia una sola línea: el primer commit tiene la reformulación, el segundo tiene la eliminación.
+- `git show --stat HEAD~2` y `git show --stat HEAD~1` listan solo `COVERAGE.md`. Revisa también los parches con `git show HEAD~2` y `git show HEAD~1`: el primero sustituye una línea y el segundo elimina una línea.
 - El tercer commit agrega solo `exercises/challenges/pr-description.md`.
 - `git status` muestra un árbol de trabajo limpio, y el branch nunca se subió.
 
@@ -204,7 +208,7 @@ La opción `-a` prepara cambios solo en archivos que Git ya sigue. El spec nuevo
 
 <details><summary>Respuesta</summary>
 
-Ben ve un conflicto. Git no puede decidir cómo ordenar dos líneas nuevas agregadas en el mismo lugar. El archivo recibe marcas (`<<<<<<<`, `=======`, `>>>>>>>`) alrededor de las dos versiones. Ben conserva las dos filas, quita las marcas, ejecuta los tests otra vez, hace commit y push.
+Cuando Ben trae los cambios remotos e intenta integrar el `main` actualizado en su branch con `git merge main`, Git puede mostrar un conflicto entre las dos filas agregadas en el mismo lugar. El archivo recibe marcas (`<<<<<<<`, `=======`, `>>>>>>>`) alrededor de las dos versiones. Ben conserva las dos filas, quita las marcas, ejecuta los tests otra vez, hace commit y push.
 
 </details>
 

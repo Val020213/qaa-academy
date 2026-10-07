@@ -20,7 +20,7 @@ From the root of the repository, run:
 pnpm shop:e2e
 ```
 
-If the shop is not running, Playwright starts it. If it is running on port 5190, Playwright reuses it. The output lists each test:
+Playwright uses port 5190 by default; `SHOP_E2E_PORT` can change it. If the shop does not answer, it starts it. If it answers, Playwright reuses it only with `CI` absent or empty; with nonempty `CI`, it fails. This abbreviated example shows how each test is listed:
 
 ```text
   ✓  1 [setup] › e2e/global.setup.ts:6:5 › sign in as admin (2.0s)
@@ -29,7 +29,7 @@ If the shop is not running, Playwright starts it. If it is running on port 5190,
   17 passed (23.2s)
 ```
 
-The suite has 17 tests, including the setup test. Your timings will differ.
+The original suite has 17 tests, including setup. Specs you added increase that total. Your timings will differ.
 
 ## Run one file
 
@@ -43,7 +43,7 @@ The path starts at `apps/practice-shop`. The setup test also runs because the `c
 
 ## Run one test
 
-Use `-g`. It means "grep": run only the tests whose name contains this text.
+Use `-g` (grep): Playwright treats the value as a regular expression and matches it against the full name, including the project, file and test groups.
 
 ```bash
 pnpm --filter practice-shop e2e -g "marks a pending order as paid"
@@ -137,7 +137,7 @@ The message alone does not prove the cause. Check the page state and network cal
 
 ## Practice
 
-1. Run `pnpm shop:e2e` and check that you see `17 passed`.
+1. Run `pnpm shop:e2e` and check that all pass: `17 passed` for the original suite, or more if you added specs.
 2. Run only `e2e/dashboard.spec.ts`.
 3. Run only the test "shows the numbers when they arrive" with `-g`.
 4. Open the HTML report: go to `apps/practice-shop` and run `pnpm exec playwright show-report`.
@@ -147,7 +147,7 @@ The message alone does not prove the cause. Check the page state and network cal
 
 Create `apps/practice-shop/e2e/orders/repeat-me.spec.ts` with a test that checks order 1009 is `pending`, clicks **Mark as paid**, and checks that it becomes `paid`.
 
-Run the test three times in one command, without resetting the data between repetitions. Open the trace of a failure. Delete the file when you finish.
+Select only `e2e/orders/repeat-me.spec.ts` and run the test three times in one command. Setup then runs once, without resetting the data between repetitions. Open the trace of a failure. Delete the file when you finish.
 
 It is done when:
 
@@ -160,7 +160,7 @@ Search for the option that repeats each test: `playwright test command line opti
 
 ## Think it through
 
-1. You run the paid test twice, one after the other, with an option that skips the setup project (`--no-deps`). What happens in each run if order 1005 was pending at the start?
+1. You run the paid test twice, one after the other, with an option that skips the setup project (`--no-deps`). What happens in each run if the shop stays running, the saved session is valid and order 1005 was pending at the start?
 
 <details><summary>Answer</summary>
 
@@ -172,15 +172,15 @@ The first passes and leaves the order paid. The second fails at the initial asse
 
 <details><summary>Answer</summary>
 
-The dashboard test "shows the numbers when they arrive" would fail. The API deliberately waits 1.2 seconds before returning the numbers, and the assertion stops waiting after half a second.
+The assertion waiting for the numbers can fail if they are still pending when its 500 ms expires. The API takes 1.2 seconds, but the timeout starts when the assertion begins, not when the request is sent. If the numbers arrive within that deadline, it passes.
 
 </details>
 
-3. You run the suite with the environment variable `CI` set, but the shop is already running on port 5190 in another terminal. What happens, and why?
+3. You run the suite with a nonempty environment variable `CI`, but the shop is already running on port 5190 in another terminal. What happens, and why?
 
 <details><summary>Answer</summary>
 
-Playwright stops with an error that the address is already in use. The config says `reuseExistingServer: !process.env.CI`, so with `CI` set it will not reuse a running server.
+Playwright stops with an error that the address is already in use. The config says `reuseExistingServer: !process.env.CI`, so with nonempty `CI` it will not reuse a running server.
 
 </details>
 

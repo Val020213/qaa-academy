@@ -20,7 +20,7 @@ Desde la raíz del repositorio, ejecuta:
 pnpm shop:e2e
 ```
 
-Si la tienda no está en marcha, Playwright la arranca. Si está en marcha en el puerto 5190, Playwright la reutiliza. La salida lista cada test:
+Playwright usa el puerto 5190 por defecto; `SHOP_E2E_PORT` puede cambiarlo. Si la tienda no responde, la arranca. Si responde, la reutiliza solo con `CI` ausente o vacía; con `CI` no vacía, falla. Este ejemplo abreviado muestra cómo se lista cada test:
 
 ```text
   ✓  1 [setup] › e2e/global.setup.ts:6:5 › sign in as admin (2.0s)
@@ -29,7 +29,7 @@ Si la tienda no está en marcha, Playwright la arranca. Si está en marcha en el
   17 passed (23.2s)
 ```
 
-La suite tiene 17 tests, contando el test de setup. Tus tiempos serán distintos.
+La suite original tiene 17 tests, contando el setup. Los specs que agregaste aumentan ese total. Tus tiempos serán distintos.
 
 ## Ejecuta un archivo
 
@@ -43,7 +43,7 @@ La ruta empieza en `apps/practice-shop`. El test de setup también se ejecuta, p
 
 ## Ejecuta un test
 
-Usa `-g`. Significa "grep": ejecuta solo los tests cuyo nombre contiene este texto.
+Usa `-g` (grep): Playwright interpreta el valor como una expresión regular y lo compara con el nombre completo, incluidos el proyecto, el archivo y los grupos del test.
 
 ```bash
 pnpm --filter practice-shop e2e -g "marks a pending order as paid"
@@ -137,7 +137,7 @@ El mensaje por sí solo no demuestra la causa. Revisa en el trace el estado de l
 
 ## Práctica
 
-1. Ejecuta `pnpm shop:e2e` y comprueba que ves `17 passed`.
+1. Ejecuta `pnpm shop:e2e` y comprueba que todos pasan: `17 passed` para la suite original, o más si agregaste specs.
 2. Ejecuta solo `e2e/dashboard.spec.ts`.
 3. Ejecuta solo el test "shows the numbers when they arrive" con `-g`.
 4. Abre el reporte HTML: ve a `apps/practice-shop` y ejecuta `pnpm exec playwright show-report`.
@@ -147,7 +147,7 @@ El mensaje por sí solo no demuestra la causa. Revisa en el trace el estado de l
 
 Crea `apps/practice-shop/e2e/orders/repeat-me.spec.ts` con un test que compruebe que el pedido 1009 está `pending`, haga clic en **Mark as paid** y compruebe que queda `paid`.
 
-Ejecuta el test tres veces en un solo comando, sin reiniciar los datos entre las repeticiones. Abre el trace de un fallo. Cuando termines, borra el archivo.
+Selecciona solo `e2e/orders/repeat-me.spec.ts` y ejecuta el test tres veces en un solo comando. Así el setup corre una vez, sin reiniciar los datos entre las repeticiones. Abre el trace de un fallo. Cuando termines, borra el archivo.
 
 Está terminado cuando:
 
@@ -160,7 +160,7 @@ Busca la opción que repite cada test: `playwright test command line options rep
 
 ## Piénsalo bien
 
-1. Ejecutas el test de pagar dos veces, una tras otra, con una opción que omite el proyecto setup (`--no-deps`). ¿Qué ocurre en cada ejecución si el pedido 1005 estaba pendiente al principio?
+1. Ejecutas el test de pagar dos veces, una tras otra, con una opción que omite el proyecto setup (`--no-deps`). ¿Qué ocurre en cada ejecución si la tienda se mantiene en marcha, la sesión guardada es válida y el pedido 1005 estaba pendiente al principio?
 
 <details><summary>Respuesta</summary>
 
@@ -172,15 +172,15 @@ La primera pasa y deja el pedido pagado. La segunda falla en la aserción inicia
 
 <details><summary>Respuesta</summary>
 
-El test del dashboard "shows the numbers when they arrive" fallaría. La API espera 1.2 segundos a propósito antes de devolver los números, y la aserción deja de esperar después de medio segundo.
+La aserción que espera los números puede fallar si siguen pendientes al vencer sus 500 ms. La API demora 1.2 segundos, pero el timeout empieza cuando comienza la aserción, no cuando se envía la petición. Si los números llegan dentro de ese plazo, pasa.
 
 </details>
 
-3. Ejecutas la suite con la variable de entorno `CI` definida, pero la tienda ya está en marcha en el puerto 5190 en otra terminal. ¿Qué ocurre y por qué?
+3. Ejecutas la suite con la variable de entorno `CI` no vacía, pero la tienda ya está en marcha en el puerto 5190 en otra terminal. ¿Qué ocurre y por qué?
 
 <details><summary>Respuesta</summary>
 
-Playwright se detiene con un error que dice que la dirección ya está en uso. La configuración tiene `reuseExistingServer: !process.env.CI`, así que con `CI` definida no reutiliza un servidor en marcha.
+Playwright se detiene con un error que dice que la dirección ya está en uso. La configuración tiene `reuseExistingServer: !process.env.CI`, así que con `CI` no vacía no reutiliza un servidor en marcha.
 
 </details>
 

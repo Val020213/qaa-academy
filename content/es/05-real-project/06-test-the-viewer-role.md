@@ -22,6 +22,8 @@ La configuración carga `e2e/.auth/admin.json` por defecto. Para probar al viewe
 
 `loginViaApi` y `VIEWER` vienen de `lib/fixtures/api-client.ts`. El fixture `request` tiene un almacén de cookies separado: iniciar sesión con él no inicia la sesión de la página.
 
+![La página y page.request comparten cookies; el fixture request usa un almacén aparte.](/images/05-cookie-stores.es.svg)
+
 ## Comprobar controles ausentes
 
 `toHaveCount(0)` pasa en cuanto el locator encuentra cero elementos. Si encuentra alguno, Playwright repite la comprobación hasta que el conteo sea cero o se agote el tiempo. La aserción puede pasar antes de que lleguen los datos: una tabla vacía tampoco tiene controles Edit ni Delete.
@@ -117,18 +119,18 @@ test("the API answers 401 when nobody is signed in", async ({ request }) => {
 2. Ejecútalo: `pnpm --filter practice-shop e2e e2e/products/viewer.spec.ts`.
 3. Inicia sesión temporalmente con `ADMIN` en lugar de `VIEWER` (agrega `ADMIN` al import). Ejecuta el spec y lee el fallo. Deshaz el cambio.
 4. Agrega un tercer test: el viewer abre `/orders` y no ve botones `orders-mark-paid-`. Usa una expresión regular y espera primero una fila.
-5. Actualiza `COVERAGE.md`: marca la fila del rol viewer como cubierta y quita ese hueco.
+5. Actualiza `COVERAGE.md`: agrega una fila para los tests del viewer y quita ese hueco.
 
 ## Reto
 
-Prueba al viewer en pedidos. Crea `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` y comprueba que un cambio rechazado no modifica el pedido. Elige el pedido para la comprobación por la API. Recuerda que los pedidos de la semilla los usan otros specs. Los pedidos pendientes son 1001, 1005 y 1009.
+Prueba al viewer en pedidos. Crea `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` y comprueba que un cambio rechazado no modifica el pedido. Elige el pedido para la comprobación por la API. En la semilla fresca, los pedidos pendientes son 1001, 1005 y 1009. Reserva 1009 para estas comprobaciones de lectura y rechazo: los tests de cancelar y pagar modifican 1001 y 1005.
 
 Está terminado cuando:
 
 - Un test de interfaz inicia sesión como viewer, espera una fila y comprueba que faltan el encabezado Actions y los controles con ids que empiezan con `orders-mark-paid-`, `orders-mark-shipped-` y `orders-cancel-`.
-- Un test de API envía como viewer el cambio de estado `paid` para tu pedido pendiente y espera 403 y el mensaje "Your role does not allow this action."
+- Un test de API comprueba primero con `page.request.get("/api/auth/me")` que el rol sea `viewer`. Luego envía el cambio de estado `paid` para 1009 y espera 403 y el mensaje "Your role does not allow this action."
 - El mismo test inicia sesión como admin en una sesión aparte, lee la lista de pedidos por la API y comprueba que tu pedido sigue en `pending`.
-- El spec pasa dos veces. Luego inicias sesión en el primer test como `ADMIN`, lo ves fallar y deshaces el cambio.
+- El spec pasa dos veces. Luego inicias sesión en el primer test como `ADMIN`, lo ves fallar y deshaces el cambio. Si cambias el login compartido, la comprobación del rol del test de API debe fallar antes del PATCH.
 
 Busca: `playwright APIResponse json`, `typescript array find` y `playwright getByRole columnheader`. Puedes usar el fixture `request` para la sesión aparte del admin, sin cambiar la del viewer en `page.request`.
 

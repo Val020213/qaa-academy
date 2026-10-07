@@ -28,7 +28,7 @@ Good names: `tests/cancel-pending-order`, `tests/edit-product`. In this lesson, 
 
 Make one commit for each finished piece, together with its change to `COVERAGE.md`.
 
-Because each commit is separate, Git can undo one without touching the others. With one big commit, you cannot undo only the bad part.
+Small commits make it easier to revert one piece with another commit. If later changes depend on it, the revert can conflict. You can also fix part of a large commit with a new edit.
 
 ```bash
 git add apps/practice-shop/e2e/orders/orders.spec.ts apps/practice-shop/e2e/COVERAGE.md
@@ -74,7 +74,7 @@ pnpm shop:e2e
 - `pnpm --filter practice-shop typecheck` checks the types in the shop and its tests. A wrong type in a spec fails here.
 - `pnpm shop:e2e` runs the shop suite. Run it at least twice if you changed data setup.
 
-The workflow `.github/workflows/e2e.yml` runs the first and third commands, but not `pnpm --filter practice-shop typecheck`. So CI will not catch a wrong type in a shop spec. You must run that check locally.
+The workflow `.github/workflows/e2e.yml` runs the first and third commands, but not `pnpm --filter practice-shop typecheck`. CI does not run that type check; a test can still fail if the defect affects its execution. You must run that check locally.
 
 If you touched the course site, run `pnpm e2e` as well. CI runs both suites.
 
@@ -98,13 +98,15 @@ Describe what the tests cover, how to run them and what data they use. Use this 
 ## What is covered
 - An admin cancels a pending order (order 1001).
 - Editing a product: four scenarios.
+- Viewer: no New, Edit or Delete controls; product creation returns 403.
 
 ## How to run
 pnpm --filter practice-shop e2e e2e/orders/orders.spec.ts
 pnpm --filter practice-shop e2e e2e/products/product-edit.spec.ts
+pnpm --filter practice-shop e2e e2e/products/viewer.spec.ts
 
 ## Notes
-- COVERAGE.md is updated: two gaps removed.
+- COVERAGE.md is updated: three gaps removed.
 - Product tests create their own data. The cancel test uses the seeded order 1001, and only that test uses it.
 ```
 
@@ -114,11 +116,13 @@ Check that the description matches the changes in the pull request. The note abo
 
 Ana's test cancels pending order 1001. Ben's test marks that same order as paid. Each test passes separately on a fresh seed.
 
-Git combines the changes in different files without a conflict, but both tests modify the same order. If the cancel test runs first, the server rejects the change from cancelled to paid. If the paid test runs first, the cancel test's guard fails because it expects a pending order. The two tests cannot share order 1001.
+Git combines the changes in different files without a conflict, but both tests modify the same order. In either order, the second test’s guard finds an order that is no longer pending and fails before the click. If cancellation runs first and the payment test skips its guard, Playwright waits for the missing button until the timeout expires. In the reverse order, Cancel remains available after payment. The two tests cannot share order 1001.
+
+![In either execution order, the second test finds the shared order is no longer pending.](/images/05-shared-order.en.svg)
 
 - Before the merge, update your branch with the latest `main` and run the suite again.
 - Write in the description which seeded data your test uses so reviewers can search for the same id.
-- Better still, create the order your test needs. Then no test owns a shared record.
+- This API cannot create orders. Reserve a distinct seeded id for each test that changes it and record that reservation in the spec comment.
 
 ## 6. Answer the review
 
@@ -176,7 +180,7 @@ Create `exercises/challenges/pr-description.md` with a description of these chan
 It is done when:
 
 - `git log --oneline main..HEAD` shows exactly three commits, with messages that start with a verb and say what each commit changes.
-- `git show --stat` for the first two commits lists only `COVERAGE.md`, and each changes one line only: the first commit holds the rewording, the second holds the deletion.
+- `git show --stat HEAD~2` and `git show --stat HEAD~1` list only `COVERAGE.md`. Also inspect the patches with `git show HEAD~2` and `git show HEAD~1`: the first replaces one line and the second deletes one line.
 - The third commit adds only `exercises/challenges/pr-description.md`.
 - `git status` shows a clean working tree, and the branch was never pushed.
 
@@ -204,7 +208,7 @@ The `-a` flag stages changes only to files Git already tracks. The new spec was 
 
 <details><summary>Answer</summary>
 
-Ben sees a conflict. Git cannot decide how to order two new lines added at the same place. The file gets markers (`<<<<<<<`, `=======`, `>>>>>>>`) around the two versions. Ben keeps both rows, removes the markers, runs the tests again, commits and pushes.
+When Ben fetches the remote changes and tries to merge the updated `main` into his branch with `git merge main`, Git can report a conflict between the two rows added in the same place. The file gets markers (`<<<<<<<`, `=======`, `>>>>>>>`) around the two versions. Ben keeps both rows, removes the markers, runs the tests again, commits and pushes.
 
 </details>
 

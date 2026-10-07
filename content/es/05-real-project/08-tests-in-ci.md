@@ -16,7 +16,7 @@ Vas a leer las revisiones automáticas del proyecto y encontrar la causa de un t
 
 **CI** significa integración continua (*continuous integration*). Las revisiones automáticas acompañan la integración de cambios al repositorio del equipo. En este proyecto, GitHub Actions ejecuta la revisión de tipos y las dos suites en una máquina nueva, sin los archivos ni los servidores que quedaron en tu computadora.
 
-Un cambio que rompe un test no se puede integrar por error. Un test debe ser **R**epeatable (repetible): da el mismo resultado en cualquier máquina. Tu computadora no puede demostrar eso. Una máquina limpia sí.
+CI informa si un test falla. Para bloquear el merge, el repositorio debe exigir ese check mediante sus reglas de protección. Un test debe ser **R**epeatable (repetible): con las mismas condiciones, da el mismo resultado. Una ejecución limpia en Ubuntu con Chromium aporta evidencia en ese entorno.
 
 ## Lee el workflow
 
@@ -56,7 +56,9 @@ La revisión de tipos va antes de la descarga del navegador. Si encuentra un err
 
 Si un paso falla, GitHub Actions omite los siguientes pasos sin una condición que permita ejecutarlos después del fallo. El paso de subida tiene `if: ${{ !cancelled() }}`: corre incluso después de un fallo, siempre que la ejecución no se haya cancelado.
 
-El workflow no ejecuta `pnpm --filter practice-shop typecheck`. Un tipo incorrecto en un spec de la tienda no se detecta en CI. Ejecuta ese comando antes del push, como indica la lección 7.
+![Un fallo omite los pasos normales restantes; la subida puede conservar los reportes disponibles.](/images/05-ci-failure-flow.es.svg)
+
+El workflow no ejecuta `pnpm --filter practice-shop typecheck`. CI no ejecuta esa revisión de tipos de la tienda; un defecto de tipos que afecte la ejecución aún puede hacer fallar un test. Ejecuta ese comando antes del push, como indica la lección 7.
 
 ## Los ajustes de CI
 
@@ -66,7 +68,7 @@ GitHub define la variable de entorno `CI`. Los dos archivos `playwright.config.t
 | --- | --- | --- |
 | `forbidOnly` | apagado | encendido: un `test.only` hace fallar la ejecución |
 | `retries` | 0 | 2: un test que falla se ejecuta otra vez hasta 2 veces |
-| `reuseExistingServer` | encendido | apagado: Playwright siempre inicia su propio servidor |
+| `reuseExistingServer` | encendido | apagado: inicia el servidor si la URL no responde; falla si ya responde |
 
 Un test que falla y luego pasa en un reintento se marca como **flaky** (inestable) en el reporte. Investiga la causa del fallo aunque el reintento pase.
 
@@ -109,7 +111,7 @@ $env:CI = "false"
 pnpm shop:e2e
 ```
 
-JavaScript trata el texto no vacío como verdadero. Entonces `process.env.CI` es verdadero, `retries` es 2 y `forbidOnly` está encendido. Si un test falla en los tres intentos, Playwright lo reporta como fallido.
+JavaScript trata el texto no vacío como verdadero. El valor de `process.env.CI` sigue siendo el texto `"false"`; su conversión a boolean da `true`, `retries` es 2 y `forbidOnly` está encendido. Si un test falla en los tres intentos, Playwright lo reporta como fallido.
 
 El ajuste `reuseExistingServer` también está apagado. Detén una tienda que ya esté corriendo antes de ejecutar la suite. Para apagar el modo CI, quita la variable.
 
@@ -117,8 +119,8 @@ El ajuste `reuseExistingServer` también está apagado. Detén una tienda que ya
 
 1. Abre tu pull request. Haz clic en la revisión que falló y luego en **Details**.
 2. Abre el **Summary** de la ejecución. Baja hasta **Artifacts**.
-3. Descarga `playwright-reports` y descomprime el archivo zip.
-4. El zip tiene dos carpetas: una para la suite del sitio del curso y otra para la suite de la tienda. Si la suite del sitio del curso falló, la suite de la tienda no corrió, así que falta la carpeta de la tienda.
+3. Si existe `playwright-reports`, descárgalo y descomprime el zip. Un fallo anterior a los tests puede dejar la ejecución sin reportes.
+4. Busca `playwright-report/` para el curso y `apps/practice-shop/playwright-report/` para la tienda. El artefacto conserva estas rutas desde su raíz común. Si la suite del curso falló, la tienda no corrió y no generó su reporte.
 5. Abre un reporte con la ruta de la carpeta:
 
 ```bash
@@ -131,12 +133,12 @@ Reemplaza la ruta por la tuya. Haz clic en el test que falló y abre su trace pa
 
 Lee el trace y elige una hipótesis basada en el fallo. Prueba esa hipótesis cambiando una sola cosa:
 
-- La máquina de CI es más lenta. Una espera fija o un timeout corto falla allí. Usa aserciones *web-first* (que esperan solas).
+- Una respuesta puede tardar más en CI por la carga o la red. Comprueba los tiempos en el trace; una espera fija o un timeout corto puede vencer antes de que llegue. Usa aserciones *web-first* (que esperan solas).
 - Un test puede depender de datos que quedaron de una ejecución anterior. CI empieza limpio.
 - CI usa Linux, donde los nombres de archivo distinguen mayúsculas: `Products.page.ts` no es `products.page.ts`.
-- Un servidor viejo en tu máquina puede esconder un problema. CI siempre inicia uno nuevo.
+- Un servidor viejo en tu máquina puede esconder un problema. Con la URL libre, Playwright en CI inicia uno nuevo; si ya responde, falla.
 
-Para copiar las condiciones de CI, define la variable. Detén primero la tienda, porque el modo CI no reutiliza un servidor que ya está corriendo. En PowerShell:
+Para reproducir los ajustes de Playwright de CI en tu máquina, define la variable. Esto no cambia tu sistema operativo ni crea un entorno limpio. Detén primero la tienda, porque el modo CI no reutiliza un servidor que ya está corriendo. En PowerShell:
 
 ```bash
 $env:CI = "1"
@@ -172,7 +174,7 @@ Crea `exercises/challenges/ci-flag.ts` con una función `isCiOn(value)` que reci
 Está terminado cuando:
 
 - `node exercises/challenges/ci-flag.ts` imprime una línea por cada uno de al menos ocho valores, como `"false" -> off`. Incluye `undefined`, un texto vacío, `"1"`, `"0"`, `"false"` y `" FALSE "`.
-- El archivo compara los resultados con una tabla de respuestas esperadas e imprime `all cases match` al final. Si un caso no coincide, imprime ese caso.
+- El archivo compara los resultados con una tabla de respuestas esperadas e imprime `all cases match` al terminar la comprobación de casos, antes del mensaje sobre el entorno. Si un caso no coincide, imprime ese caso.
 - La última línea imprime `CI mode from the environment: on` u `off`, leído de la variable `CI` real. Imprime `on` después de `$env:CI = "1"`, y `off` después de `$env:CI = "0"` y cuando la variable se quita.
 - `pnpm typecheck` pasa con tu archivo en su lugar.
 
@@ -200,7 +202,7 @@ El reporte marca el test como flaky. El reintento pasó, pero el equipo todavía
 
 <details><summary>Respuesta</summary>
 
-En CI, pnpm ya viene congelado por defecto cuando existe un archivo de bloqueo. La instalación sigue fallando por la diferencia con `package.json`. `--no-frozen-lockfile` es la opción que permite actualizarlo durante la instalación.
+En este proyecto, pnpm activa la instalación congelada por defecto en CI porque el archivo de bloqueo no está vacío. La instalación sigue fallando por la diferencia con `package.json`. `--no-frozen-lockfile` es la opción que permite actualizarlo durante la instalación.
 
 </details>
 

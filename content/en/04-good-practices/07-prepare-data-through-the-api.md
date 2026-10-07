@@ -16,9 +16,11 @@ Prepare test data through the API and use the UI to check the behavior under tes
 
 In a delete test, creating the product is preparation. Clicking Delete and confirming are the actions you want to test. Preparing the product through the API keeps a bug in the creation form from breaking that test.
 
-Through the API it is one request, and only the delete feature can break the test.
+The API prepares the product in one request, without depending on the creation form. Preparation, authentication or list loading can still fail the test.
 
 The form sends `POST /api/products` when you save a new product. The setup helper sends the same request without opening the form or filling its fields. The server processes the data through the same route.
+
+![With a valid admin session, the form and helper reach the same server validation.](/images/04-api-preparation.en.svg)
 
 If the test checks creation through the form, use the UI to create the product. If your environment offers no API for preparing data, use the UI and keep that preparation short.
 
@@ -96,7 +98,7 @@ A `422` response identifies the invalid field and its message:
 { "errors": { "stock": "Stock must be a whole number, 0 or more." } }
 ```
 
-The API and the form both call the same function, `validateProduct`, so a price of 0 gets a `422` from both.
+Both the helper and the form send data to the API. The server route calls `validateProduct` and returns `422` for a price of 0; the form shows the returned error.
 
 To test how the list displays a small price, use an allowed value such as `0.01`. To test the form's message for price 0, enter that value through the UI.
 
@@ -150,7 +152,7 @@ export async function POST() {
 
 The test in `global.setup.ts` calls this endpoint at the start of each run to restore the seed data.
 
-It exists only for tests, so it is blocked in production. An endpoint that erases all data would be dangerous in a real system. In a real project, ask the developers for such a tool for your test environment only.
+It is a test tool. In production it returns `404` if `ENABLE_TEST_API` is missing or empty; any nonempty text, even `"false"`, enables reset. The comment states the intent, but the condition allows that exception. An endpoint that erases all data would be dangerous in a real system. In a real project, ask the developers for such a tool for your test environment only.
 
 > **Careful:** Never point your tests at a real production system. Use a test environment you can reset.
 
@@ -263,7 +265,7 @@ test("the new product is in the list", async ({ page, request }) => {
 
 <details><summary>Answer</summary>
 
-The list is loaded from the API once, after the page starts. The test creates the product after `goto`, so there is a race. If the server handles the list request before creating the product, the row does not appear. Create the product first, then open the page.
+When the page opens, React starts loading the list from the API. This example has no later action that reloads it. The test creates the product after `goto`, so there is a race. If the server handles the list request before creating the product, the row does not appear. Create the product first, then open the page.
 
 </details>
 

@@ -71,7 +71,7 @@ El proyecto `setup` usa `storageState: { cookies: [], origins: [] }`. Así empie
 `lib` guarda código que los specs comparten.
 
 - `test.ts` exporta `test` y `expect`. Los specs importan de aquí, nunca de `@playwright/test`. Hoy el archivo los reexporta; si se agregan fixtures allí, los specs conservan sus importaciones.
-- `helpers.ts` tiene `uniqueName()` y `uniqueSku()`. Crean datos que ningún otro test usa.
+- `helpers.ts` tiene `uniqueName()` y `uniqueSku()`. El nombre lleva ocho caracteres de un UUID aleatorio; el SKU recorre los valores de 1000 a 9999 desde un inicio aleatorio. Reducen las coincidencias, pero pueden repetir valores entre procesos o al agotar el rango.
 - `fixtures/api-client.ts` tiene `loginViaApi`, `createProduct` y `deleteProduct`. Preparan datos por la API. También tiene los usuarios `ADMIN` y `VIEWER`.
 - `pages/products.page.ts` guarda los locators y las acciones de productos en `ProductsPage`. Las aserciones quedan en el spec.
 
@@ -94,7 +94,7 @@ El setup escribe la sesión de admin en `.auth/admin.json`. El archivo `e2e/.git
 - `testDir: "./e2e"` le dice a Playwright dónde buscar specs.
 - `workers: 1` ejecuta los tests de uno en uno, porque comparten la memoria de la aplicación.
 - `use.baseURL` permite que los tests escriban `page.goto("/products")`.
-- `use.storageState: "e2e/.auth/admin.json"` hace que cada test empiece con la sesión iniciada.
+- `use.storageState: "e2e/.auth/admin.json"` carga la sesión del admin por defecto. El setup y los tests de autenticación reemplazan ese estado con cookies y orígenes vacíos.
 - `projects` tiene dos entradas: `setup` y `chromium`.
 - `webServer` arranca la aplicación.
 
@@ -104,11 +104,13 @@ Un worker es un proceso que ejecuta tests. Usar uno evita que los tests modifiqu
 
 Cuando ejecutas la suite, ocurre esto en orden:
 
+![La configuración conecta el servidor, el setup, la sesión guardada, los specs y los resultados.](/images/05-suite-flow.es.svg)
+
 1. Playwright lee `playwright.config.ts`.
-2. Revisa `webServer.url`. Si la tienda ya responde en el puerto 5190, la reutiliza. Si no, arranca `pnpm dev --port 5190` y espera.
+2. Revisa `webServer.url`, que usa el puerto 5190 salvo que lo cambies con `SHOP_E2E_PORT`. Si la tienda responde y `CI` está ausente o vacía, la reutiliza; con `CI` no vacía, falla. Si no responde, arranca `webServer.command` y espera.
 3. El proyecto `setup` ejecuta `global.setup.ts`. Reinicia los datos y guarda `.auth/admin.json`.
-4. El proyecto `chromium` tiene `dependencies: ["setup"]`, así que empieza solo después de que setup pase. Si setup falla, no se ejecuta ningún spec.
-5. Los specs se ejecutan uno por uno, cada uno con la sesión de admin ya iniciada.
+4. El proyecto `chromium` tiene `dependencies: ["setup"]`, así que empieza solo después de que setup pase. Si setup falla, no se ejecutan los specs de `chromium`.
+5. Los specs se ejecutan uno por uno, con la sesión del admin por defecto o con el estado que declare el spec.
 6. Playwright escribe los resultados.
 
 ## Dónde van los resultados

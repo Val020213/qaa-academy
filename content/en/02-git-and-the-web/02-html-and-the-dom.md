@@ -23,7 +23,7 @@ You will read a page's structure and inspect how it changes in the browser when 
 - `<a>` is the opening **tag**. It identifies the element's type; here, a link.
 - `See Rex` is the **content**: the text the user sees.
 - `</a>` is the closing tag.
-- `href="/dogs/rex"` and `class="more"` are **attributes**. An attribute is extra information about the element. It has a name and a value in quotes.
+- `href="/dogs/rex"` and `class="more"` are **attributes**. An attribute is extra information about the element. In these examples it has a name and a value in quotes; other attributes, such as `hidden`, can be written without a value.
 
 Some elements have no content and no closing tag. A field for a number is one of them:
 
@@ -102,7 +102,9 @@ The HTML file is the starting point. Code can add, remove or change DOM elements
 </script>
 ```
 
-The script creates a list item, assigns it the text "Luna", finds the list and appends the item. The page shows Rex and Luna. "View page source" shows only Rex inside the `ul`, plus the script. The script made the second `li` after the page loaded. It exists only in the DOM.
+The script creates a list item, assigns it the text "Luna", finds the list and appends the item. The page shows Rex and Luna. "View page source" shows only Rex inside the `ul`, plus the script. The browser runs this script when it reaches its tag, while parsing the HTML. The second `li` exists only in the DOM.
+
+![The browser builds the DOM and runs the script during parsing; the source keeps only Rex in the list.](/images/02-html-dom.en.svg)
 
 The course site builds its pages with code. "View page source" shows a file with a `div` and scripts; the **Elements** panel in DevTools shows the current DOM.
 
@@ -114,9 +116,9 @@ A page can keep a message in the DOM and hide it until it is needed:
 <p hidden>Adopted! Thank you.</p>
 ```
 
-The `hidden` attribute has no value. It tells the browser not to show the element. When the user adopts a dog, code removes `hidden` and the message appears.
+Here the `hidden` attribute is written without a value. It tells the browser not to show the element. When the user adopts a dog, code removes `hidden` and the message appears.
 
-Another option is to add the element to the DOM when needed and remove it afterward. Hiding lets code read or change the element while it is out of view. Removing keeps the DOM small and cannot leave old content behind.
+Another option is to add the element to the DOM when needed and remove it afterward. Hiding lets code read or change the element while it is out of view. Removing disconnects the element from the document, although a variable can still point to it.
 
 The Practice app keeps its login error in the DOM:
 
@@ -231,4 +233,4 @@ The script stops with `Cannot read properties of null (reading 'remove')`. Becau
 
 ## Next step
 
-In the next lesson you learn that every element has a role and a name, and how tools use them to find elements.
+In the next lesson you identify controls' roles and accessible names, and how tools use them.

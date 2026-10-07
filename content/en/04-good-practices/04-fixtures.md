@@ -24,7 +24,7 @@ The name in the braces tells the runner which fixture the test needs. Playwright
 
 - `page`: one browser tab. Each test gets a new one.
 - `request`: a client that sends HTTP requests to the server, without a browser. You use it for API calls.
-- `context`: the browser profile that owns the page. It holds cookies. One test gets one context.
+- `context`: the isolated browser context that owns the page. It holds cookies. Each test gets a new one.
 - `browser`: the browser program itself. You rarely need it.
 
 In the shop config, `use.storageState` loads the saved admin cookies. So `page` and `request` are both signed in.
@@ -66,7 +66,11 @@ console.log("E end")
 
 Node.js prints `A setup`, `C test uses lamp`, `D caught` and `E end`. The error rejects the promise from `use`, so `await use("lamp")` throws and the function ends without printing `B cleanup`. To run cleanup in that case, you need `try ... finally`.
 
-Playwright's test runner keeps `await use(value)` pending while the test uses the value. When the test ends, the runner lets the fixture continue with cleanup, even if it recorded a test failure. This program imitates that separation: it stores the test's error without interrupting the fixture.
+Playwright's test runner keeps `await use(value)` pending while the test uses the value. When the test ends, the runner lets the fixture continue with cleanup, even if it recorded a test failure.
+
+![The runner resolves the use promise when the test ends and resumes fixture cleanup.](/images/04-fixture-lifetime.en.svg)
+
+This program imitates that separation: it stores the test's error without interrupting the fixture.
 
 ```ts
 type Use<T> = (value: T) => Promise<void>
@@ -150,7 +154,7 @@ The product is cleaned up first so its cleanup can still use the user.
 This example creates `productsPage`, a helper for the products page, and `product`, a product prepared through the API:
 
 ```ts
-import { test as base } from "../test"
+import { test as base, expect } from "../test"
 import { createProduct } from "./api-client"
 import type { Product } from "./api-client"
 import { ProductsPage } from "../pages/products.page"
@@ -168,9 +172,9 @@ export const test = base.extend<ShopFixtures>({
   product: async ({ request }, use) => {
     const product = await createProduct(request)
     await use(product)
-    // Cleanup. The test may have deleted the product already,
-    // so we do not check the status here.
-    await request.delete(`/api/products/${product.id}`)
+    // Accept an already-deleted product; other cleanup failures must fail.
+    const response = await request.delete(`/api/products/${product.id}`)
+    expect([204, 404]).toContain(response.status())
   },
 })
 
@@ -180,8 +184,8 @@ export { expect } from "../test"
 - `base` is the `test` from `lib/test.ts`.
 - `extend<ShopFixtures>` tells the type checker the names and types of the new fixtures.
 - `productsPage` asks for `page` to build the helper.
-- `product` asks for `request` to call `createProduct`, which creates a product with a unique name and SKU.
-- After `await use(product)`, the fixture sends the delete request. It does not check the status because the test may have deleted the product.
+- `product` asks for `request` to call `createProduct`, which generates a name with a random suffix and a SKU from the worker’s counter.
+- After `await use(product)`, the fixture sends the delete request. It accepts `204` when deletion succeeds and `404` when the test already deleted it; any other status fails cleanup.
 
 The spec imports the extended `test` and asks for both values:
 
@@ -198,7 +202,7 @@ test("a product made by a fixture is in the list", async ({ productsPage, produc
 
 ### Fixtures the test asks for
 
-> **Note:** A fixture runs only when a test asks for it. A test that does not list `product` does not create one.
+> **Note:** The runner prepares a fixture when a test, hook or dependent fixture requests it. Automatic fixtures run without an explicit request. In these two tests, only the first needs `product`.
 
 ```ts
 test("asks for a product", async ({ page, product }) => {
@@ -221,7 +225,7 @@ Use `beforeEach` for a simple step that every test in one file needs, such as op
 | Point | `beforeEach` | Fixture |
 | --- | --- | --- |
 | Cleanup | A separate `afterEach`, far from the setup | The same function, after `use` |
-| Runs for | Every test in the group | Only tests that ask for it |
+| Runs for | Every test in the group | Tests or hooks that need it, their dependencies and automatic fixtures |
 | Sharing | Variables outside the test | A typed value in the braces |
 | Reuse in other files | Hard | Import `test` |
 
@@ -243,10 +247,10 @@ Each fixture should have one job. Separating the creation of a product, a custom
 4. In a second terminal, run your spec:
 
 ```bash
-pnpm shop:e2e products/fixture-practice.spec.ts
+pnpm shop:e2e products/fixture-practice.spec.ts --repeat-each=2
 ```
 
-5. The test should pass. Run it a second time to check it is independent.
+5. Check that both repetitions pass with a single data reset in setup. Two separate commands would reset the data twice.
 6. Add a second test in the same file. Use only `{ productsPage }` and check that `productsPage.newButton` is visible after `goto()`.
 7. When you finish, delete both files, or keep them for your own notes.
 
@@ -259,11 +263,11 @@ Create `apps/practice-shop/e2e/challenges/viewer-test.ts` for the fixture and `a
 It is done when:
 
 - The fixture is named `viewerPage` and extends the `test` from `lib/test.ts`.
-- A test that uses `viewerPage` checks that `user-role` says `viewer`, that `products-new` does not exist, and that the delete button of a product you created yourself does not exist.
+- A test that uses `viewerPage` checks that `user-role` says `viewer`, that `products-new` does not exist, and that a product you created yourself has a visible row. Check that its `products-edit-<id>` and `products-delete-<id>` controls do not exist.
 - A second test does not ask for `viewerPage` and checks that `user-role` says `admin` and `products-new` is visible.
 - You ran `pnpm shop:e2e challenges/viewer-role.spec.ts` twice and both runs passed. Other specs still pass.
 
-Search for how to change the user for just one test and how cookies are shared between `page` and the `request` fixture: `playwright context clearCookies`, `playwright page.request shares cookies with context`.
+Search for how to change the user for just one test and how `page.request` shares cookies with `page`, while the `request` fixture keeps its own cookies separately: `playwright context clearCookies`, `playwright page.request shares cookies with context`.
 
 ## Think it through
 
@@ -284,7 +288,7 @@ product: async ({ request }, use) => {
 
 </details>
 
-2. The team adds a rule: a product that appears in an order cannot be deleted, and the server answers `409`. The `product` fixture ignores the status of its cleanup request. What breaks, and what does the fixture hide?
+2. The team adds a rule: a product that appears in an order cannot be deleted, and the server answers `409`. Another product fixture omits the status check on its cleanup request. What breaks, and what does the fixture hide?
 
 <details>
 <summary>Answer</summary>

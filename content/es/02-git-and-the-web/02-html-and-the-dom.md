@@ -23,7 +23,7 @@ Leerás la estructura de una página y revisarás en el navegador cómo cambia c
 - `<a>` es la **etiqueta** de apertura. Indica el tipo de elemento; aquí, un enlace.
 - `See Rex` es el **contenido**: el texto que ve la persona usuaria.
 - `</a>` es la etiqueta de cierre.
-- `href="/dogs/rex"` y `class="more"` son **atributos**. Un atributo es información extra sobre el elemento. Tiene un nombre y un valor entre comillas.
+- `href="/dogs/rex"` y `class="more"` son **atributos**. Un atributo es información extra sobre el elemento. En estos ejemplos tiene un nombre y un valor entre comillas; otros atributos, como `hidden`, pueden escribirse sin valor.
 
 Algunos elementos no tienen contenido ni etiqueta de cierre. Un campo para un número es uno de ellos:
 
@@ -102,7 +102,9 @@ El archivo HTML es el punto de partida. El código puede agregar, quitar o cambi
 </script>
 ```
 
-El script crea un elemento de lista, le asigna el texto "Luna", busca la lista y agrega el elemento al final. La página muestra Rex y Luna. "View page source" muestra solo a Rex dentro del `ul`, más el script. El script creó el segundo `li` después de que la página cargó. Existe solo en el DOM.
+El script crea un elemento de lista, le asigna el texto "Luna", busca la lista y agrega el elemento al final. La página muestra Rex y Luna. "View page source" muestra solo a Rex dentro del `ul`, más el script. El navegador ejecuta este script cuando llega a su etiqueta, durante el análisis del HTML. El segundo `li` existe solo en el DOM.
+
+![El navegador crea el DOM y ejecuta el script durante el análisis; el código fuente conserva solo a Rex en la lista.](/images/02-html-dom.es.svg)
 
 El sitio del curso construye sus páginas con código. "View page source" muestra un archivo con un `div` y scripts; el panel **Elements** de las DevTools muestra el DOM actual.
 
@@ -114,9 +116,9 @@ Una página puede mantener un mensaje en el DOM y ocultarlo hasta que se necesit
 <p hidden>Adopted! Thank you.</p>
 ```
 
-El atributo `hidden` no tiene valor. Le dice al navegador que no muestre el elemento. Cuando la persona adopta un perro, el código quita `hidden` y el mensaje aparece.
+Aquí el atributo `hidden` se escribe sin valor. Le dice al navegador que no muestre el elemento. Cuando la persona adopta un perro, el código quita `hidden` y el mensaje aparece.
 
-Otra opción es agregar el elemento al DOM cuando se necesita y quitarlo después. Ocultar permite leer o cambiar el elemento mientras no se ve. Quitar mantiene el DOM pequeño y no puede dejar contenido viejo.
+Otra opción es agregar el elemento al DOM cuando se necesita y quitarlo después. Ocultar permite leer o cambiar el elemento mientras no se ve. Quitar desconecta el elemento del documento, aunque una variable puede seguir apuntando a él.
 
 La Practice app mantiene su error de login en el DOM:
 
@@ -231,4 +233,4 @@ El script se detiene con `Cannot read properties of null (reading 'remove')`. Co
 
 ## Siguiente paso
 
-En la próxima lección aprenderás que cada elemento tiene un rol y un nombre, y cómo las herramientas los usan para encontrar elementos.
+En la próxima lección identificarás el rol y el nombre accesible de los controles, y cómo las herramientas los usan.

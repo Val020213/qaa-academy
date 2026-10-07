@@ -68,7 +68,7 @@ En este proyecto se importan desde `e2e/lib/test.ts`, nunca desde `@playwright/t
 
 La función usa `async` para esperar las operaciones del navegador con `await`.
 
-Playwright le da a la función un `page`. Es una pestaña nueva del navegador, solo para este test. Escribes `{ page }` para tomarla del objeto que Playwright pasa. Como cada test recibe su propia pestaña, un test no puede dejar desorden para el siguiente.
+Playwright le da a la función un `page`. Es una pestaña nueva del navegador, solo para este test. Escribes `{ page }` para tomarla del objeto que Playwright pasa. La pestaña se crea en un contexto nuevo, que separa las cookies y el estado del navegador de otros tests. No limpia datos de un servidor compartido.
 
 ### goto
 
@@ -131,7 +131,7 @@ Running 4 tests using 4 workers
   4 passed (5.1s)
 ```
 
-La marca de verificación indica que el test pasó. `chromium` es el navegador. Luego aparecen el archivo, el número de línea, el grupo, el nombre del test y su duración.
+La marca de verificación indica que el test pasó. `chromium` es el nombre del proyecto configurado, que aquí usa ese navegador. Luego aparecen el archivo, el número de línea, el grupo, el nombre del test y su duración.
 
 Este proyecto ejecuta los tests en paralelo, en varios **workers** (procesos separados). Cada línea se imprime cuando termina su test, por eso la lista puede tener un orden distinto al del archivo. Los números, la cantidad de workers y los tiempos pueden cambiar entre ejecuciones.
 
@@ -166,9 +166,9 @@ Received: "Wrong email or password."
 Timeout:  5000ms
 
 Call log:
-  - Expect "toHaveText" with timeout 5000ms
+  - Expect "to.have.text" with timeout 5000ms
   - waiting for getByTestId('login-error')
-    9 × locator resolved to <div role="alert" data-slot="alert" ...>Wrong email or password.</div>
+    9 × locator resolved to <div role="alert" data-slot="alert" data-testid="login-error" class="group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg:not([class*='size-'])]:size-4 bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current">Wrong email or password.</div>
       - unexpected value "Wrong email or password."
 ```
 
@@ -180,9 +180,9 @@ El **call log** (registro de llamadas) muestra los intentos. Debajo aparecen las
 
 ### El resultado de la función del test
 
-El ejecutor de Playwright llama a la función del test. Si termina sin error, el test pasa; si lanza un error, falla. Una aserción lanza un error cuando su comprobación no se cumple.
+El ejecutor de Playwright llama a la función del test. Para pasar, también deben terminar sin errores la preparación y el cierre, dentro de sus límites de tiempo. Una aserción que no cumple su comprobación lanza un error.
 
-Este ejemplo reproduce la idea en TypeScript, sin navegador:
+Este ejemplo simplifica el ejecutor a una función que captura los errores del cuerpo, sin navegador ni hooks:
 
 ```ts
 async function runTest(name: string, body: () => Promise<void>): Promise<void> {
@@ -219,7 +219,7 @@ failed: with a check (expected "Wrong password." but got "Wrong email or passwor
 
 El primer test pasa porque imprimir un mensaje no comprueba que sea el esperado. En el segundo, `check` compara los textos y lanza el error que captura `runTest`.
 
-Tu código de test corre en Node.js, en tu computadora. El navegador es otro programa. Cada `await` envía una orden al navegador y espera la respuesta. Por eso un `console.log` en un test se imprime en tu terminal, no en el navegador.
+Tu código de test corre en Node.js, en tu computadora. El navegador es otro programa. Las llamadas a `page` y sus locators hacen que Playwright controle el navegador. `await` espera que se resuelva la promesa de la operación; también sirve para promesas que no usan el navegador. Por eso un `console.log` en un test se imprime en tu terminal, no en el navegador.
 
 ### Un test sin comprobación del resultado
 

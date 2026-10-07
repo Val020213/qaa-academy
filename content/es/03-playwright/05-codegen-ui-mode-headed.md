@@ -23,7 +23,7 @@ Las palabras después del nombre del script van a Playwright. Por eso puedes ind
 
 El archivo tiene cuatro tests y la configuración activa `fullyParallel`. Playwright puede ejecutarlos en paralelo, así que puedes ver varias ventanas a la vez. El modo headed sirve para observar el flujo de un test; seguir varios al mismo tiempo es más difícil.
 
-Las ejecuciones headed y headless usan el mismo motor de navegador. La única diferencia es la ventana. Así que el resultado casi siempre es el mismo en ambas.
+En este proyecto, ambos modos usan Chromium, pero Playwright elige binarios distintos: `chromium` en headed y `chromium-headless-shell` en headless. También cambian las opciones de inicio; si un fallo aparece solo en un modo, compruébalo en ese modo.
 
 ## Modo UI: ejecuta e inspecciona
 
@@ -44,7 +44,7 @@ A la izquierda ves los tests. Pulsa el triángulo junto a uno para ejecutarlo. S
 
 Ejecuta "adds a case and updates the counter" y selecciona la acción `click` sobre `cases-add`. Las pestañas "Before" y "After" muestran la página antes y después del clic: la fila nueva y el contador actualizado aparecen después.
 
-Usa "Pick locator" sobre el botón Add. Playwright puede mostrar `getByRole('button', { name: 'Add' })`, mientras el test usa `getByTestId("cases-add")`. Ambos encuentran un solo elemento en esta página. Si otro panel agrega un botón llamado "Add", el locator por rol coincide con ambos; el testid sigue identificando el botón de la lista.
+Usa "Pick locator" sobre el botón Add. Compara el locator que muestra con `getByTestId("cases-add")`. Un locator por rol como `getByRole('button', { name: 'Add' })` también encuentra un solo elemento en esta página. Si otro panel agrega un botón llamado "Add", el locator por rol coincide con ambos; el testid sigue identificando el botón de la lista.
 
 El modo UI usa la configuración del proyecto. Cierra la ventana cuando termines o pulsa Ctrl+C en la terminal.
 
@@ -87,10 +87,10 @@ Revisa el borrador antes de usarlo como test del proyecto:
 3. Usa `"/#/practice"` en lugar de la dirección completa, porque la configuración tiene `baseURL`.
 4. Quita el `click` antes de `fill`: `fill` ya pone el foco en el campo.
 5. Usa `getByTestId` cuando exista un testid, según la convención del proyecto. El locator de la casilla depende del título `"Buy milk"`; si cambias ese dato, revisa también el locator.
-6. No hay ninguna aserción. El test no puede fallar cuando la app está mal.
+6. No hay ninguna aserción sobre el resultado. Las acciones pueden fallar, pero no detectan por sí solas un contador incorrecto.
 7. Comprueba que el test crea sus propios datos y no necesita otro test.
 
-El borrador nunca lee el contador, así que puede pasar aunque muestre `NaN of 1 passed`. Un test sin aserciones solo comprueba que la página no se cayó.
+El borrador nunca lee el contador, así que puede pasar aunque muestre `NaN of 1 passed`. Si sus acciones terminan sin error, este test pasa sin comprobar el valor del contador.
 
 Agrega una comprobación del texto que debe mostrar el contador:
 
@@ -159,7 +159,7 @@ Está terminado cuando:
 - `pnpm e2e e2e/challenges/05-codegen-filter.spec.ts --repeat-each=5` pasa las cinco ejecuciones.
 - Si cambias un título esperado en el test, el test falla. Pruébalo y luego devuélvelo.
 
-Vas a necesitar algo que esta lección no enseñó: cómo comprobar el texto de las filas visibles y cómo elegir una opción en un select. Busca: `playwright selectOption`, `playwright toHaveText array of strings`.
+Para el filtro, usa `selectOption`, que ya viste en la lección de acciones. Consulta cómo comprobar el texto de varias filas visibles. Busca: `playwright selectOption`, `playwright toHaveText array of strings`.
 
 ## Piénsalo bien
 

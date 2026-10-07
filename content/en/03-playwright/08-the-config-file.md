@@ -29,13 +29,15 @@ Node.js exposes **environment variables** through `process.env`: named values it
 
 The `??` operator uses the value on the right when the value on the left is `null` or `undefined`. If you do not set `QAA_E2E_PORT`, the port is `5180`. `BASE_URL` uses that port to build the site's address.
 
+![PORT feeds the server command; BASE_URL feeds the server check and relative URLs.](/images/03-port-consumers.en.svg)
+
 ## defineConfig
 
 ```ts
 export default defineConfig({
 ```
 
-`defineConfig` is a helper from Playwright. It checks the types of your settings, so the editor can help you. Everything below is inside it.
+`defineConfig` is a Playwright helper with a type signature that TypeScript's type checker uses to check settings in the editor. At runtime, it returns the configuration; it does not check types. Everything below is inside it.
 
 ## testDir
 
@@ -84,7 +86,7 @@ undefined 0 false
 "false" 2 true
 ```
 
-Environment variable values are text. `"0"` and `"false"` count as true because they are not empty. A missing variable or an empty text counts as false. The check means "the variable exists", not "the variable says yes".
+Environment variable values are text. `"0"` and `"false"` count as true because they are not empty. A missing variable or an empty text counts as false. The condition checks that the variable's value is a nonempty string; it does not interpret words such as "false".
 
 Running `$env:CI="false"` enables the CI settings. To remove the variable in PowerShell, use `Remove-Item Env:CI`. To disable only retries for one run, use `--retries=0` in the command.
 
@@ -114,9 +116,9 @@ use: {
 
 `use` holds options for every test.
 
-- `baseURL` is the start of every address. This is why `page.goto("/#/practice")` works.
-- `trace` records a trace only when a test is retried. Locally, add `--trace on`.
-- `screenshot` takes a picture only when a test fails.
+- `baseURL` resolves relative addresses with the `URL` constructor. This is why `page.goto("/#/practice")` works. An absolute address keeps its own origin.
+- `trace` records a trace only on the first retry. Locally, add `--trace on`.
+- `screenshot` attempts to capture pages only when a test fails.
 
 With `baseURL`, tests use relative paths and the start of the address is written once. A port change does not require editing each test.
 
@@ -146,7 +148,7 @@ webServer: {
 },
 ```
 
-`webServer` tells Playwright to start the app before the tests and stop it at the end. That is why you do not need `pnpm dev` first.
+`webServer` tells Playwright to check the address and, if no server is available, start the app before the tests. At the end, it stops the process it started. A reused server stays running. That is why you do not need `pnpm dev` first.
 
 - `command` starts the app on the chosen port.
 - `url` is the address Playwright checks to know the app is ready.

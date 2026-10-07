@@ -37,7 +37,7 @@ La tienda tiene estos usuarios de prueba:
 | Admin | `admin@qa-shop.test` | `Admin123!` | Todo |
 | Viewer (lector) | `viewer@qa-shop.test` | `Viewer123!` | Solo leer |
 
-Solo puedes tener un usuario con sesión por ventana del navegador. Para usar los dos, abre una ventana privada para el segundo usuario.
+Las ventanas normales del mismo perfil comparten la cookie de sesión de la tienda. Para usar los dos usuarios a la vez, abre una ventana privada para el segundo usuario.
 
 ## Explora como tester
 
@@ -81,6 +81,8 @@ Abre `http://localhost:5190/products/999999` y anota lo que ves.
 ## Los datos iniciales
 
 El servidor de la tienda guarda los datos en memoria. Cuando se detiene, pierde los cambios; al arrancar de nuevo, crea los mismos 24 productos y 12 pedidos. Un producto que creaste desaparece y el pedido 1005 vuelve a estar pendiente.
+
+![Reiniciar el servidor pierde los cambios y vuelve a crear los productos y pedidos de la semilla.](/images/05-memory-reset.es.svg)
 
 Los datos iniciales conocidos permiten repetir una comprobación desde el mismo estado. La tienda también ofrece `POST /api/test/reset` para restablecerlos sin reiniciar el servidor.
 
@@ -131,7 +133,7 @@ Está terminado cuando:
 
 - Al ejecutar `node exercises/challenges/shop-order-rules.ts` con la tienda en marcha, el script imprime una línea por intento y usa solo lo que Node ya trae.
 - Las tres primeras líneas muestran tres códigos de estado distintos, y puedes decir por qué encaja cada código.
-- El script no cambia ningún dato. Ejecútalo dos veces y la salida es la misma.
+- El script no cambia productos ni pedidos; los logins sí crean sesiones. Ejecútalo dos veces y la salida es la misma.
 - Tu cuarto intento es un caso que elegiste, y la línea dice qué esperabas antes de ejecutarlo.
 
 Para las peticiones con sesión, lee la cookie de la respuesta de login y envíala en las siguientes peticiones. Busca: `node fetch post json body`, `fetch response headers getSetCookie`, `http status 401 403 409 difference`.
@@ -155,7 +157,7 @@ console.log(url.searchParams.get("next"))
 
 <details><summary>Respuesta</summary>
 
-Imprime `/products?q=mouse`. El valor de `next` contiene los caracteres `/`, `?` y `=` escritos como `%2F`, `%3F` y `%3D`. `searchParams.get` los decodifica. Sin esa escritura, el `?` empezaría una nueva parte de la dirección.
+Imprime `/products?q=mouse`. El valor de `next` contiene los caracteres `/`, `?` y `=` escritos como `%2F`, `%3F` y `%3D`. `searchParams.get` los decodifica. Un segundo `?` también puede quedar dentro del valor de `next`; un `&` sin codificar separaría otro parámetro. La codificación conserva la dirección completa como un solo valor.
 
 </details>
 

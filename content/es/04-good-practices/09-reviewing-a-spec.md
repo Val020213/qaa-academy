@@ -40,7 +40,7 @@ Lee primero el nombre del test y comprueba que sus pasos y aserciones cubren ese
 - El nombre del test dice lo que ve el usuario, como "confirming in the dialog removes the product".
 - Un comportamiento por test.
 - Los pasos van en este orden: preparar, actuar, comprobar. Una línea en blanco los separa.
-- Cuando un locator o una preparación se repite por tercera vez, muévelo a un page object, un fixture o un helper.
+- Cuando un locator o una preparación se repite por tercera vez, evalúa extraerlo si representa conocimiento que debe cambiar junto.
 
 **Detección de fallos**
 
@@ -127,10 +127,11 @@ test("searching by name shows only that product", async ({ page, request }) => {
   await products.search(product.name)
 
   await expect(products.rows).toHaveCount(1)
+  await expect(products.row(product.id)).toBeVisible()
 })
 ```
 
-Las aserciones esperan a que aparezca la fila antes de actuar. La comprobación del borrado usa el mismo locator para confirmar que esa fila desaparece.
+Las aserciones esperan a que aparezca la fila antes de actuar. La comprobación del borrado usa el mismo locator para confirmar que esa fila desaparece. La búsqueda comprueba tanto que queda una sola fila como que corresponde al id del producto creado.
 
 ## Comprueba que el test puede fallar
 
@@ -153,7 +154,7 @@ La última línea busca `product-row-` más el id. El test id real es `products-
 
 La comprobación inicial usa `products.row(product.id)`, pero la final usa otro locator. Comprueba que la fila estaba visible y que desaparece con el mismo locator, como en la versión corregida.
 
-Para probar que el test detecta el fallo, comenta la línea de borrar o cambia el valor esperado y ejecútalo. Si aún pasa, no comprueba nada. Esta es una versión pequeña y hecha a mano de las **pruebas de mutación** (*mutation testing*): cambias un poco el código y ves si los tests lo notan. Restaura el cambio después de la prueba.
+Para probar que el test detecta el fallo, comenta la línea de borrar o cambia el valor esperado y ejecútalo. Si aún pasa, no detecta ese cambio. Esta es una versión pequeña y hecha a mano de las **pruebas de mutación** (*mutation testing*): cambias un poco el código y ves si los tests lo notan. Restaura el cambio después de la prueba.
 
 ## Profundiza
 

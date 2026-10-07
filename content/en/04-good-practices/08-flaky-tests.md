@@ -18,9 +18,11 @@ A **flaky** test passes and fails without any change in the code. When the team 
 
 The runner executes the test while the application works in the browser. If the test checks a result before the application shows it, the outcome depends on which gets there first. This is a **race**.
 
+![A single read takes the temporary text; the assertion repeats its check while the update arrives.](/images/04-race-and-wait.en.svg)
+
 ## The effect on a suite
 
-If each of 100 tests passes with probability 0.99, the probability that all pass is 0.99 multiplied by itself 100 times: about 0.37. The suite is green in about 37 runs out of 100.
+If outcomes are independent and each of 100 tests passes with probability 0.99, the probability that all pass is 0.99 multiplied by itself 100 times: about 0.37. The suite is green in about 37 runs out of 100.
 
 This code calculates the probability of at least one failure when each test fails 1 percent of the time:
 
@@ -69,7 +71,7 @@ await expect(async () => {
 }).toPass()
 ```
 
-`toPass` repeats the block if any line fails. The block fills the fields and checks their values. If React erased the text and the check fails, Playwright fills the form again.
+`toPass` repeats the block if any line fails. The block fills the fields and checks their values. If React erased the text and the check fails, Playwright fills the form again. After the first successful callback, `toPass` finishes; it does not detect a later reset.
 
 In this shop, use that pattern for login. In `products.spec.ts`, wait for a visible product row before typing in the search box. That row appears after React has started the request and received the products.
 
@@ -99,11 +101,13 @@ const text = await page.getByTestId("stat-products").textContent()
 
 `textContent` waits until the element exists, then reads its text once. On the dashboard, the element appears together with the number. On a page that shows `0` first, the same line can read that temporary value.
 
-Use an assertion that waits for the final value, as the real dashboard test does:
+The real dashboard test waits for numeric text. There, the element only appears when the stats arrive:
 
 ```ts
 await expect(page.getByTestId("stat-products")).toHaveText(/^\d+$/)
 ```
+
+The pattern also accepts a temporary `0`. If the page shows that value before loading completes, wait for the expected number or a loading-complete signal.
 
 The same applies to `locator.count()`: it reads the number of elements once. Use `toHaveCount` so Playwright repeats the check while the list changes.
 
@@ -125,7 +129,7 @@ The list is sorted newest first. If you use `.first()` to pick an arbitrary prod
 pnpm shop:e2e products/products.spec.ts --repeat-each 5
 ```
 
-`--repeat-each 5` runs each test five times. If one run fails, the test is flaky.
+`--repeat-each 5` runs each test five times. If the same test passes and fails without changes to the code or intended conditions, there is evidence of flakiness. If it always fails, investigate a consistent failure.
 
 2. Run the test alone. If it passes alone but fails in the group, check which data the other tests change.
 3. Read the trace of the failure. The config uses `trace: "retain-on-failure"`. Open the HTML report:
@@ -195,7 +199,7 @@ test("the dashboard has stats after a fixed wait", async ({ page }) => {
 pnpm shop:e2e flaky-practice.spec.ts --repeat-each 10
 ```
 
-3. Count how many runs fail. The numbers arrive about 1.2 seconds after React starts the request, and that moment is later than the page load. The test waits 1.2 seconds from the page load, so it is almost always too early. Expect most or all runs to fail. The exact number depends on your machine.
+3. Record how many runs pass and fail. The server waits 1.2 seconds when handling the request; that does not fix its order relative to the load event awaited by `goto`. The test’s pause starts after `goto`, so observe whether the data has arrived when it checks the count.
 4. Replace only the last line (the `expect(...)` line) with this web-first assertion:
 
 ```ts
@@ -220,7 +224,7 @@ Search for: `playwright testInfo.retry`, `playwright test --retries command line
 
 ## Think it through
 
-1. A suite has 200 tests. Each fails by chance 1 time in 200. About what percentage of runs have at least one red test?
+1. A suite has 200 tests. Each fails randomly once in every 200 runs, with independent outcomes. About what percentage of runs have at least one red test?
 
 <details><summary>Answer</summary>
 
@@ -250,7 +254,7 @@ The test types before it has a signal that React is ready; first wait for `produ
 
 <details><summary>Answer</summary>
 
-The fixed wait continues before the stats arrive. `toBeVisible()` can wait the 3 seconds because the `expect` timeout is 5 seconds. At 6 seconds, the assertion also fails because it reaches that limit. If that duration is acceptable for the flow, increase that assertion's `timeout`.
+The fixed wait fails if the stats have not arrived when its pause ends. `toBeVisible()` waits up to 5 seconds from its call, not from the request’s start. A 3- or 6-second endpoint only causes a timeout if the remaining wait exceeds that limit. If that wait is acceptable, increase the assertion’s `timeout`.
 
 </details>
 

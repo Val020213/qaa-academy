@@ -90,15 +90,17 @@ The control is a native `<select>` element. `selectOption` works only on this ki
 
 ## Playwright waits before it acts
 
-Before an action, Playwright checks that the element is ready. These checks are called **actionability**. In simple words, the element must:
+Before a click, Playwright requires a single match and checks that the element is ready. These checks are called **actionability**. To click, the element must:
 
 - exist on the page,
 - be visible,
 - be stable, which means it is not moving,
 - be enabled, which means it is not disabled,
-- not be covered by another element.
+- receive the click at the chosen point without another element intercepting it.
 
-If a check fails, Playwright waits and tries again. It stops when the test timeout ends, which is 30 seconds by default. Then the test fails and the message tells you which check was not true.
+The checks depend on the action: `fill` and `clear` wait for visibility, enabled state and an editable field. `press` focuses the element and sends the key without those checks.
+
+If a check fails, Playwright waits and tries again. With this project's configuration, the action can wait until the test's remaining time runs out; the default total test limit is 30 seconds. Then the test fails and the message tells you which check was not true.
 
 In the Practice app, Load report disables the button for about one and a half seconds. This test tries to click twice in a row:
 
@@ -111,6 +113,8 @@ await expect(page.getByTestId("report-result")).toContainText("12 tests")
 Playwright waits until the button is enabled, about 1.5 seconds, and then clicks. The second click starts a second report. The text "12 tests" is ready about 3 seconds after the first click.
 
 The app may still be working after the click finishes. The assertion checks the report's result.
+
+![The second click waits for the button to be enabled; the assertion waits for the new load's result.](/images/03-click-and-result.en.svg)
 
 ## A login test
 
@@ -184,7 +188,7 @@ If the behavior you are testing depends on keyboard events, use `pressSequential
 await page.getByTestId("cases-input").pressSequentially("Login", { delay: 100 })
 ```
 
-The `delay` is the time in milliseconds between two keys. Use this action when `fill` does not trigger the behavior you want to test.
+The `delay` slows typing by a number of milliseconds per character. For the letters in this example, Playwright waits that long between pressing the key (`keydown`) and releasing it (`keyup`). Use this action when `fill` does not trigger the behavior you want to test.
 
 ### The limits of force
 
@@ -194,7 +198,7 @@ If another element covers the button, a click may wait and fail. The option `for
 await page.getByTestId("report-load").click({ force: true })
 ```
 
-`force` skips the actionability checks. The click is sent even if the button is covered or disabled. But it does not promise that your button gets the click: an overlay may receive it, and a disabled button does nothing. The test can go green anyway. But a real user cannot click a covered button. The test now hides a real bug.
+For a click, `force` skips visibility, stability, enabled-state and hit-target checks. It still requires a single element and a point to click: a button without visible geometry can cause an error. An overlay may receive the click, and a disabled button does not perform its action. If the test passes without checking the result, it can hide a bug that prevents a user from using the button.
 
 Read the failure message before forcing an action. If a user cannot use the button either, investigate the problem in the app.
 
@@ -240,7 +244,7 @@ The count is 1 and the field is empty. The first Enter submits the form; the app
 
 </details>
 
-2. This test passes, but it can pass for the wrong reason. Find the weakness and fix it.
+2. This test passes in the current app. What weakness would it have if adding cases were an asynchronous operation?
 
 ```ts
 test("ignores a title with only spaces", async ({ page }) => {
@@ -253,7 +257,7 @@ test("ignores a title with only spaces", async ({ page }) => {
 
 <details><summary>Answer</summary>
 
-The assertion says that nothing exists. That is true at the start, so it can pass before the app has reacted. If the app added a row 200 milliseconds later, the test would be green and the bug would pass. To prove that the click was handled, add a second action that has a visible result. For example, add a real case after the spaces and check that the count is 1, and not 2. A check on "nothing happened" is strong only when something observable comes after it.
+In the current app, the form handler processes the title without an asynchronous wait and rejects spaces; the check is valid. If a buggy version added the row 200 milliseconds later, the assertion could pass too early. In that case, wait for a signal that this operation has finished before counting. Adding another case does not guarantee that the earlier operation has finished.
 
 </details>
 

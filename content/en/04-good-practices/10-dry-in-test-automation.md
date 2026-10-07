@@ -50,6 +50,7 @@ test("a new product can be found by searching", async ({ page }) => {
   await page.getByTestId("products-search").fill(name)
 
   await expect(page.getByTestId(/^products-row-/)).toHaveCount(1)
+  await expect(page.getByTestId(/^products-row-/).first()).toContainText(name)
 })
 
 test("the Active filter hides a new draft product", async ({ page }) => {
@@ -65,6 +66,7 @@ test("the Active filter hides a new draft product", async ({ page }) => {
   await expect(page).toHaveURL(/\/products$/)
   await page.getByTestId("products-search").fill(name)
   await expect(page.getByTestId(/^products-row-/)).toHaveCount(1)
+  await expect(page.getByTestId(/^products-row-/).first()).toContainText(name)
 
   await page.getByTestId("products-status-filter").selectOption("active")
 
@@ -155,7 +157,7 @@ for (const row of invalidInputs) {
 }
 ```
 
-The `...row.change` part copies all fields, then replaces the one in the row. Each row becomes one test with its own title. A new rule is a new row, not a new test.
+The `...row.change` part copies only that row’s fields and overrides their defaults in the object. Each row registers a test with its own title. Adding a rule as another row creates another test without copying its body.
 
 The loop calls `test` for each row when Playwright loads the file. The runner then executes the registered tests and reports each result separately. A title such as "the price is zero" identifies the failing case; `row 3` makes you count rows.
 
@@ -195,6 +197,7 @@ test("a product can be found by searching", async ({ page, request }) => {
   await products.search(product.name)
 
   await expect(products.rows).toHaveCount(1)
+  await expect(products.row(product.id)).toBeVisible()
 })
 
 test("the Active filter hides a draft product", async ({ page, request }) => {
@@ -204,6 +207,7 @@ test("the Active filter hides a draft product", async ({ page, request }) => {
   await expect(products.row(product.id)).toBeVisible()
   await products.search(product.name)
   await expect(products.rows).toHaveCount(1)
+  await expect(products.row(product.id)).toBeVisible()
 
   await products.filterByStatus("active")
 
@@ -297,7 +301,7 @@ Playwright rejects the file because of a duplicate test title. Each title must i
 
 </details>
 
-2. This version of the loop runs and every row passes. Why is it still wrong?
+2. This fragment abbreviates the form steps with a comment. If those steps are filled in, the rows can pass despite sharing data incorrectly. Where is the problem?
 
 ```ts
 const values = { name: uniqueName("Valid"), sku: uniqueSku(), price: "12.50", stock: "7" }
@@ -315,7 +319,7 @@ for (const row of invalidInputs) {
 
 The object `values` is created once and shared by all tests. `Object.assign` changes it, so each row keeps the faults of the rows before it. The third row sends a bad name, a bad SKU and a bad price, but it only checks the price message, so it passes.
 
-Each test must build its own values, as the lesson does with `{ ...base, ...row.change }` inside the test. Also, the SKU is the same for all tests, because it is made only once.
+Each test must build its own values, as the lesson does by writing the defaults and then `...row.change` inside the test. Also, the SKU is the same for all tests, because it is made only once.
 
 </details>
 

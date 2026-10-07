@@ -37,9 +37,9 @@ Si la API de creación falla, también fallan los tests que la usan para prepara
 
 Puedes abrir `/products/<id>/edit` directamente con `page.goto` o empezar en la lista y hacer clic en **Edit**. La suite usa el segundo recorrido.
 
-La tienda genera el HTML del formulario en el servidor. El navegador puede mostrarlo antes de que React conecte sus manejadores de eventos durante la hidratación. El texto escrito en ese intervalo puede borrarse.
+La tienda genera el HTML del formulario en el servidor. El navegador puede mostrarlo antes de que React conecte sus manejadores de eventos durante la hidratación. Escribir antes de que existan esos manejadores puede dejar el estado de React sin actualizar; un render posterior puede restaurar ese valor en el campo controlado.
 
-En la lista, las filas vienen de una petición que el navegador envía después de que React corre. El test espera la fila del producto y luego hace clic en **Edit**. Un clic dentro de la aplicación ocurre cuando React ya está funcionando, así que el formulario está listo.
+En la lista, las filas vienen de una petición que el navegador envía después de que React corre. El test espera la fila del producto y luego hace clic en **Edit**. Esa fila confirma que React ya cargó la lista. El enlace de Next.js permite navegar al formulario dentro de la aplicación; un enlace visible por sí solo no demuestra que cualquier formulario esté listo.
 
 El producto nuevo está en la página 1 porque la API ordena los productos por id, del más nuevo al más viejo.
 
@@ -128,7 +128,11 @@ La espera de `products.row(product.id)` indica qué producto debe estar disponib
 
 El tercer test comprueba el error en pantalla y el precio guardado por la API. El formulario se queda en pantalla después de un error; eso por sí solo no demuestra que el servidor conservó los datos.
 
-El test espera primero el texto del error y después lee la API. Ese texto aparece cuando el servidor ya respondió al intento de guardar. Si lees la API inmediatamente después del clic, puedes recibir el precio anterior mientras el guardado sigue pendiente.
+El test espera primero el texto del error y después lee la API. Ese texto aparece cuando el servidor ya respondió al intento de guardar.
+
+![El test espera el error del PUT antes de leer el precio guardado por la API.](/images/05-validation-read.es.svg)
+
+Si lees la API inmediatamente después del clic, puedes recibir el precio anterior mientras el guardado sigue pendiente.
 
 ## Elige otro hueco
 

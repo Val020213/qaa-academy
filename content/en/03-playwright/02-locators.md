@@ -22,6 +22,8 @@ const email = page.getByTestId("login-email")
 
 This line stores the search for the element with the test id `login-email`, without querying the page. Playwright looks for matches when you run an action or an assertion with the locator. If the DOM changed, it searches the current DOM.
 
+![The same locator searches again and finds a new checkbox when React recreates the row.](/images/03-locator-resolution.en.svg)
+
 With an empty case list, this code distinguishes creation, counting and an action:
 
 ```ts
@@ -32,7 +34,7 @@ await rows.click()
 
 The first line creates the locator even though no rows exist. The second prints `0`: `count()` returns the number of current matches without waiting for rows to appear. The third waits for Playwright to find an element to click.
 
-Playwright keeps looking for an element to click, and after 30 seconds (the test timeout) the test fails. The message says it was waiting for the locator.
+The test has a default total limit of 30 seconds. The click uses the time left after earlier steps; if no row appears before that limit, the test fails while waiting for the locator.
 
 ## getByTestId: the team default
 
@@ -47,13 +49,13 @@ The test id does not change when the control's text or colour changes. A transla
 
 ## Other locators
 
-**getByRole** finds an element by its role, such as a button, link or checkbox. You add the visible name.
+**getByRole** finds an element by its role, such as a button, link or checkbox. You can add the accessible name, which Playwright computes from text or attributes such as `aria-label`. It can differ from the visible text.
 
 ```ts
 await page.getByRole("button", { name: "Sign in" }).click()
 ```
 
-**getByLabel** finds a form field by the text of its label. In the Practice app, each field has a real `<label>`. The label points to its field with the `for` attribute, which has the same value as the field's `id`. For example, `<label for="login-email">Email</label>` points to `<input id="login-email">`.
+**getByLabel** finds a form field by the text of its label. In the Practice app login, the label points to its field with the `for` attribute, which has the same value as the field's `id`. The list's checkboxes are inside their labels and do not need that association. For example, `<label for="login-email">Email</label>` points to `<input id="login-email">`.
 
 ```ts
 await page.getByLabel("Email").fill("qa@example.com")
@@ -83,7 +85,7 @@ test("counts the buttons", async ({ page }) => {
 })
 ```
 
-You should see `by role: 5` and `by tag: 6`. The six buttons are the language switch, the theme switch, Sign in, Sign out, Add and Load report. The Sign out button is in the page, but it has the `hidden` attribute until you sign in. `getByRole` skips hidden elements, because a user cannot use them. `locator("button")` counts every `<button>` tag.
+You should see `by role: 5` and `by tag: 6`. The six buttons are the language switch, the theme switch, Sign in, Sign out, Add and Load report. The Sign out button is inside an element with the `hidden` attribute until you sign in. By default, `getByRole` skips elements excluded from the accessibility tree, such as that button. `locator("button")` counts every `<button>` tag.
 
 The initial assertion waits for the Sign in button to be visible before counting. Without it, `count()` could query the DOM before React has displayed the controls.
 
@@ -144,7 +146,7 @@ Use `first()` or `nth()` when the position is part of what you want to check or 
 
 ## Chain locators inside a row
 
-You can call a locator method on another locator. The second search runs only inside the first match.
+You can call a locator method on another locator. The second search runs inside all matches of the outer locator. To tick one checkbox, the filter must identify a single row.
 
 ```ts
 const row = page.getByTestId("cases-item").filter({ hasText: "Second case" })

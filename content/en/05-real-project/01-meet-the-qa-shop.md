@@ -37,7 +37,7 @@ The shop has these test users:
 | Admin | `admin@qa-shop.test` | `Admin123!` | Everything |
 | Viewer | `viewer@qa-shop.test` | `Viewer123!` | Read only |
 
-You can sign in with only one user per browser window. To use both, open a private window for the second user.
+Regular windows in the same browser profile share the shop's session cookie. To use both users at once, open a private window for the second user.
 
 ## Explore like a tester
 
@@ -81,6 +81,8 @@ Open `http://localhost:5190/products/999999` and write down what you see.
 ## The starting data
 
 The shop server keeps its data in memory. When it stops, it loses the changes; when it starts again, it creates the same 24 products and 12 orders. A product you created disappears, and order 1005 is pending again.
+
+![Restarting the server loses changes and recreates the seeded products and orders.](/images/05-memory-reset.en.svg)
 
 Known starting data lets you repeat a check from the same state. The shop also provides `POST /api/test/reset` to restore it without restarting the server.
 
@@ -131,7 +133,7 @@ It is done when:
 
 - When you run `node exercises/challenges/shop-order-rules.ts` with the shop running, the script prints one line per attempt and uses only what Node already has.
 - The first three lines show three different status codes, and you can say why each code fits.
-- The script does not change any data. Run it twice and the output is the same.
+- The script does not change products or orders; logins do create sessions. Run it twice and the output is the same.
 - Your fourth attempt is a case you chose, and the line says what you expected before you ran it.
 
 For requests with a session, read the cookie from the login response and send it in subsequent requests. Search for: `node fetch post json body`, `fetch response headers getSetCookie`, `http status 401 403 409 difference`.
@@ -155,7 +157,7 @@ console.log(url.searchParams.get("next"))
 
 <details><summary>Answer</summary>
 
-It prints `/products?q=mouse`. The value of `next` contains the characters `/`, `?`, and `=` written as `%2F`, `%3F`, and `%3D`. `searchParams.get` decodes them. Without the writing, the `?` would start a new part of the address.
+It prints `/products?q=mouse`. The value of `next` contains the characters `/`, `?`, and `=` written as `%2F`, `%3F`, and `%3D`. `searchParams.get` decodes them. A second `?` can also remain inside the value of `next`; an unencoded `&` would separate another parameter. Encoding keeps the complete address in one value.
 
 </details>
 

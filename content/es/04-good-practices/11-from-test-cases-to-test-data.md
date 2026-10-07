@@ -34,7 +34,7 @@ El formulario envía los valores a la API. El servidor ejecuta la validación y 
 | Precio | un número finito, mayor que 0 | no es un número; infinito (`Infinity`, `1e309`); cero o menos; mayor que cero | `"abc"`, `"0"`, `"-1"` rechazados; `"0.01"` aceptado |
 | Stock | un número entero, 0 o más | no es un número; negativo; no entero; entero y 0 o más | `"-1"`, `"1.5"`, `""` rechazados; `"0"` aceptado |
 
-El nombre no tiene límite superior. El precio no tiene límite superior. Una fila como "un nombre de 10000 caracteres" prueba una regla que no existe.
+El código no fija una longitud máxima para el nombre ni un precio máximo de negocio, pero exige que el precio sea finito. Una fila con un nombre de 10000 caracteres necesita un propósito basado en los requisitos o el riesgo; puede revelar que falta un máximo.
 
 > **Cuidado:** El código no es el requisito. Si el requisito dice "nombre: de 3 a 50 caracteres" y el código no tiene máximo, falta una validación. Compara las reglas con los requisitos y consulta la diferencia con el responsable del producto.
 
@@ -103,7 +103,7 @@ for (const row of cases) {
 
 El bucle llama a `test` una vez por fila, y el runner de Playwright registra nueve tests con títulos distintos. Si uno falla, el reporte identifica su entrada.
 
-Cada test crea su propio SKU dentro del cuerpo. La preparación construye los valores válidos y aplica el cambio de la fila. Las acciones llenan y guardan el formulario; las aserciones comprueban el resultado. Un test, un Act. Si necesitas dos Acts, tienes dos tests.
+Cada test crea su propio SKU dentro del cuerpo. La preparación construye los valores válidos y aplica el cambio de la fila. Las acciones llenan y guardan el formulario; las aserciones comprueban el resultado. Un test comprueba un comportamiento, que puede necesitar varias acciones, como llenar campos y guardar.
 
 ## Filas para la API y para el navegador
 
@@ -127,7 +127,7 @@ test("the API rejects a price of 0", async ({ page }) => {
 
 Con precio 0 y los demás campos válidos, el servidor responde con el estado 422 y el error de precio. El test comprueba tanto el estado como el cuerpo de la respuesta.
 
-Este test se ejecuta en unos pocos milisegundos. Pon aquí todas las filas de reglas, y deja dos o tres filas en el navegador para mostrar que el error le llega al usuario.
+Esta petición evita abrir el formulario y llenar sus campos, aunque el test pide `page` y crea un contexto de navegador. Prueba las reglas por la API y elige filas de navegador que cubran los mensajes de cada campo y lo que ocurre al guardar.
 
 ## Revisa un test con FIRST
 
@@ -135,11 +135,11 @@ Usa **FIRST** como lista de revisión:
 
 1. **Fast (rápido):** ¿hace solo lo que necesita y prepara los datos por la API cuando la interfaz no es lo que se prueba?
 2. **Independent (independiente):** ¿puede ejecutarse solo y en cualquier orden?
-3. **Repeatable (repetible):** ¿da el mismo resultado en cada ejecución, gracias a datos únicos y sin pausas?
+3. **Repeatable (repetible):** ¿da el mismo resultado con un estado inicial y dependencias controlados, datos propios y esperas por condiciones?
 4. **Self-checking (autoverificable):** ¿contiene una aserción que decide si pasa o falla?
 5. **Timely (oportuno):** ¿se escribió junto con la función, cuando las reglas estaban frescas?
 
-Cada fila debe poder encontrar un bug que ninguna otra fila encuentra. Pregunta por cada fila: "¿qué línea de código equivocada haría fallar solo a esta fila?" Si no puedes nombrar una, borra la fila.
+Cada fila debe tener un propósito de cobertura: una clase, un límite o una interacción. Identifica qué defecto puede detectar, incluida una validación que falta. Varias filas pueden detectar el mismo defecto; elimina una solo si no agrega cobertura útil.
 
 ## Profundiza
 
@@ -163,7 +163,7 @@ Está terminado cuando:
 
 - La tabla tiene al menos 8 filas, con un comentario que nombra cada clase de equivalencia, y cubre los lados aceptado y rechazado de cada límite que encontraste.
 - La fila del SKU duplicado crea su primer producto por la API.
-- Puedes nombrar, para cada fila, una línea de código equivocada que la haría fallar.
+- Puedes explicar el propósito de cada fila y qué defecto o validación ausente puede detectar.
 - `pnpm shop:e2e products/sku-boundaries.spec.ts` pasa.
 
 Para leer el patrón `^SKU-\d{4}$` y encontrar sus bordes, busca `regular expression anchors` y `regex digit quantifier`.
@@ -190,7 +190,7 @@ Las filas aceptadas intentan guardar el mismo SKU. Después del primer producto,
 
 <details><summary>Respuesta</summary>
 
-Las filas de 2 y 3 caracteres siguen siendo válidas. Los nombres de `uniqueName("Boundary")` tienen menos de 50 caracteres, así que tampoco cambian las otras filas. Agrega 50 caracteres como entrada aceptada y 51 como rechazada, con el mensaje de la nueva validación.
+Los resultados esperados de las filas de 2 y 3 caracteres no cambian. Los nombres de `uniqueName("Boundary")` tienen menos de 50 caracteres, así que tampoco cambian las otras filas. Agrega 50 caracteres como entrada aceptada y 51 como rechazada, con el mensaje de la nueva validación.
 
 </details>
 

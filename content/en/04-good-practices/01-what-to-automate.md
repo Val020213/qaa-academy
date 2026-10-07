@@ -24,7 +24,7 @@ The pyramid proposes many unit tests, fewer integration tests and few E2E tests.
 
 Suppose a unit test takes 2 milliseconds, an API test takes 40 milliseconds and a browser test takes 6 seconds. These are example times, not measurements from the shop.
 
-The shop has 12 rules, each with 8 inputs to check: 96 checks. The following calculation adds their times if they run one after another.
+For this calculation, assume 12 rules, each with 8 inputs to check: 96 checks. The following calculation adds their times if they run one after another.
 
 Save this as `exercises/challenges/cost.ts` and run it with `node exercises/challenges/cost.ts`:
 
@@ -56,7 +56,7 @@ With these times, checking every input in the browser takes almost 10 minutes. M
 
 ## The cost and coverage of an E2E test
 
-An E2E test starts a browser, loads pages and waits for the screen. It touches the whole system, so it can fail for many reasons: the page, the server, the data or the network.
+In Playwright, tests in one worker share the browser; each test gets an isolated context and a new page. The test loads pages and waits for visible results. It crosses several parts of the application, so it can fail for many reasons: the page, the server, the data or the network.
 
 Alongside execution time, account for the work of investigating failures and maintaining steps when the screen changes. Reserve E2E tests for important journeys, such as signing in, creating a product and seeing it in the list.
 
@@ -154,7 +154,7 @@ for (const row of rows) {
 
 It prints five lines, and each one ends with `ok`. The function trims spaces and converts the text to uppercase before checking the format.
 
-The rows in the table are also **boundary values** and **equivalence classes**: `SKU-1` and `SKU-12345` sit just outside the allowed length, and `""` is the empty case.
+The rows represent **equivalence classes**: valid format, incorrect digit count and empty input. `SKU-12345` has one extra digit; `SKU-1` has three too few. The immediate lower boundary would be `SKU-123`.
 
 ### Checking the API response
 
@@ -216,7 +216,7 @@ It is done when:
 - Each invalid value is tested through `/api/products` and expects status `422` and the exact message for the chosen field.
 - Each value has its own test, whose name contains the value being tested.
 - The browser test checks the message under the chosen field and that no error elements exist for the other fields.
-- You ran `pnpm shop:e2e challenges/pyramid-split.spec.ts`, all tests passed, and you can read in the output that each API test is much faster than the browser test.
+- You ran `pnpm shop:e2e challenges/pyramid-split.spec.ts`, all tests passed, and you compared the API and browser test durations in the output.
 
 To create tests from an array and send invalid data in just one field, search for: `playwright parameterize tests for loop`, `playwright list reporter test duration`.
 

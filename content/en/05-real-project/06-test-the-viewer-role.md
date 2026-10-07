@@ -22,6 +22,8 @@ The config loads `e2e/.auth/admin.json` by default. To test the viewer, replace 
 
 `loginViaApi` and `VIEWER` come from `lib/fixtures/api-client.ts`. The `request` fixture has a separate cookie store: signing in through it does not sign the page in.
 
+![The page and page.request share cookies; the request fixture uses a separate store.](/images/05-cookie-stores.en.svg)
+
 ## Check absent controls
 
 `toHaveCount(0)` passes as soon as the locator finds zero elements. If it finds any, Playwright repeats the check until the count is zero or the timeout expires. The assertion can pass before the data arrives: an empty table has no Edit or Delete controls either.
@@ -117,18 +119,18 @@ test("the API answers 401 when nobody is signed in", async ({ request }) => {
 2. Run it: `pnpm --filter practice-shop e2e e2e/products/viewer.spec.ts`.
 3. Temporarily sign in with `ADMIN` instead of `VIEWER` (add `ADMIN` to the import). Run the spec and read the failure. Undo the change.
 4. Add a third test: the viewer opens `/orders` and sees no `orders-mark-paid-` buttons. Use a regular expression and wait for a row first.
-5. Update `COVERAGE.md`: mark the viewer role row as covered and remove that gap.
+5. Update `COVERAGE.md`: add a row for the viewer tests and remove that gap.
 
 ## Challenge
 
-Test the viewer on orders. Create `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` and check that a refused change leaves the order unchanged. Choose the order for the API check. Remember that other specs use the seeded orders. The pending orders are 1001, 1005 and 1009.
+Test the viewer on orders. Create `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` and check that a refused change leaves the order unchanged. Choose the order for the API check. In a fresh seed, the pending orders are 1001, 1005 and 1009. Reserve 1009 for these read and rejection checks: cancellation and payment tests change 1001 and 1005.
 
 It is done when:
 
 - A UI test signs in as the viewer, waits for a row, and checks that the Actions header and controls with ids starting with `orders-mark-paid-`, `orders-mark-shipped-` and `orders-cancel-` are absent.
-- An API test sends the status change `paid` for your pending order as the viewer and expects 403 and the message "Your role does not allow this action."
+- An API test first checks with `page.request.get("/api/auth/me")` that the role is `viewer`. It then sends the status change `paid` for 1009 and expects 403 and the message "Your role does not allow this action."
 - The same test signs in as admin in a separate session, reads the orders list through the API, and checks that your order is still `pending`.
-- The spec passes twice. Then you sign the first test in as `ADMIN`, see it fail, and undo the change.
+- The spec passes twice. Then you sign the first test in as `ADMIN`, see it fail, and undo the change. If you change the shared login, the API test’s role check must fail before PATCH.
 
 Search for: `playwright APIResponse json`, `typescript array find` and `playwright getByRole columnheader`. You can use the `request` fixture for the separate admin session without changing the viewer's session in `page.request`.
 

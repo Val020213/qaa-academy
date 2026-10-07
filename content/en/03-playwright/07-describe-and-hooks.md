@@ -90,16 +90,16 @@ test.afterEach(async ({}, testInfo) => {
 })
 ```
 
-This prints the test name and result, for example `starts empty: passed`.
+This prints the test name and status at that moment, for example `starts empty: passed`. A later error during teardown can still make it fail.
 
 ## Isolation: every test starts clean
 
-Each test gets a new `page` in a new **browser context**. A browser context is like a fresh browser profile: no cookies, no saved data, no open tabs from other tests.
+When a test requests `page`, Playwright gives it a new tab in a new **browser context**. A browser context is like a fresh browser profile: no cookies, no saved data, no open tabs from other tests.
 
-This is called **isolation**. It has two results.
+This is called browser **isolation**.
 
-- A test cannot be broken by what another test did.
-- Tests can run in parallel, at the same time, and in any order.
+- Cookies and page state from another test are not transferred to the new context.
+- To run tests in parallel and in any order, they must also be independent of shared variables and server data.
 
 In the Practice app, the case list lives in the page's state. When another test opens its page, the list is empty. Each test must create the data it needs without depending on another test.
 
@@ -124,6 +124,8 @@ test("second", async () => {
 ```
 
 With `fullyParallel: true` and `--workers=1`, the two tests run one after the other in the same process. The output is `first sees 1` and `second sees 2`. With `--workers=2`, each test usually runs in a different worker, so both print `1`.
+
+![Example of two tests using page and a file counter in the same worker: the contexts are separate and the variable persists.](/images/03-worker-isolation.en.svg)
 
 The same dependency appears when one test writes a value that another needs:
 

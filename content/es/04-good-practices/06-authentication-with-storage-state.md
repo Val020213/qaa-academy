@@ -20,6 +20,8 @@ Después del login, el servidor de la tienda devuelve una cookie con un token de
 
 Playwright puede guardar las cookies del contexto del navegador en un archivo de **storage state** (estado de almacenamiento). Cada test recibe un contexto nuevo que carga esos datos: los contextos están separados, pero usan el mismo token de sesión.
 
+![Dos contextos cargan el mismo token; el logout invalida su sesión en el servidor y conserva el archivo.](/images/04-session-token.es.svg)
+
 La cookie de la tienda se llama `shop_session`. El servidor la crea en `app/api/auth/login/route.ts` con `httpOnly: true`, que impide al JavaScript de la página leerla. Playwright puede guardarla porque accede al navegador desde fuera de la página.
 
 El storage state también puede guardar `localStorage`. La tienda no lo usa para autenticar al usuario, así que `origins` está vacío en su archivo de sesión.
@@ -47,7 +49,7 @@ projects: [
 
 El project `setup` ejecuta `global.setup.ts`. La dependencia `dependencies: ["setup"]` hace que el runner ejecute ese project antes de los tests de `chromium`.
 
-Si quitas la dependencia y ejecutas un solo archivo, como `pnpm shop:e2e products/products.spec.ts`, el runner selecciona los tests que coinciden con ese archivo. `global.setup.ts` no coincide. En un repositorio recién clonado `e2e/.auth/admin.json` no existe, así que todos los tests fallan porque no pueden leer el archivo.
+Si quitas la dependencia y ejecutas un solo archivo, como `pnpm shop:e2e products/products.spec.ts`, el runner selecciona los tests que coinciden con ese archivo. `global.setup.ts` no coincide. En un repositorio recién clonado `e2e/.auth/admin.json` no existe, así que los tests que cargan ese estado fallan al crear el contexto del navegador o el cliente de API porque no pueden leer el archivo.
 
 El almacenamiento vacío de `setup` evita que herede `storageState: "e2e/.auth/admin.json"` de la configuración general. Sin esa opción, el setup intentaría leer el archivo antes de poder crearlo.
 
@@ -59,7 +61,7 @@ Abre `apps/practice-shop/e2e/global.setup.ts`. Después de llenar el formulario,
 await page.getByTestId("login-submit").click()
 await expect(page).toHaveURL(/\/dashboard/)
 
-// Save the cookies. Every other test starts with this session.
+// Save the cookies for tests that keep the default storageState.
 await page.context().storageState({ path: AUTH_FILE })
 ```
 
@@ -68,7 +70,7 @@ La aserción espera la URL del dashboard antes de guardar el estado. Así el arc
 La opción general de `use` carga ese archivo:
 
 ```ts
-// Every test starts already signed in as admin (saved by the setup project).
+// Tests using this default start signed in as admin (saved by setup).
 storageState: "e2e/.auth/admin.json",
 ```
 
@@ -84,7 +86,7 @@ La carpeta está en `apps/practice-shop/e2e/.gitignore`:
 .auth/
 ```
 
-Git salta los archivos ignorados, así que la sesión nunca se sube en un *commit* (confirmación de cambios). Cada persona y cada ejecución de CI crea una nueva cuando corre el setup.
+Git omite los archivos ignorados que aún no rastrea al agregar cambios normalmente. Un archivo ya rastreado o agregado a la fuerza sí puede entrar en un *commit*; no agregues la sesión. Cada persona y cada ejecución de CI crea una nueva cuando corre el setup.
 
 ## Probar sin sesión
 
@@ -203,7 +205,7 @@ Busca cómo crear un cliente de API sin la sesión guardada de la configuración
 <details>
 <summary>Respuesta</summary>
 
-El runner no selecciona `global.setup.ts`, porque no coincide con el archivo pedido y ya no es una dependencia. Los tests que cargan `e2e/.auth/admin.json` fallan al crear el contexto: el archivo todavía no existe.
+El runner no selecciona `global.setup.ts`, porque no coincide con el archivo pedido y ya no es una dependencia. Los tests que cargan `e2e/.auth/admin.json` fallan al crear el contexto del navegador o el cliente de API: el archivo todavía no existe.
 
 </details>
 
@@ -233,7 +235,7 @@ test("signing out returns to the login page", async ({ page, request }) => {
 <details>
 <summary>Respuesta</summary>
 
-El token guardado se crea una vez al inicio. Después de 5 minutos el servidor lo rechaza, así que todo test que empiece después de ese momento se envía a la página de login. Los tests fallan en la segunda mitad de la ejecución, y cada uno pasa si lo ejecutas solo y temprano. Una solución es hacer que la sesión dure más solo en el entorno de pruebas. Una segunda solución es iniciar sesión de nuevo por la API al inicio de cada archivo de tests, para que ninguna sesión tenga más de unos minutos.
+El token guardado se crea una vez al inicio. Después de 5 minutos el servidor rechaza las peticiones con ese token, incluso las de un test que ya empezó. La navegación protegida redirige al login y la API responde `401`. Una solución es una duración mayor que toda la ejecución, solo en pruebas. Otra es iniciar una sesión propia por la API antes de cada test, siempre que termine antes de los 5 minutos; los tests más largos necesitan renovar la sesión.
 
 </details>
 

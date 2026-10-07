@@ -33,7 +33,7 @@ The HTML attribute and the property can have different values. This example crea
 
 The property contains "Luna", while the attribute keeps "Rex". To read what the user typed, use the `value` property.
 
-The Practice app is built with React, and React keeps the attribute in step with the value on inputs that it controls. On the Practice page, after you type, both readings show the typed text.
+The Practice app is built with React, and for these email and password fields React synchronizes the attribute with the value stored in its state. On the Practice page, after you type, both readings show the typed text.
 
 ## Events and handlers
 
@@ -41,9 +41,9 @@ The browser generates **events** when you interact with the page. Code can regis
 
 | Event | When it happens |
 | --- | --- |
-| `click` | The user clicks an element |
-| `input` | The user changes the text of a field, on every key |
-| `change` | The user finishes a change, such as choosing an option in a `select` or ticking a checkbox |
+| `click` | The user clicks an element or activates a button with `Enter` or `Space` |
+| `input` | The user edits a field's value, for example by typing or pasting |
+| `change` | The user commits a change: chooses an option in a `select`, ticks a checkbox or leaves an edited text field |
 | `submit` | The user sends a form, by clicking the submit button or pressing `Enter` |
 
 In the Practice app, the `submit` handler checks the email and password. The case filter responds to `change`, and the Delete button to `click`.
@@ -61,6 +61,8 @@ Changing a property from a script does not generate the event that the user's in
 
 `addEventListener` registers a function that increments `n` when the browser generates an `input` event. The assignment changes the field's text, but does not generate that event, so `n` stays at 0.
 
+![A user edit fires input; assigning box.value from a script changes the value without running that listener.](/images/02-input-events.en.svg)
+
 ## Where state lives
 
 **State** is the data the page uses right now: the text in its fields, the case list or whether the user is signed in. Where the page stores that data determines how long it lasts.
@@ -70,13 +72,13 @@ Changing a property from a script does not generate the event that the user's in
 | Memory | You reload or close the page | The case list in the Practice app |
 | URL | You change the address | The address `#/practice`, or `?next=%2Fproducts` in the shop |
 | `localStorage` | You clear it. It stays after a reload and after you close the browser | The lessons you marked as completed |
-| Cookie | It expires or you delete it. The browser sends it with every request to the server | The shop sign-in |
+| Cookie | It expires or you delete it; a session cookie can end with the browser session. It is sent with requests that meet its rules | The shop sign-in |
 
 The Practice app keeps the case list, filter and login in variables in **memory**. On reload, the browser runs the page code again with its initial values.
 
-The course saves completed lessons as text in `localStorage`, under the key `qaa-academy:completed`. When the page loads again, the code reads that text and restores the marks. Another browser or another computer does not have that data.
+The course saves completed lessons as text in `localStorage`, under the key `qaa-academy:completed`. When the page loads again, the code reads that text and restores the marks. The data belongs to the page's origin in that browser profile; another browser or computer does not share it.
 
-The shop uses a cookie named `shop_session` to know who you are. The browser sends it back with every request.
+The shop uses a cookie named `shop_session` to know who you are. The cookie contains a token the server associates with a user. The browser sends it to that host and allowed paths, under the cookie's rules; not to any server.
 
 > **Note:** The shop cookie is marked `HttpOnly`. Page code cannot read it, but you can see it in DevTools, in the **Application** panel.
 

@@ -22,6 +22,8 @@ const email = page.getByTestId("login-email")
 
 Esta línea guarda la búsqueda del elemento con el testid `login-email`, sin consultar la página. Playwright busca las coincidencias cuando ejecutas una acción o una aserción con el locator. Si el DOM cambió, busca en el DOM actual.
 
+![El mismo locator vuelve a buscar y encuentra una casilla nueva cuando React recrea la fila.](/images/03-locator-resolution.es.svg)
+
 Con la lista de casos vacía, este código permite distinguir la creación, el conteo y la acción:
 
 ```ts
@@ -32,7 +34,7 @@ await rows.click()
 
 La primera línea crea el locator aunque no exista ninguna fila. La segunda imprime `0`: `count()` devuelve el número de coincidencias actuales, sin esperar a que aparezcan filas. La tercera espera a que Playwright encuentre un elemento para hacer clic.
 
-Playwright sigue buscando un elemento para hacer clic, y después de 30 segundos (el timeout del test) el test falla. El mensaje dice que estaba esperando el locator.
+El test tiene un límite total de 30 segundos por defecto. El clic usa el tiempo que queda después de los pasos anteriores; si no aparece una fila antes de ese límite, el test falla mientras espera el locator.
 
 ## getByTestId: el valor por defecto del equipo
 
@@ -47,13 +49,13 @@ El testid no cambia cuando cambia el texto o el color del control. Así, una tra
 
 ## Otros locators
 
-**getByRole** encuentra un elemento por su rol, como botón, enlace o casilla. Agregas el nombre visible.
+**getByRole** encuentra un elemento por su rol, como botón, enlace o casilla. Puedes agregar el nombre accesible, que Playwright calcula a partir del texto o de atributos como `aria-label`. Puede ser distinto del texto visible.
 
 ```ts
 await page.getByRole("button", { name: "Sign in" }).click()
 ```
 
-**getByLabel** encuentra un campo de formulario por el texto de su etiqueta. En la Practice app, cada campo tiene un `<label>` real. La etiqueta apunta a su campo con el atributo `for`, que tiene el mismo valor que el `id` del campo. Por ejemplo, `<label for="login-email">Email</label>` apunta a `<input id="login-email">`.
+**getByLabel** encuentra un campo de formulario por el texto de su etiqueta. En el login de la Practice app, la etiqueta apunta a su campo con el atributo `for`, que tiene el mismo valor que el `id` del campo. Las casillas de la lista están dentro de su etiqueta y no necesitan esa asociación. Por ejemplo, `<label for="login-email">Email</label>` apunta a `<input id="login-email">`.
 
 ```ts
 await page.getByLabel("Email").fill("qa@example.com")
@@ -83,7 +85,7 @@ test("counts the buttons", async ({ page }) => {
 })
 ```
 
-Deberías ver `by role: 5` y `by tag: 6`. Los seis botones son el cambio de idioma, el cambio de tema, Sign in (Iniciar sesión), Sign out (Cerrar sesión), Add (Agregar) y Load report (Cargar reporte). El botón Sign out está en la página, pero tiene el atributo `hidden` hasta que inicias sesión. `getByRole` omite los elementos ocultos, porque un usuario no puede usarlos. `locator("button")` cuenta cada etiqueta `<button>`.
+Deberías ver `by role: 5` y `by tag: 6`. Los seis botones son el cambio de idioma, el cambio de tema, Sign in (Iniciar sesión), Sign out (Cerrar sesión), Add (Agregar) y Load report (Cargar reporte). El botón Sign out está dentro de un elemento con el atributo `hidden` hasta que inicias sesión. Por defecto, `getByRole` omite los elementos excluidos del árbol de accesibilidad, como ese botón. `locator("button")` cuenta cada etiqueta `<button>`.
 
 La aserción inicial espera a que el botón Sign in sea visible antes de contar. Sin ella, `count()` podría consultar el DOM antes de que React haya mostrado los controles.
 
@@ -144,7 +146,7 @@ Usa `first()` o `nth()` cuando la posición forme parte de lo que quieres compro
 
 ## Encadenar locators dentro de una fila
 
-Puedes llamar un método de locator sobre otro locator. La segunda búsqueda corre solo dentro de la primera coincidencia.
+Puedes llamar un método de locator sobre otro locator. La segunda búsqueda corre dentro de todas las coincidencias del locator exterior. Para marcar una sola casilla, el filtro debe identificar una sola fila.
 
 ```ts
 const row = page.getByTestId("cases-item").filter({ hasText: "Second case" })

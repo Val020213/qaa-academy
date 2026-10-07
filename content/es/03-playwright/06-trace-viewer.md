@@ -14,7 +14,7 @@ En esta lección grabas la ejecución de un test y revisas la evidencia de una f
 
 ## Qué guarda un trace
 
-Un **trace** (traza) es una grabación de la ejecución de un test. Es un archivo que guarda, para cada paso, una copia de la página, los mensajes de la consola y las llamadas de red.
+Un **trace** (traza) es una grabación de la ejecución de un test. El archivo guarda las acciones, snapshots del DOM para las operaciones que los admiten, mensajes de consola y actividad de red de la ejecución. No todos los pasos tienen un snapshot.
 
 El trace viewer muestra esos datos después de que terminó el test, para revisar la página y los pasos que llevaron a la falla.
 
@@ -26,7 +26,7 @@ Abre `playwright.config.ts`. En la sección `use` encuentras:
 trace: "on-first-retry",
 ```
 
-Significa: graba un trace solo cuando un test se ejecuta otra vez después de una falla. Una nueva ejecución así es un **retry** (reintento).
+Significa: graba un trace únicamente en el primer **retry** (reintento), la segunda ejecución tras una falla. La ejecución inicial y el segundo reintento no se graban con este modo.
 
 El proyecto activa los reintentos en CI y los desactiva en tu máquina. Con esta configuración, una ejecución local no graba traces. Para grabarlos sin cambiar el archivo de configuración:
 
@@ -36,7 +36,7 @@ pnpm e2e e2e/playground.spec.ts --trace on
 
 La opción `--trace on` graba un trace de cada test en esta ejecución. Limita la grabación al archivo que estás revisando.
 
-> **Nota:** La configuración también tiene `screenshot: "only-on-failure"`. Un test que falló siempre tiene una imagen de la página al final. Un trace te da mucho más.
+> **Nota:** La configuración también tiene `screenshot: "only-on-failure"`. Playwright intenta capturar las páginas de un test que falló. Puede faltar la imagen si no había una página o la captura falló. Un trace aporta también las acciones y el DOM guardado.
 
 ## Abre el reporte HTML
 
@@ -52,7 +52,7 @@ En el reporte, un test que falló tiene una marca roja. Haz clic en él para ver
 
 ![El reporte lista los tests que pasaron y los que fallaron. Abre el que falló para ver el error y el trace.](/clips/html-report.webm)
 
-La terminal también imprime un comando para abrir un trace directamente:
+También puedes abrir un trace directamente con este comando:
 
 ```text
 pnpm exec playwright show-trace test-results/<test-folder>/trace.zip
@@ -62,7 +62,7 @@ pnpm exec playwright show-trace test-results/<test-folder>/trace.zip
 
 **Actions (acciones).** A la izquierda está la lista de pasos en orden: `page.goto`, `locator.fill`, `expect.toHaveText` y así. Un paso que falló aparece en rojo. Haz clic en un paso para ver la página en ese momento.
 
-**Snapshots de antes y después.** Las pestañas "Before" (antes) y "After" (después) muestran la página alrededor de la acción. El visor muestra el DOM guardado, que puedes inspeccionar con las herramientas de desarrollo del navegador. El elemento resaltado es el que usó la acción.
+**Snapshots de antes y después.** Las pestañas "Before" (antes) y "After" (después) muestran la página alrededor de la acción. El visor muestra el DOM guardado, que puedes inspeccionar con las herramientas de desarrollo del navegador. Para una aserción, revisa el estado previo en "Before" y el destino observado en "After" y "Call"; "Before" puede no tenerlo resaltado porque Playwright lo marca al ejecutar la comprobación.
 
 **Console (consola).** Muestra los mensajes que la página escribió en su consola y los errores del código de la página.
 
@@ -84,14 +84,14 @@ Revisa la evidencia antes de cambiar el test:
 
 1. Lee el mensaje de error: aserción, locator, Expected y Received.
 2. Abre el trace y selecciona el paso en rojo.
-3. Revisa el estado de la página en el snapshot "Before" y el elemento resaltado.
+3. Revisa el estado previo en "Before"; luego consulta "After" y "Call" para revisar el destino y el resultado observado.
 4. Revisa los pasos anteriores para encontrar una acción inesperada.
 5. Busca errores de la página en Console y llamadas fallidas en Network.
 6. Compara el resultado con el requisito para decidir si debes corregir el test o reportar un bug. Después de corregirlo, ejecuta el test otra vez.
 
-Por ejemplo, un test hace clic en "Load report" (cargar reporte) y espera el texto `12 tests`. Tienes dos sospechas. Primera: la app nunca mostró el reporte. Segunda: el test miró el elemento equivocado. El mensaje de error es el mismo en los dos casos.
+Por ejemplo, un test hace clic en "Load report" (cargar reporte) y espera el texto `12 tests`. Tienes dos sospechas. Primera: la app nunca mostró el reporte. Segunda: el test miró el elemento equivocado. Ambos casos pueden causar un fallo de la misma aserción; el locator y el valor recibido ayudan a distinguirlos.
 
-En el snapshot, mira el elemento resaltado. Si es el elemento equivocado, la segunda sospecha es cierta: tu locator está mal. Si es el elemento correcto y aun así muestra solo `Loading…` o nada, la primera sospecha es cierta. Entonces las pestañas Console y Network pueden decirte por qué: un error de la página, o una petición con un estado malo.
+Revisa el destino en "After" y el locator en "Call". Si apuntan a otro elemento, corrige el locator. Si el destino es correcto pero no muestra `12 tests`, solo sabes que la comprobación no encontró ese texto dentro del plazo. Compara el estado final observado y el timeout con el requisito antes de atribuirlo a la app. Console puede mostrar errores; en esta carga simulada no hay una petición de reporte que revisar en Network.
 
 ## Profundiza
 
@@ -111,14 +111,16 @@ use: {
 
 - `"off"` nunca graba.
 - `"on"` graba cada test y guarda cada trace.
-- `"on-first-retry"` graba solo cuando un test se ejecuta otra vez. Este proyecto la usa. Cuesta poco, pero necesita reintentos.
+- `"on-first-retry"` graba solo el primer reintento y conserva ese trace aunque el reintento pase. Este proyecto la usa; necesita reintentos.
 - `"retain-on-failure"` graba cada test y borra el trace de los tests que pasan. Obtienes un trace de cada falla, sin reintentos.
 
 Conservar la ejecución que falló ayuda cuando la falla es difícil de repetir. Grabar solo un reintento reduce el trabajo de grabación, pero deja la primera ejecución sin trace.
 
+![Tres intentos del mismo test: cada modo graba y conserva traces distintos.](/images/03-trace-attempts.es.svg)
+
 ## Práctica
 
-1. Haz una copia del test "rejects wrong credentials" en un archivo nuevo `e2e/exercises/03-playwright/trace-practice.spec.ts`. Importa desde `../../lib/test`.
+1. Haz una copia del test "rejects wrong credentials" en un archivo nuevo `e2e/exercises/03-playwright/trace-practice.spec.ts`. Importa desde `../../lib/test`. Antes de llenar los campos, agrega `await page.goto("/#/practice")`: la navegación del archivo original está fuera del test.
 2. Cambia el texto esperado a `"Wrong password."` para que el test falle.
 3. Ejecútalo con un trace:
 

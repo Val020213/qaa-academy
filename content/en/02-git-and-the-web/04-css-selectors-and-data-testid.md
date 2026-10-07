@@ -26,7 +26,7 @@ This element has a tag, two classes, an id and an attribute:
 | --- | --- | --- |
 | `li` | by tag | every `li` on the page |
 | `.dog` | by class | every element with the class `dog` |
-| `#bo` | by id | the one element with `id="bo"` |
+| `#bo` | by id | every element with `id="bo"` (the id should be unique) |
 | `[data-age="old"]` | by attribute | every element with `data-age="old"` |
 
 A class starts with a dot. An id starts with `#`. An attribute goes in square brackets.
@@ -68,6 +68,8 @@ It matches elements with the class `dog` inside a `ul`. Compare these three form
 
 `.dog` matches Rex and Bo: two elements. `.dog.old` matches only Bo, which has both classes. `.dog .old` matches nothing: Bo has both classes, but is not inside another element with the class `dog`.
 
+![Bo matches .dog.old; .dog .old has no match because it requires a descendant.](/images/02-selector-matches.en.svg)
+
 ## Children, siblings and exclusions
 
 `>` selects a direct child, one level below its parent. A space allows any depth. `+` selects the element immediately after another element with the same parent.
@@ -83,7 +85,7 @@ The first matches `Luna`, because that element with the class `cat` comes immedi
 
 Classes are used for styling. If the team renames `.dog` to `.pet-card`, the selector `.dog` stops finding elements even though the feature still works the same way.
 
-Classes also repeat. A selector that matches many elements is not safe.
+Classes also repeat. If you want one control, check that the selector matches one; counting a list requires multiple matches.
 
 The course apps use Tailwind. Their classes express styling rules, as in the Sign in button:
 
@@ -96,11 +98,11 @@ These classes can change when the appearance changes. The attribute `data-slot="
 
 A selector based on position can pick a different element if someone adds a row before it. For example, "the third `div` inside the second `div`" depends on that structure.
 
-A good selector is stable. It changes only when the feature changes, not when the design changes.
+Choose attributes the team keeps stable when the design changes. If the team renames them, you will need to update the selector.
 
 ## data-testid and the team convention
 
-The **`data-testid`** attribute exists only for tests. It has no effect on how the page looks. Any name that starts with `data-` is allowed by HTML.
+The team uses **`data-testid`** to identify elements in tests. By itself it does not change the appearance, although CSS can select it. It is an HTML data attribute: `data-` must be followed by a valid, nonempty name with no ASCII uppercase letters.
 
 ```html
 <button type="submit" data-testid="login-submit">Sign in</button>
@@ -112,7 +114,7 @@ Select it by its attribute:
 [data-testid="login-submit"]
 ```
 
-A `data-testid` is a promise between the developer and the tester: "this name will stay, so your test can rely on it". This is why a test that uses it breaks only when the feature changes.
+A `data-testid` is a promise between the developer and the tester: "this name will stay, so your test can rely on it". Renaming that attribute breaks the selector even when the feature still works the same way; the team must keep the agreement.
 
 The team follows these rules:
 
@@ -122,7 +124,7 @@ The team follows these rules:
 
 Examples from the Practice app: `login-email`, `login-password`, `login-submit`, `cases-input`, `cases-add`, `report-load`.
 
-Elements that repeat, such as rows, include the id of the row at the end:
+Case controls and product rows include the data id at the end. Case rows share `cases-item`, and their titles share `cases-item-title`:
 
 - `cases-delete-1` is the Delete button of case 1.
 - `cases-toggle-3` is the checkbox of case 3.
@@ -132,7 +134,7 @@ The id comes from the data, so the name follows the case or product even when it
 
 ## Try selectors in the console
 
-In the DevTools **Console** you can run JavaScript against the page's DOM:
+In the DevTools **Console** you can run JavaScript against the page's DOM. The button output below omits its styling attributes:
 
 - `document.querySelector("...")` returns the first matching element, or `null` if there are no matches.
 - `document.querySelectorAll("...")` returns a list of all matching elements.
@@ -172,7 +174,7 @@ Consult the [MDN documentation for `querySelector`](https://developer.mozilla.or
 
 ### Generated ids can change
 
-An `id` is meant to be unique. But some tools create ids by themselves, with names like `:r1:`. They can change when the page gets one more element before it. A stable name that a person chose, and agreed on, is better than a name a machine made.
+An `id` is meant to be unique. Some tools generate ids, for example with a counter that changes when an element is inserted earlier. A name such as `:r1:` is illustrative: its stability depends on how it is generated, not its appearance. Choose an attribute whose value the team keeps stable.
 
 ### One match depends on the data present
 
@@ -182,11 +184,11 @@ This selector matches one element when there is one case and two when there are 
 [data-testid^="cases-delete-"]
 ```
 
-The count is right only for this moment. A good selector is exact, such as `cases-delete-2`, and you know why it matches.
+The count is right only for this moment. To select a specific case, use its id, such as `cases-delete-2`. To count all Delete buttons, the prefix is appropriate.
 
 ## Practice
 
-1. Open `http://localhost:5180/#/practice`. Press `F12` and open the **Console** tab.
+1. Open `http://localhost:5180/#/practice` and reload to start with no cases and the next id at 1. Press `F12` and open the **Console** tab.
 2. Run each selector and write down how many elements it matches. You should see 6, a number bigger than 6, 1 and 1. The second number includes links in the top bar and side menu with `data-slot="button"`:
 
 ```text
@@ -214,7 +216,7 @@ document.querySelector('[data-testid="cases-delete-2"]').click()
 
 ## Challenge
 
-Add three cases, "One", "Two" and "Three", and tick the checkbox of "Two". Write a selector for each goal:
+Reload the Practice page. Add three cases, "One", "Two" and "Three", and tick only the checkbox of "Two". Write a selector for each goal:
 
 1. The checkboxes that are not ticked.
 2. The Delete button inside the ticked row.
@@ -227,9 +229,9 @@ It is done when:
 
 - You ran each selector in the Console with `document.querySelectorAll("...").length` and you wrote down the real count. The counts are 2, 1, 1 and 1.
 - No selector uses a class, an id number such as `cases-delete-2`, or a position such as `nth-child`.
-- Each selector still works if the ticked case is "Three" instead of "Two" (tick another one and run them again; the counts stay right for that new state).
+- Each selector still works if the ticked case is "Three" instead of "Two" (untick "Two", tick "Three" and run them again; the counts are 2, 1, 0 and 1 because the last row has no next row).
 
-You will need something this lesson did not teach: a way to select by a state such as ticked. Search for: `css :checked pseudo-class` and `css :not selector`. For "the row right after", use the `+` selector from earlier in this lesson.
+You will need something this lesson did not teach: a way to select by a state such as ticked. Search for: `css :checked pseudo-class`, `css :not selector` and `css :has selector` to select the row containing the ticked checkbox. For "the row right after", use the `+` selector from earlier in this lesson.
 
 ## Think it through
 
@@ -247,7 +249,7 @@ The first prints `0`: no element has exactly the name `cases-delete`. The second
 
 </details>
 
-2. A test looks for the Delete button of the case with id 2. What breaks after deleting the first case if it uses `.cases li:nth-child(2) button` instead of `[data-testid="cases-delete-2"]`?
+2. On a hypothetical page whose container has the class `cases`, a test looks for the Delete button of the case with id 2. What breaks after deleting the first case if it uses `.cases li:nth-child(2) button` instead of `[data-testid="cases-delete-2"]`?
 
 <details>
 <summary>Answer</summary>

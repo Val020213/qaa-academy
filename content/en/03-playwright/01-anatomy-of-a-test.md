@@ -68,7 +68,7 @@ In this project, they are imported from `e2e/lib/test.ts`, never from `@playwrig
 
 The function uses `async` to wait for browser operations with `await`.
 
-Playwright gives the function a `page`. It is a fresh browser tab, only for this test. You write `{ page }` to take it from the object Playwright passes in. Because every test gets its own tab, one test cannot leave a mess for the next one.
+Playwright gives the function a `page`. It is a fresh browser tab, only for this test. You write `{ page }` to take it from the object Playwright passes in. The tab is created in a fresh context, which separates cookies and browser state from other tests. It does not clear shared server data.
 
 ### goto
 
@@ -131,7 +131,7 @@ Running 4 tests using 4 workers
   4 passed (5.1s)
 ```
 
-The tick means the test passed. `chromium` is the browser. Next come the file, line number, group, test name and duration.
+The tick means the test passed. `chromium` is the configured project name, which here uses that browser. Next come the file, line number, group, test name and duration.
 
 This project runs tests in parallel, in several **workers** (separate processes). Each line prints when its test ends, so the list can appear in a different order from the file. The numbers, worker count and timings can change between runs.
 
@@ -166,9 +166,9 @@ Received: "Wrong email or password."
 Timeout:  5000ms
 
 Call log:
-  - Expect "toHaveText" with timeout 5000ms
+  - Expect "to.have.text" with timeout 5000ms
   - waiting for getByTestId('login-error')
-    9 × locator resolved to <div role="alert" data-slot="alert" ...>Wrong email or password.</div>
+    9 × locator resolved to <div role="alert" data-slot="alert" data-testid="login-error" class="group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg:not([class*='size-'])]:size-4 bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current">Wrong email or password.</div>
       - unexpected value "Wrong email or password."
 ```
 
@@ -180,9 +180,9 @@ The **call log** shows the attempts. Below it, the test's lines appear with an a
 
 ### The test function's result
 
-Playwright's test runner calls the test function. If it ends without an error, the test passes; if it throws an error, the test fails. An assertion throws an error when its check is not met.
+Playwright's test runner calls the test function. To pass, the set-up and teardown must also finish without errors, within their time limits. An assertion throws an error when its check is not met.
 
-This example reproduces the idea in TypeScript, without a browser:
+This example simplifies the runner to a function that catches errors from the body, without a browser or hooks:
 
 ```ts
 async function runTest(name: string, body: () => Promise<void>): Promise<void> {
@@ -219,7 +219,7 @@ failed: with a check (expected "Wrong password." but got "Wrong email or passwor
 
 The first test passes because printing a message does not check that it is the expected one. In the second, `check` compares the texts and throws the error that `runTest` catches.
 
-Your test code runs in Node.js on your computer. The browser is another program. Each `await` sends one order to the browser and waits for the answer. So a `console.log` in a test prints in your terminal, not in the browser.
+Your test code runs in Node.js on your computer. The browser is another program. Calls to `page` and its locators make Playwright control the browser. `await` waits for the operation's promise to settle; it also works for promises that do not use a browser. So a `console.log` in a test prints in your terminal, not in the browser.
 
 ### A test without a result check
 

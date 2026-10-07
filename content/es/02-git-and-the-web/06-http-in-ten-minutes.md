@@ -16,6 +16,8 @@ En esta lección lees las peticiones y respuestas HTTP de la tienda de práctica
 
 El navegador es el **cliente**: envía una **petición** (*request*) cuando la página necesita datos o envía una acción. El servidor HTTP recibe esa petición y devuelve una **respuesta** (*response*). **HTTP** define las reglas de esos mensajes.
 
+![Una petición de productos con sesión válida y su respuesta HTTP; el código de la página usa los datos para actualizar el DOM.](/images/02-http-exchange.es.svg)
+
 En la tienda de práctica, el navegador y el servidor corren en tu computadora. El servidor atiende en `http://localhost:5190`.
 
 ## La petición
@@ -47,7 +49,7 @@ El método indica la operación que el cliente pide al servidor:
 | `PATCH` | Cambiar una parte de algo | Cambiar el estado de un pedido |
 | `DELETE` | Quitar algo | Eliminar un producto |
 
-Una petición `GET` no debe cambiar datos. Es segura de repetir.
+Una petición `GET` solicita una lectura, no un cambio de datos de la aplicación, así que se define como segura. El servidor puede registrar la visita sin incumplir esa regla.
 
 Si una tienda usa `GET` para `/delete-everything`, un navegador que cargue el enlace por adelantado podría borrar los datos sin que nadie haga clic. Las operaciones que cambian datos deben usar `POST`, `PUT`, `PATCH` o `DELETE`.
 
@@ -58,27 +60,27 @@ El primer dígito del **código de estado** identifica su familia:
 | Familia | Significado |
 | --- | --- |
 | 2xx | Éxito |
-| 3xx | Redirección: ve a otra dirección |
+| 3xx | Redirección: requiere una acción adicional; 304 permite usar una copia en caché |
 | 4xx | Error del cliente: la petición está mal o no está permitida |
 | 5xx | Error del servidor: el servidor falló |
 
 Una contraseña incorrecta produce esta respuesta en la tienda:
 
-![Una contraseña incorrecta envía una petición login, y Network en las DevTools muestra el estado 401.](/clips/devtools-network.webm)
+![Una contraseña incorrecta envía una petición login, y Network en las DevTools muestra el estado 401. El clip usa el puerto 5196; en la práctica usarás 5190.](/clips/devtools-network.webm)
 
 Estos son los códigos que verás con más frecuencia:
 
 | Código | Nombre | Significado |
 | --- | --- | --- |
-| 200 | OK | Funcionó y hay un cuerpo |
+| 200 | OK | La petición tuvo éxito; puede tener cuerpo |
 | 201 | Created | Se creó un elemento nuevo |
 | 204 | No Content | Funcionó y no hay cuerpo. La tienda de práctica lo devuelve cuando eliminas un producto |
-| 401 | Unauthorized | No has iniciado sesión |
-| 403 | Forbidden | Iniciaste sesión, pero tu rol no tiene permiso |
-| 404 | Not Found | La cosa no existe |
+| 401 | Unauthorized | Falta una autenticación válida; también puede ser una contraseña incorrecta |
+| 403 | Forbidden | El servidor rechaza la operación. En la tienda, tu rol no tiene permiso |
+| 404 | Not Found | El servidor no encuentra el recurso o no revela que existe |
 | 409 | Conflict | La petición choca con el estado actual. En la tienda, un pedido no puede volver a un estado anterior |
 | 422 | Unprocessable Content | Los datos no son válidos. La tienda lo devuelve cuando el formulario de producto está mal |
-| 500 | Internal Server Error | El servidor tiene un bug |
+| 500 | Internal Server Error | El servidor encontró un fallo inesperado |
 
 Un código 4xx puede ser la respuesta correcta a una petición inválida o sin permiso. Lee también el cuerpo para conocer el motivo del rechazo.
 
@@ -106,7 +108,7 @@ Muchas API envían datos como **JSON**, un formato de texto con objetos y listas
 
 Los nombres y los textos van entre comillas dobles. Las listas usan corchetes. JSON no admite una coma al final ni comentarios.
 
-Cuando le pides a JavaScript que lea `{ name: 'Rex' }`, los nombres no tienen comillas y el texto tiene comillas simples. El resultado es un `SyntaxError`: el texto es un objeto de JavaScript, pero no es un JSON válido. `JSON.stringify` descarta los campos de un objeto cuyo valor es `undefined` y convierte una fecha en texto.
+Cuando usas `JSON.parse` para leer el texto `{ name: 'Rex' }`, los nombres no tienen comillas y el texto tiene comillas simples. El resultado es un `SyntaxError`: ese texto es válido como expresión de objeto de JavaScript, pero no como JSON. `JSON.stringify` descarta los campos de un objeto cuyo valor es `undefined` y convierte una fecha en texto.
 
 Esta es la respuesta de la tienda después de un inicio de sesión correcto:
 
@@ -126,8 +128,8 @@ Las rutas de la API están en `apps/practice-shop/app/api`:
 | --- | --- |
 | `POST /api/auth/login` | Inicia sesión. Devuelve 401 con una contraseña incorrecta |
 | `GET /api/products` | Lista los productos. Devuelve 401 sin una sesión |
-| `POST /api/products` | Crea un producto. Devuelve 201, 403 o 422 |
-| `DELETE /api/products/<id>` | Elimina un producto. Devuelve 204, o 404 si no existe |
+| `POST /api/products` | Crea un producto. Devuelve 201, 401, 403 o 422 |
+| `DELETE /api/products/<id>` | Elimina un producto. Devuelve 204; 401 sin sesión, 403 sin permiso o 404 si no existe |
 | `GET /api/stats` | Números para el dashboard. Espera 1,2 segundos a propósito |
 
 El usuario viewer puede leer, pero recibe 403 al crear, editar o eliminar.
@@ -136,7 +138,7 @@ El usuario viewer puede leer, pero recibe 403 al crear, editar o eliminar.
 
 ### Repetir una operación
 
-Eliminar dos veces el mismo producto deja el mismo estado final: el producto ya no está. Las respuestas pueden ser distintas. En la tienda, la primera petición `DELETE` devuelve `204` y la segunda devuelve `404`, porque el servidor ya no encuentra el producto.
+Con una sesión de admin, eliminar dos veces el mismo producto deja el mismo estado final: el producto ya no está. Las respuestas pueden ser distintas. En la tienda, la primera petición `DELETE` devuelve `204` y la segunda devuelve `404`, porque el servidor ya no encuentra el producto.
 
 Un `POST` que crea un elemento puede crear otro al repetirse. El estado final después de dos peticiones puede ser distinto del estado después de una.
 
@@ -144,7 +146,7 @@ Un `POST` que crea un elemento puede crear otro al repetirse. El estado final de
 
 Un `200` indica éxito, pero no demuestra que los datos sean correctos. Al revisar la lista de productos, comprueba también los elementos y el total que devuelve el servidor.
 
-Después de una eliminación, el estado `204` indica que la respuesta no tiene cuerpo. Intentar leerlo como JSON falla. Para comprobar el efecto de la eliminación, otra petición `GET` al producto debe devolver `404`.
+Después de una eliminación, el estado `204` indica que la respuesta no tiene cuerpo. Intentar leerlo como JSON falla. Para comprobar el efecto de la eliminación, otra petición `GET` al producto, con una sesión válida, debe devolver `404`.
 
 ## Práctica
 

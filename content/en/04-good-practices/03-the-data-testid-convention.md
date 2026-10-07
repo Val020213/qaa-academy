@@ -29,10 +29,10 @@ The shop uses this format for ids on its interactive elements:
 
 Counts and error messages also have ids because tests check them.
 
-If a table shows ten products, `page.getByText("Delete")` finds ten buttons. When you try to click, Playwright requires a single match and fails:
+If a table shows ten products, `page.getByText("Delete")` finds ten buttons. When you try to click, Playwright requires one match and fails. The first error line is:
 
 ```text
-Error: strict mode violation: getByText('Delete') resolved to 10 elements
+locator.click: Error: strict mode violation: getByText('Delete') resolved to 10 elements:
 ```
 
 To select a product's button, the test needs to identify the record.
@@ -150,7 +150,7 @@ The result is:
 /row/ matches 2
 ```
 
-The first pattern is exact. The second is too wide: it picks up names, buttons and counts. The third also includes order rows.
+The first pattern selects only the product-row prefix, not a complete id. The second is too wide: it picks up names, buttons and counts. The third also includes order rows.
 
 ## One shared dialog, one shared id
 
@@ -159,6 +159,8 @@ The shop reuses the confirmation dialog on the list and product detail pages. It
 ![Delete opens a dialog. Cancel keeps the row; confirm removes it and shows a message.](/clips/shop-delete-dialog.webm)
 
 The component is in `apps/practice-shop/components/confirm-delete-dialog.tsx`. It uses the shadcn `AlertDialog`, with the role `alertdialog`, outside the table in the DOM.
+
+![Simplified DOM tree: the confirmation button is outside the row.](/images/04-dialog-scope.en.svg)
 
 Clicking a row's button opens the dialog; clicking the shared button confirms deletion. The search `page.getByTestId("products-row-12").getByTestId("confirm-delete-button")` finds zero elements because it searches inside the row. Find the dialog button from `page`.
 
@@ -178,11 +180,11 @@ The new-product link shows where to put it:
 
 `Button asChild` applies the style to the `Link` it contains. The DOM element is an `<a>`, and the test id is on that link. The same applies to Edit in each row: `getByRole("button", { name: "Edit" })` does not find that link.
 
-Adding `data-testid` does not change how the page works or looks.
+By itself, `data-testid` adds no styling or behavior. The app’s JavaScript and CSS can still read or select it.
 
 ## Test ids, roles and labels
 
-Many teams prefer roles and labels, because they also check that the page is accessible. This team chose test ids. The rule in `apps/practice-shop/e2e/README.md` says:
+Role and label locators search for an element’s role or accessible name. Finding it does not establish that the whole page is accessible. This team chose test ids. The rule in `apps/practice-shop/e2e/README.md` says:
 
 ```text
 Select with `page.getByTestId(...)`. No CSS, no XPath, no text selectors for things you click.
@@ -209,13 +211,13 @@ The second uses a CSS attribute selector. `getByTestId` uses `data-testid` by de
 use: { testIdAttribute: "data-qa" },
 ```
 
-Attributes that start with `data-` are reserved by HTML for your own information. The browser ignores them. That is why they are safe for tests.
+Attributes that start with `data-` are reserved by HTML for your own information. The browser keeps them in the DOM and exposes them to JavaScript through `dataset`; it assigns them no built-in action or styling.
 
 ### What a test id checks
 
 A button can have `data-testid="products-new"` and still lack an accessible name. Finding it by its test id does not check that name.
 
-Use test ids for what has no good name, such as a row in a table, and use roles and labels where the page has real names.
+In this shop, follow the test-id convention for actions. Another team may choose roles and labels for controls with accessible names and test ids for records without an identifying name.
 
 ## Practice
 

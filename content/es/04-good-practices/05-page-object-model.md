@@ -32,7 +32,7 @@ export class ProductsPage {
   readonly searchInput: Locator
 ```
 
-La palabra `readonly` significa que el valor se define una vez y nunca cambia.
+Con `readonly`, el verificador de tipos permite asignar la propiedad en su declaración o dentro del constructor, y rechaza la reasignación fuera de él. No congela el objeto guardado.
 
 El **constructor** se ejecuta cuando escribes `new ProductsPage(page)`. Guarda la página recibida y crea los locators:
 
@@ -85,9 +85,9 @@ await products.goto()
 await expect(row).toBeVisible()
 ```
 
-Playwright busca la fila cuando la aserción comprueba su visibilidad. Si el DOM cambia, el locator vuelve a buscar en el DOM actual. Un locator de Playwright no puede quedar obsoleto.
+Playwright busca la fila cuando la aserción comprueba su visibilidad. Si el DOM cambia, el locator vuelve a buscar en el DOM actual. El locator no conserva una referencia al nodo anterior. Su criterio aún puede dejar de coincidir o seleccionar otro elemento si cambia el DOM.
 
-Este ejemplo compara buscar una vez con guardar una función que vuelve a buscar. Un elemento encontrado es una copia tomada una sola vez.
+Este ejemplo compara buscar una vez con guardar una función que vuelve a buscar. Aquí, `findNow` devuelve una referencia al objeto encontrado, no una copia; esa referencia conserva el objeto anterior cuando se reemplaza el array.
 
 ```ts
 type Row = { id: number; name: string }
@@ -230,6 +230,7 @@ test("the Page Object finds a product by name", async ({ page, request }) => {
   await products.search(product.name)
 
   await expect(products.rows).toHaveCount(1)
+  await expect(products.row(product.id)).toBeVisible()
   await expect(products.count).toHaveText("1 product")
 })
 ```

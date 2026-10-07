@@ -50,6 +50,7 @@ test("a new product can be found by searching", async ({ page }) => {
   await page.getByTestId("products-search").fill(name)
 
   await expect(page.getByTestId(/^products-row-/)).toHaveCount(1)
+  await expect(page.getByTestId(/^products-row-/).first()).toContainText(name)
 })
 
 test("the Active filter hides a new draft product", async ({ page }) => {
@@ -65,6 +66,7 @@ test("the Active filter hides a new draft product", async ({ page }) => {
   await expect(page).toHaveURL(/\/products$/)
   await page.getByTestId("products-search").fill(name)
   await expect(page.getByTestId(/^products-row-/)).toHaveCount(1)
+  await expect(page.getByTestId(/^products-row-/).first()).toContainText(name)
 
   await page.getByTestId("products-status-filter").selectOption("active")
 
@@ -155,7 +157,7 @@ for (const row of invalidInputs) {
 }
 ```
 
-La parte `...row.change` copia todos los campos y luego reemplaza el de la fila. Cada fila se convierte en un test con su propio título. Una regla nueva es una fila nueva, no un test nuevo.
+La parte `...row.change` copia solo los campos de esa fila y reemplaza sus valores por defecto en el objeto. Cada fila registra un test con su propio título. Agregar una regla como otra fila crea otro test sin copiar su cuerpo.
 
 El bucle llama a `test` por cada fila cuando Playwright carga el archivo. Después, el runner ejecuta los tests registrados y reporta cada resultado por separado. Un título como "the price is zero" identifica el caso que falló; `row 3` obliga a contar filas.
 
@@ -195,6 +197,7 @@ test("a product can be found by searching", async ({ page, request }) => {
   await products.search(product.name)
 
   await expect(products.rows).toHaveCount(1)
+  await expect(products.row(product.id)).toBeVisible()
 })
 
 test("the Active filter hides a draft product", async ({ page, request }) => {
@@ -204,6 +207,7 @@ test("the Active filter hides a draft product", async ({ page, request }) => {
   await expect(products.row(product.id)).toBeVisible()
   await products.search(product.name)
   await expect(products.rows).toHaveCount(1)
+  await expect(products.row(product.id)).toBeVisible()
 
   await products.filterByStatus("active")
 
@@ -297,7 +301,7 @@ Playwright rechaza el archivo por un título de test duplicado. Cada título deb
 
 </details>
 
-2. Esta versión del bucle se ejecuta y todas las filas pasan. ¿Por qué sigue estando mal?
+2. Este fragmento abrevia los pasos del formulario con un comentario. Si esos pasos se completan, las filas pueden pasar a pesar de compartir datos incorrectamente. ¿Dónde está el problema?
 
 ```ts
 const values = { name: uniqueName("Valid"), sku: uniqueSku(), price: "12.50", stock: "7" }
@@ -315,7 +319,7 @@ for (const row of invalidInputs) {
 
 El objeto `values` se crea una sola vez y lo comparten todos los tests. `Object.assign` lo cambia, así que cada fila conserva los fallos de las filas anteriores. La tercera fila envía un nombre malo, un SKU malo y un precio malo, pero solo comprueba el mensaje del precio, así que pasa.
 
-Cada test debe construir sus propios valores, como hace la lección con `{ ...base, ...row.change }` dentro del test. Además, el SKU es el mismo para todos los tests, porque se genera una sola vez.
+Cada test debe construir sus propios valores, como hace la lección al escribir los valores por defecto y luego `...row.change` dentro del test. Además, el SKU es el mismo para todos los tests, porque se genera una sola vez.
 
 </details>
 

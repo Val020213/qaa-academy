@@ -29,10 +29,10 @@ La tienda usa esta forma para los ids de sus elementos interactivos:
 
 Los conteos y mensajes de error también tienen ids porque los tests los comprueban.
 
-Si una tabla muestra diez productos, `page.getByText("Delete")` encuentra diez botones. Al intentar hacer clic, Playwright exige una sola coincidencia y falla:
+Si una tabla muestra diez productos, `page.getByText("Delete")` encuentra diez botones. Al intentar hacer clic, Playwright exige una sola coincidencia y falla. La primera línea del error es:
 
 ```text
-Error: strict mode violation: getByText('Delete') resolved to 10 elements
+locator.click: Error: strict mode violation: getByText('Delete') resolved to 10 elements:
 ```
 
 Para elegir el botón de un producto, el test necesita identificar el registro.
@@ -150,7 +150,7 @@ El resultado es:
 /row/ matches 2
 ```
 
-El primer patrón es exacto. El segundo es demasiado amplio: recoge nombres, botones y conteos. El tercero también incluye filas de pedidos.
+El primer patrón selecciona solo el prefijo de las filas de productos, no un id completo. El segundo es demasiado amplio: recoge nombres, botones y conteos. El tercero también incluye filas de pedidos.
 
 ## Un diálogo compartido, un id compartido
 
@@ -159,6 +159,8 @@ La tienda reutiliza el diálogo de confirmación en la lista y en la página de 
 ![Delete abre un diálogo. Cancelar conserva la fila; confirmar la quita y muestra un mensaje.](/clips/shop-delete-dialog.webm)
 
 El componente está en `apps/practice-shop/components/confirm-delete-dialog.tsx`. Usa el `AlertDialog` de shadcn, con el rol `alertdialog`, fuera de la tabla en el DOM.
+
+![Árbol simplificado del DOM: el botón de confirmación está fuera de la fila.](/images/04-dialog-scope.es.svg)
 
 El clic en el botón de una fila abre el diálogo; el clic en el botón compartido confirma el borrado. La búsqueda `page.getByTestId("products-row-12").getByTestId("confirm-delete-button")` encuentra cero elementos porque busca dentro de la fila. Busca el botón del diálogo desde `page`.
 
@@ -178,11 +180,11 @@ El enlace de producto nuevo muestra dónde colocarlo:
 
 `Button asChild` aplica el estilo al `Link` que contiene. El elemento del DOM es un `<a>` y el test id queda en ese enlace. Lo mismo ocurre con Edit en cada fila: `getByRole("button", { name: "Edit" })` no encuentra ese enlace.
 
-Agregar `data-testid` no cambia cómo funciona ni cómo se ve la página.
+Por sí solo, `data-testid` no agrega estilo ni comportamiento. El JavaScript y el CSS de la app sí pueden leerlo o seleccionarlo.
 
 ## Test ids, roles y etiquetas
 
-Muchos equipos prefieren roles y etiquetas, porque también comprueban que la página sea accesible. Este equipo eligió test ids. La regla en `apps/practice-shop/e2e/README.md` dice:
+Los locators por rol y etiqueta buscan el rol o nombre accesible del elemento. Encontrarlo no demuestra que toda la página sea accesible. Este equipo eligió test ids. La regla en `apps/practice-shop/e2e/README.md` dice:
 
 ```text
 Select with `page.getByTestId(...)`. No CSS, no XPath, no text selectors for things you click.
@@ -209,13 +211,13 @@ La segunda usa un selector CSS de atributo. `getByTestId` usa `data-testid` por 
 use: { testIdAttribute: "data-qa" },
 ```
 
-Los atributos que empiezan con `data-` están reservados por HTML para tu propia información. El navegador los ignora. Por eso son seguros para los tests.
+Los atributos que empiezan con `data-` están reservados por HTML para tu propia información. El navegador los conserva en el DOM y los expone al JavaScript mediante `dataset`; no les asigna una acción ni un estilo propios.
 
 ### El alcance de un test id
 
 Un botón puede tener `data-testid="products-new"` y aun así carecer de un nombre accesible. Encontrarlo por su test id no comprueba ese nombre.
 
-Usa test ids para lo que no tiene un buen nombre, como una fila de una tabla, y usa roles y etiquetas donde la página tiene nombres reales.
+En esta tienda, sigue la convención de test ids para las acciones. Otro equipo puede elegir roles y etiquetas para controles con nombres accesibles y test ids para registros sin un nombre que los identifique.
 
 ## Práctica
 

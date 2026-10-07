@@ -32,7 +32,7 @@ El **selector de elementos** es el icono de flecha arriba a la izquierda de las 
 
 Mira cómo las DevTools encuentran el campo de correo y muestran su `data-testid`.
 
-![Elements en las DevTools encuentra el campo de correo y muestra su atributo data-testid.](/clips/devtools-elements.webm)
+![Elements en las DevTools encuentra el campo de correo y muestra su atributo data-testid. El clip usa el puerto 5186; en la práctica usarás 5180.](/clips/devtools-elements.webm)
 
 Cuando seleccionas un elemento, revisa:
 
@@ -68,7 +68,7 @@ Una Console sin errores no prueba que la página sea correcta. El código puede 
 
 Cuando una página carga un archivo o pide datos a un servidor, el navegador envía una **petición** (*request*). El panel **Network** (Red) muestra una fila por petición. La carga de la página puede incluir peticiones separadas para el documento, los scripts, los estilos y los datos.
 
-1. Abre el panel Network **antes** de la acción que quieres estudiar. Solo graba mientras está abierto.
+1. Abre el panel Network **antes** de la acción que quieres estudiar. Las DevTools registran las peticiones mientras están abiertas y la grabación está activa, aunque cambies de panel.
 2. Haz la acción en la página, por ejemplo hacer clic en un botón.
 3. Revisa las peticiones de la lista.
 
@@ -85,7 +85,7 @@ Para ver las llamadas de datos, haz clic en el filtro **Fetch/XHR**. Luego haz c
 - **Payload** (carga): los datos que envió la página. Aparece en las peticiones que envían datos.
 - **Response** (respuesta): los datos que el servidor devolvió.
 
-Sin **Preserve log** (conservar registro), la lista se borra cuando la página cambia, y la petición que querías ya no está. Actívalo antes de iniciar sesión para conservar la petición y su respuesta después de la navegación.
+Sin **Preserve log** (conservar registro), la lista se borra cuando se carga un documento nuevo, y la petición que querías ya no está. Actívalo antes de iniciar sesión para conservar la petición y su respuesta después de la navegación.
 
 ## Investigar un bug con las DevTools
 
@@ -103,7 +103,7 @@ Elige el panel según el síntoma. Si una página no responde a una acción, rev
 
 Haz clic derecho en una petición del panel Network, elige **Copy** (Copiar) y luego **Copy as cURL**. Obtienes un comando que repite la petición y que puedes adjuntar a un reporte de bug.
 
-Una petición copiada puede incluir tu cookie, y una cookie puede ser una contraseña. Quítala antes de pegarla en un ticket que lee mucha gente.
+Una petición copiada puede incluir la cookie de sesión. En la tienda contiene un token que permite usar tu sesión. Quítala antes de pegarla en un ticket que lee mucha gente.
 
 ### Simular una conexión lenta
 
@@ -129,7 +129,7 @@ pnpm shop:dev
 
 ## Reto
 
-Escribe un test de Playwright que abra la página Practice o una página de lección, registre cada petición del navegador e informe lo que vio. El test debe fallar cuando una petición falla.
+Escribe un test de Playwright que abra la página Practice o una página de lección, registre cada petición del navegador e informe lo que vio. El test debe fallar cuando una petición no se completa por un fallo de transporte. Una respuesta HTTP como 404 o 500 no dispara `requestfailed`.
 
 Crea el archivo `e2e/challenges/devtools-network.spec.ts`. Importa `test` y `expect` desde `../lib/test`. No uses `waitForTimeout`.
 
@@ -153,7 +153,7 @@ Obtienes 5. Cada fila agrega una casilla de verificación, que es un elemento `i
 
 </details>
 
-2. El dashboard de la tienda muestra "Products 0". La Console está limpia. El panel Network muestra la petición `stats` con estado `200`, y su Response dice `"products": 24`. ¿Dónde está el bug y por qué no viste un error rojo?
+2. Sabes que la tienda tiene 24 productos, pero el dashboard muestra "Products 0". La Console está limpia. El panel Network muestra la petición `stats` con estado `200`, y su Response dice `"products": 24`. ¿Dónde está el bug y por qué no viste un error rojo?
 
 <details>
 <summary>Respuesta</summary>

@@ -24,7 +24,7 @@ El nombre entre llaves indica qué fixture necesita el test. Playwright incluye 
 
 - `page`: una pestaña del navegador. Cada test recibe una nueva.
 - `request`: un cliente que envía peticiones HTTP al servidor, sin navegador. Lo usas para llamadas a la API.
-- `context`: el perfil del navegador que es dueño de la página. Guarda las cookies. Un test recibe un contexto.
+- `context`: el contexto aislado del navegador que es dueño de la página. Guarda las cookies. Cada test recibe uno nuevo.
 - `browser`: el programa del navegador en sí. Rara vez lo necesitas.
 
 En la configuración de la tienda, `use.storageState` carga las cookies guardadas del administrador. Así `page` y `request` ya tienen la sesión iniciada.
@@ -66,7 +66,11 @@ console.log("E end")
 
 Node.js imprime `A setup`, `C test uses lamp`, `D caught` y `E end`. El error rechaza la promesa de `use`, así que `await use("lamp")` lanza el error y la función termina sin imprimir `B cleanup`. Para ejecutar la limpieza en ese caso, necesitas `try ... finally`.
 
-El runner de Playwright mantiene pendiente `await use(value)` mientras el test usa el valor. Cuando termina el test, el runner permite que el fixture continúe con la limpieza, incluso si registró un fallo del test. Este programa imita esa separación: guarda el error del test sin interrumpir el fixture.
+El runner de Playwright mantiene pendiente `await use(value)` mientras el test usa el valor. Cuando termina el test, el runner permite que el fixture continúe con la limpieza, incluso si registró un fallo del test.
+
+![El runner resuelve la promesa de use al terminar el test y reanuda la limpieza del fixture.](/images/04-fixture-lifetime.es.svg)
+
+Este programa imita esa separación: guarda el error del test sin interrumpir el fixture.
 
 ```ts
 type Use<T> = (value: T) => Promise<void>
@@ -150,7 +154,7 @@ El producto se limpia primero para que su limpieza todavía pueda usar al usuari
 Este ejemplo crea `productsPage`, un helper de la página de productos, y `product`, un producto preparado por la API:
 
 ```ts
-import { test as base } from "../test"
+import { test as base, expect } from "../test"
 import { createProduct } from "./api-client"
 import type { Product } from "./api-client"
 import { ProductsPage } from "../pages/products.page"
@@ -168,9 +172,9 @@ export const test = base.extend<ShopFixtures>({
   product: async ({ request }, use) => {
     const product = await createProduct(request)
     await use(product)
-    // Cleanup. The test may have deleted the product already,
-    // so we do not check the status here.
-    await request.delete(`/api/products/${product.id}`)
+    // Accept an already-deleted product; other cleanup failures must fail.
+    const response = await request.delete(`/api/products/${product.id}`)
+    expect([204, 404]).toContain(response.status())
   },
 })
 
@@ -180,8 +184,8 @@ export { expect } from "../test"
 - `base` es el `test` de `lib/test.ts`.
 - `extend<ShopFixtures>` le indica al verificador de tipos los nombres y los tipos de los fixtures nuevos.
 - `productsPage` pide `page` para construir el helper.
-- `product` pide `request` para llamar a `createProduct`, que crea un producto con nombre y SKU únicos.
-- Después de `await use(product)`, el fixture envía la petición de borrado. No comprueba el estado porque el test puede haber borrado el producto.
+- `product` pide `request` para llamar a `createProduct`, que genera un nombre con sufijo aleatorio y un SKU con el contador del worker.
+- Después de `await use(product)`, el fixture envía la petición de borrado. Acepta `204` si lo borró y `404` si el test ya lo había borrado; cualquier otro estado hace fallar la limpieza.
 
 El spec importa el `test` extendido y pide los dos valores:
 
@@ -198,7 +202,7 @@ test("a product made by a fixture is in the list", async ({ productsPage, produc
 
 ### Fixtures que el test pide
 
-> **Nota:** Un fixture se ejecuta solo cuando un test lo pide. Un test que no lista `product` no crea uno.
+> **Nota:** El runner prepara un fixture cuando lo pide el test, un hook o un fixture dependiente. Los fixtures automáticos se preparan sin una petición explícita. En estos dos tests, solo el primero necesita `product`.
 
 ```ts
 test("asks for a product", async ({ page, product }) => {
@@ -221,7 +225,7 @@ Usa `beforeEach` para un paso simple que necesitan todos los tests de un archivo
 | Punto | `beforeEach` | Fixture |
 | --- | --- | --- |
 | Limpieza | Un `afterEach` aparte, lejos del setup | La misma función, después de `use` |
-| Se ejecuta para | Todos los tests del grupo | Solo los tests que lo piden |
+| Se ejecuta para | Todos los tests del grupo | Tests o hooks que lo necesitan, sus dependencias y fixtures automáticos |
 | Compartir | Variables fuera del test | Un valor con tipo entre llaves |
 | Reutilizar en otros archivos | Difícil | Importar `test` |
 
@@ -243,10 +247,10 @@ Cada fixture debe tener un solo trabajo. Separar la creación de un producto, un
 4. En una segunda terminal, ejecuta tu spec:
 
 ```bash
-pnpm shop:e2e products/fixture-practice.spec.ts
+pnpm shop:e2e products/fixture-practice.spec.ts --repeat-each=2
 ```
 
-5. El test debe pasar. Ejecútalo una segunda vez para comprobar que es independiente.
+5. Comprueba que ambas repeticiones pasan con un solo reinicio de datos en el setup. Dos comandos separados reiniciarían los datos dos veces.
 6. Agrega un segundo test en el mismo archivo. Usa solo `{ productsPage }` y comprueba que `productsPage.newButton` es visible después de `goto()`.
 7. Cuando termines, borra los dos archivos, o consérvalos para tus propias notas.
 
@@ -259,11 +263,11 @@ Crea `apps/practice-shop/e2e/challenges/viewer-test.ts` para el fixture y `apps/
 Está terminado cuando:
 
 - El fixture se llama `viewerPage` y extiende el `test` de `lib/test.ts`.
-- Un test que usa `viewerPage` comprueba que `user-role` dice `viewer`, que `products-new` no existe y que el botón de borrar de un producto que creaste tú mismo no existe.
+- Un test que usa `viewerPage` comprueba que `user-role` dice `viewer`, que `products-new` no existe y que la fila de un producto que creaste tú mismo es visible. Comprueba que sus controles `products-edit-<id>` y `products-delete-<id>` no existen.
 - Un segundo test no pide `viewerPage` y comprueba que `user-role` dice `admin` y que `products-new` es visible.
 - Ejecutaste `pnpm shop:e2e challenges/viewer-role.spec.ts` dos veces y ambas ejecuciones pasaron. Los demás specs siguen pasando.
 
-Busca cómo cambiar el usuario solo para un test y cómo se comparten las cookies entre `page` y el fixture `request`: `playwright context clearCookies`, `playwright page.request shares cookies with context`.
+Busca cómo cambiar el usuario solo para un test y cómo comparte cookies `page.request` con `page`, mientras el fixture `request` mantiene las suyas aparte: `playwright context clearCookies`, `playwright page.request shares cookies with context`.
 
 ## Piénsalo bien
 
@@ -284,7 +288,7 @@ product: async ({ request }, use) => {
 
 </details>
 
-2. El equipo agrega una regla: un producto que aparece en un pedido no se puede borrar, y el servidor responde `409`. El fixture `product` ignora el estado de su petición de limpieza. ¿Qué se rompe y qué esconde el fixture?
+2. El equipo agrega una regla: un producto que aparece en un pedido no se puede borrar, y el servidor responde `409`. Otro fixture de producto omite la comprobación del estado de su petición de limpieza. ¿Qué se rompe y qué esconde el fixture?
 
 <details>
 <summary>Respuesta</summary>
