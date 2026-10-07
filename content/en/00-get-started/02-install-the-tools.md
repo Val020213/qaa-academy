@@ -28,7 +28,7 @@ A terminal that was already open does not see programs you installed after it st
 
 ## 1. VS Code
 
-Download the Windows installer from the official VS Code website. Run it and accept the default options.
+Download the Windows installer from the [official VS Code website](https://code.visualstudio.com). Run it and accept the default options.
 
 Open VS Code, then open the terminal with Terminal > New Terminal. It appears at the bottom of the window. Run:
 
@@ -48,7 +48,7 @@ Your numbers will be different, and that is fine.
 
 ## 2. Node.js 24 LTS
 
-Go to the Node.js website, nodejs.org, and download the Windows installer for **24 LTS**. LTS means long-term support: it is the stable version. Run it and accept the default options.
+Go to the Node.js website, [nodejs.org](https://nodejs.org), and download the Windows installer for **24 LTS**. LTS means long-term support: it is the stable version. Run it and accept the default options.
 
 In a new terminal, run:
 
@@ -66,7 +66,7 @@ The numbers after 24 can be different.
 
 ## 3. Git for Windows
 
-Download Git for Windows from the official Git website. Run the installer and accept the default options.
+Download Git for Windows from the [official Git website](https://git-scm.com). Run the installer and accept the default options.
 
 In a new terminal, run:
 

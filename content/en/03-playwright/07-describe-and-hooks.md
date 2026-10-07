@@ -1,45 +1,20 @@
 ---
 title: Describe, hooks and isolation
-summary: Group tests, share set-up with hooks, and understand why every test must stand alone.
-duration: 90 min
+duration: 60 min
 ---
-
-## Start with a puzzle
-
-Look at this file. It has two tests and one shared variable.
-
-```ts
-import { test } from "./lib/test"
-
-let counter = 0
-
-test("first", async () => {
-  counter++
-  console.log("first sees", counter)
-})
-
-test("second", async () => {
-  counter++
-  console.log("second sees", counter)
-})
-```
-
-The config has `fullyParallel: true`. You run the file two times: once with `--workers=1` and once with `--workers=2`. A worker is a process that runs tests.
-
-What do you expect each run to print?
-
-Write down your guess before you read on.
 
 ## Goal
 
-- Predict in which order hooks and tests run.
-- Decide what belongs in a hook, and what belongs in the test.
-- Explain why a test that depends on another test breaks, and how to prove that your tests are independent.
-- Choose between `test.only`, `test.skip` and `test.fixme`, and say why `only` must never be committed.
+Organize related tests and share their set-up without making them depend on each other.
+
+- Group tests with `test.describe` and name them after the behaviour they check.
+- Follow the order of `beforeEach`, the test and `afterEach`.
+- Distinguish browser isolation from variables shared between tests.
+- Use `test.only`, `test.skip` and `test.fixme`.
 
 ## test.describe: group tests
 
-`test.describe` puts related tests in a group. The group has a name.
+`test.describe` brings related tests together under a name.
 
 ```ts
 test.describe("login", () => {
@@ -53,11 +28,11 @@ test.describe("login", () => {
 })
 ```
 
-The report shows the group name before the test name, as in `login › rejects wrong credentials`. Use one group for one feature. In `e2e/playground.spec.ts` the groups are `login`, `test case list` and `slow loading`.
+The report shows the group before the test, as in `login › rejects wrong credentials`. In `e2e/playground.spec.ts` the groups are `login`, `test case list` and `slow loading`.
 
-## beforeEach: steps every test needs
+## Hooks: set-up and teardown
 
-Almost every test in the Practice app starts with `page.goto("/#/practice")`. To avoid writing it again and again, use a **hook**. A hook is code that Playwright runs at a fixed moment.
+A **hook** is a function that Playwright's test runner executes at a particular point in a test. `beforeEach` runs the set-up before each test. If every test needs to open the Practice page, put that navigation in the hook:
 
 ```ts
 test.beforeEach(async ({ page }) => {
@@ -65,23 +40,11 @@ test.beforeEach(async ({ page }) => {
 })
 ```
 
-Inside a group, the hook applies only to the tests of that group. At the top of a file, it applies to all tests in the file.
+Inside a group, the hook applies to the tests in that group. Outside the groups, it applies to every test in the file.
 
-`test.afterEach` runs after every test, even when the test fails. Its function gets the fixtures first (here `{}`, because it needs none) and a second value, `testInfo`, with facts about the test.
+### beforeEach order
 
-```ts
-test.afterEach(async ({}, testInfo) => {
-  console.log(`${testInfo.title}: ${testInfo.status}`)
-})
-```
-
-This prints the test name and its result, for example `starts empty: passed`.
-
-> **Tip:** Put only set-up steps in a hook. Do not put assertions or the main actions of a test there. A reader must see what a test does when they read the test.
-
-### Experiment: the order of hooks
-
-Read this file and write the exact lines you expect, in order, when you run it with `--workers=1`.
+With `--workers=1`, this file shows how hooks from the file and the group combine:
 
 ```ts
 import { test } from "./lib/test"
@@ -115,7 +78,19 @@ inner
 test b
 ```
 
-The outer hook runs before every test in the file. The inner hook runs only for the tests in its group, and after the outer one. So the outer hook is the right place for steps that every test needs, such as opening the page.
+Before each test, the runner executes the outer hook. For the test in the group, it then runs the inner hook followed by the test body.
+
+### afterEach and the test result
+
+`test.afterEach` runs after each test, even when the test fails. The function receives the data Playwright provides as its first argument (here `{}`, because it needs none), and `testInfo` as its second argument.
+
+```ts
+test.afterEach(async ({}, testInfo) => {
+  console.log(`${testInfo.title}: ${testInfo.status}`)
+})
+```
+
+This prints the test name and result, for example `starts empty: passed`.
 
 ## Isolation: every test starts clean
 
@@ -126,13 +101,31 @@ This is called **isolation**. It has two results.
 - A test cannot be broken by what another test did.
 - Tests can run in parallel, at the same time, and in any order.
 
-In the Practice app, one test adds a case. The next test opens the page and the list is empty again.
+In the Practice app, the case list lives in the page's state. When another test opens its page, the list is empty. Each test must create the data it needs without depending on another test.
 
-The team rule follows: each test creates its own data and does not depend on test order.
+### Shared variables and workers
 
-### Experiment: break the rule on purpose
+Browser isolation does not reset variables in the file. A *worker* is a process that runs tests; each process has its own copy of those variables.
 
-Here are two tests that share a variable. It is a bad example.
+```ts
+import { test } from "./lib/test"
+
+let counter = 0
+
+test("first", async () => {
+  counter++
+  console.log("first sees", counter)
+})
+
+test("second", async () => {
+  counter++
+  console.log("second sees", counter)
+})
+```
+
+With `fullyParallel: true` and `--workers=1`, the two tests run one after the other in the same process. The output is `first sees 1` and `second sees 2`. With `--workers=2`, each test usually runs in a different worker, so both print `1`.
+
+The same dependency appears when one test writes a value that another needs:
 
 ```ts
 let caseWasAdded = false
@@ -147,19 +140,11 @@ test("uses the added case", async ({ page }) => {
 })
 ```
 
-Predict: does the second test pass when you run the whole file? Does it pass when you run only the second test, with `-g "uses the added case"`? Run both and check.
-
-### Back to the puzzle
-
-With `--workers=1`, the two tests run one after the other in the same process. The output is `first sees 1` and `second sees 2`. With `--workers=2`, each worker is a separate process with its own copy of the file and of the variable. Usually each test runs in a different worker, so both print `1`.
-
-The same thing breaks the shared variable above. The second test can run in a worker where the first test never ran. Isolation is the reason tests can run in parallel. A test that needs data creates it for itself.
+If you run only the second test with `-g "uses the added case"`, the variable is still `false` and the assertion fails. It can also fail in parallel if the second test runs in a worker where the first never ran.
 
 ## test.only, test.skip and test.fixme
 
-Three tools change which tests run.
-
-`test.only` runs only this test. It is useful to focus on one test while you work.
+`test.only` selects a test so you can work on it without running the others.
 
 ```ts
 test.only("starts empty", async ({ page }) => {
@@ -167,9 +152,7 @@ test.only("starts empty", async ({ page }) => {
 })
 ```
 
-`test.skip` does not run a test. The report shows it as skipped. Use it for a test that does not apply now.
-
-`test.fixme` also skips a test, but it says: "this should work, and it is broken or not finished". The exercise files in this course use `test.fixme`.
+`test.skip` skips a test that does not apply now. `test.fixme` also skips it, but indicates that it is broken or unfinished. The course exercises use `test.fixme`.
 
 ```ts
 test.fixme("known bug: counter after delete", async ({ page }) => {
@@ -177,34 +160,24 @@ test.fixme("known bug: counter after delete", async ({ page }) => {
 })
 ```
 
-> **Careful:** Never commit `test.only`. All other tests would be silently left out, and the build would look green. This project uses `forbidOnly` in `playwright.config.ts`. In CI, a forgotten `only` makes the whole run fail with the message `item focused with '.only' is not allowed due to the 'forbidOnly' option` and the name of the test.
+The report shows skipped tests. Write the reason in the name or in a comment.
 
-For skipped tests, write the reason in the test name or in a comment, so someone can fix it later.
+> **Careful:** Never commit `test.only`: it would leave out the other tests. This project uses `forbidOnly` in `playwright.config.ts`. In CI, a forgotten `only` makes the run fail with the message `item focused with '.only' is not allowed due to the 'forbidOnly' option` and the test name.
 
 ## Name tests as behaviours
 
-The report is a list of what the app does. Write names so that the list reads as documentation.
+A name should state the situation and the result the test checks.
 
 - Good: `rejects wrong credentials`, `adds a case and updates the counter`.
 - Not good: `test 1`, `login test`, `check button`.
 
-A good name says the situation and the result. Use the group name for the feature, so you do not repeat it in the test name.
-
-Follow **one job per test**, as you follow one job per function. If the name needs the word "and" many times, split the test.
+Use the group name for the feature and the test name for one behaviour. If a test checks several distinct behaviours, split it.
 
 ## Go deeper
 
-### Why hooks run in a fixed order
+### Common set-up and test steps
 
-Playwright runs hooks in a clear order. A `beforeEach` outside a group runs first. Then the `beforeEach` inside the group runs. Then the test. You saw this in the experiment above.
-
-### A common wrong idea: "I can share a variable between tests"
-
-A beginner writes shared variables to avoid repeating a step. It works only by luck. With `fullyParallel`, Playwright runs tests in several workers. Each worker is a separate process with its own copy of the file and its own variables. The second test can run in a worker where the first test never ran. It can also run first. The variable is `false`, and the test fails.
-
-### A trade-off: do not hide the story in a hook
-
-`beforeEach` is DRY, "Don't Repeat Yourself": the steps are written once. But a hook that does too much hides what the test is about. Compare:
+Put steps that every test in the group needs in `beforeEach`. Keep the main actions and assertions in the test, so a reader can see what it checks.
 
 ```ts
 import { expect, test, type Page } from "./lib/test"
@@ -226,9 +199,11 @@ test("deleting a case updates the counter", async ({ page }) => {
 })
 ```
 
-Opening the page is the same for every test, so it goes in the hook. Adding a case is a step of this test, so it stays in the test, as a call to a function with a clear name. The reader sees the full story without scrolling up.
+Opening the page is common set-up. Adding and deleting a case are steps of this test. The function lets you reuse the action of adding a case when only some tests need it.
 
-Use a hook for things every test in the group needs. Use a function for steps that only some tests need. Fixtures, in module 4, are the next step for shared set-up.
+### The context does not clear server data
+
+If the Practice app saved its cases on a shared server, a new context would no longer give a clean list. Two tests could see each other's cases and get incorrect counts. Browser isolation does not separate that data.
 
 ## Practice
 
@@ -240,56 +215,33 @@ Use a hook for things every test in the group needs. Use a function for steps th
 pnpm e2e e2e/exercises/03-playwright/07-describe-and-hooks.spec.ts
 ```
 
-4. Look at the last test in the file. Why does it pass even though another test adds a case?
-5. Add `.only` to one test and run the file. Then remove it. Count how many tests ran.
+4. Add `.only` to one test and run the file. Count how many tests ran, then remove it.
 
 Compare with `e2e/exercises/03-playwright/solutions/07-describe-and-hooks.spec.ts` when you finish.
 
 ## Challenge
 
-Write a spec that tests the rules of the case list, and prove that the tests do not depend on each other.
-
-Create the file `e2e/challenges/07-case-list-rules.spec.ts`. Test these rules of the Practice page, and find one more rule yourself by reading `src/practice/CasesPanel.tsx`:
+Create `e2e/challenges/07-case-list-rules.spec.ts` to check these rules of the Practice page. Find one more rule by reading `src/practice/CasesPanel.tsx`:
 
 - A title with only spaces is not added.
 - Pressing Enter in the title field adds the case, as the Add button does.
 - After you delete case 1 and add a new case, the new case does not get id 1.
 - The counter counts all cases, also when the filter hides some of them.
 
-Import `test` and `expect` from `../lib/test`. Use at least two `test.describe` groups and one `beforeEach`. Use your own case titles from a world you like: a zoo, a kitchen, a school.
+Import `test` and `expect` from `../lib/test`. Use at least two `test.describe` groups and one `beforeEach`.
 
 It is done when:
 
-- The file has at least five tests, and each test has a name that says a behaviour.
+- The file has at least five tests with names that state the behaviour they check.
 - No test uses a variable written by another test.
-- `pnpm e2e e2e/challenges/07-case-list-rules.spec.ts --repeat-each=5 --workers=4` passes every run.
-- Running one test alone, with `-g "<part of its name>"`, also passes.
+- `pnpm e2e e2e/challenges/07-case-list-rules.spec.ts --repeat-each=5 --workers=4` passes every run, and each test also passes when run alone.
 - If you break one expected value on purpose, exactly that test fails. Then you fix it.
 
-You will need something this lesson did not teach: how to press a key in a field, and how to run a file many times at once. Search for: `playwright locator press Enter`, `playwright repeat-each workers command line`.
+Search for how to repeat a file's test run and choose how many workers to use: `playwright repeat-each workers command line`. To look up how to press Enter: `playwright locator press Enter`.
 
 ## Think it through
 
-1. Predict the output order with `--workers=1`. Say why.
-
-```ts
-test.beforeEach(async () => { console.log("outer") })
-
-test.describe("zoo", () => {
-  test.beforeEach(async () => { console.log("inner") })
-  test("feeds the lion", async () => { console.log("lion") })
-})
-
-test("opens the gate", async () => { console.log("gate") })
-```
-
-<details><summary>Answer</summary>
-
-The tests run in the order they are in the file, so the group comes first. The output is `outer`, `inner`, `lion`, `outer`, `gate`. The outer hook runs before each of the two tests. The inner hook is part of the `zoo` group, so it does not run for `gate`.
-
-</details>
-
-2. This hook has a bug. The code runs. What is wrong, and why can it be hard to see?
+1. This hook has a bug. What could happen to the steps that follow it?
 
 ```ts
 test.beforeEach(async ({ page }) => {
@@ -299,60 +251,25 @@ test.beforeEach(async ({ page }) => {
 
 <details><summary>Answer</summary>
 
-There is no `await` before `page.goto`. The hook ends before the page is open, and the navigation runs on its own. Later steps can start too early. The test often still works, because later steps wait for their elements, but that is luck. If the address is wrong, the failure can show up later as a message about a missing element, not about the real cause.
+There is no `await` before `page.goto`. The hook ends without waiting for navigation to complete, so later steps can start too early. Locator waits can hide the bug in some runs.
 
 </details>
 
-3. Two versions. Version A: a `beforeEach` adds one case in every test of the group `test case list`. Version B: tests call `addCase(page, "title")` when they need a case. The group has a test named "starts empty". Which version is better here, and what would make you choose the other?
+2. Version A adds a case in the `beforeEach` of the `test case list` group. Version B calls `addCase(page, "title")` only in tests that need a case. The group includes a test named "starts empty". Which version makes that test fail?
 
 <details><summary>Answer</summary>
 
-Version B is better here. In Version A, the test "starts empty" cannot be written, because the hook already added a case. Also, the reader of each test does not see where the case came from. If every test in the group needed exactly the same case, and nothing else, Version A would be shorter and fine. The choice depends on how many tests need the same data.
+Version A, because the hook adds a case before the test checks that the list is empty. Version B leaves that set-up in the tests that need it.
 
 </details>
 
-4. What breaks if the Practice app saved its cases on a server that all tests share, and not in the page?
+3. The `beforeEach` of a group fails because `page.goto` cannot reach the site. Does the test body run?
 
 <details><summary>Answer</summary>
 
-A new browser context no longer gives a clean list, because the data is on the server. Two tests running at the same time can see each other's cases. Counts like `1 of 1 passed` become wrong, and the failures change from run to run. You must now make data unique per test, for example with a title that includes a random part, and check only your own rows. Or you must clean the data through the server before each test.
+No. The hook failure counts as a test failure. Each test that encounters that failure during set-up will fail without running its body.
 
 </details>
-
-5. A teammate asks what isolation is. Explain it in three sentences without using the words "context" or "independent".
-
-<details><summary>Answer</summary>
-
-Example: "Each test gets a fresh browser, with no memory of the other tests. So one test cannot leave something behind that changes the result of another. This is why the tests can run at the same time and in any order." Your words can differ. A good answer says what each test starts with and what that allows.
-
-</details>
-
-6. The `beforeEach` of a group fails because `page.goto` cannot reach the site. What happens to the tests in that group, and what does that teach you about what to put in a hook?
-
-<details><summary>Answer</summary>
-
-Each test in the group fails, and the body of the test does not run. A failed hook counts as a failure of the test. This is useful: you see one clear error, and not many confusing ones. It also shows that a hook should contain only set-up steps that must work. If a hook does optional work that can fail, many tests fail for a reason that is not about them.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What do "setup" and "teardown" mean in automated testing?**
-   - Search for: `test setup teardown pattern`
-   - Try it: In a scratch spec, add a `beforeEach` and an `afterEach` that print `testInfo.title`. Make one test fail on purpose. Does the `afterEach` still run for the failed test?
-   - A good answer explains: what each one does, why a test should leave things as it found them, and how this compares to `beforeEach` and `afterEach`.
-
-2. **Why are order-dependent tests a problem for a QA team?**
-   - Search for: `order dependent tests flaky test independence`
-   - Try it: Run the shared-variable example from this lesson with `--workers=1`, then with `--workers=4`, then only the second test with `-g`. Write down the result of each run.
-   - A good answer explains: what an order-dependent test is, how it breaks when tests run in parallel or in another order, and how to fix it.
-
-3. **What does `test.describe.configure({ mode: "serial" })` do in Playwright, and why does the documentation recommend against it?**
-   - Search for: `playwright serial mode describe configure`
-   - Try it: Put three tests in a serial group. Make the first one fail. Run the file. What happens to the other two? Then remove the serial line and run again.
-   - A good answer explains: how serial mode changes the way tests run, what happens when one test fails, and why independent tests are better.
 
 ## Next step
 

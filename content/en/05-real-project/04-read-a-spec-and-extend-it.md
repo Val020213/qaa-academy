@@ -1,29 +1,20 @@
 ---
 title: Read a spec and extend it
-summary: Read the orders spec line by line, predict what the page offers, add the test "an admin cancels a pending order", and update COVERAGE.md.
-duration: 90 min
+duration: 75 min
 ---
-
-## Start with a puzzle
-
-A teammate wrote a test last week for the dashboard: "the card Pending orders shows 3". In the seed data, orders 1001, 1005 and 1009 are pending, so the test passes.
-
-Today the suite already contains a test that marks order 1005 as paid. You are about to add a test that cancels order 1001. You add it, run it, and it passes.
-
-Now think about the dashboard test. Will it still pass? Does it depend on which file runs first? And who is responsible if it fails: you, because you added the new test, or your teammate, because the test was fragile?
-
-Write down your guess before you read on.
 
 ## Goal
 
-- Read an existing spec and explain each part.
-- Predict which controls a page offers from its code, before you run anything.
-- Pick data that no other test uses, and say why.
-- Add one new test next to the existing ones, and update `COVERAGE.md`.
+You will extend the orders spec with a cancellation test and record the new coverage.
+
+- Read the setup, action and assertions in an existing test.
+- Identify the available actions from the page code.
+- Choose an order that no other test changes.
+- Add the test and update `COVERAGE.md`.
 
 ## Read the spec
 
-Open `apps/practice-shop/e2e/orders/orders.spec.ts`. It has two tests. Read the second one first. Here the first test is left out.
+Open `apps/practice-shop/e2e/orders/orders.spec.ts`. It has two tests; the second is shown here.
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -45,19 +36,21 @@ test.describe("Orders", () => {
 })
 ```
 
-The first test (the status filter) follows the same shape. Look at the shape of this one: **Arrange, Act, Assert**.
+In this test, **Arrange, Act, Assert** breaks down as follows:
 
 - Arrange: open `/orders` and check the order is `pending`.
 - Act: click the button.
 - Assert: the status is `paid` and the button is gone.
 
-The first assertion is a **guard**. It proves the data is what you expect before you act.
+The first assertion is a **guard**: it checks the status the test needs before the click. If an earlier run left the order paid, the test fails there and shows the unexpected status.
 
-Notice what the test does not say. It does not say which CSS class the button has, or which component draws the table. It describes what a user sees: a status, a button, a changed status. This is the rule **test what the user sees, not how the code is built**. The page was rebuilt with new components, and these tests did not change, because the test ids and the texts stayed the same.
+Without the guard, the click would fail with "element not found" for the button that no longer exists.
+
+The assertions check visible behavior: the status changes and the action that is no longer allowed disappears. A component change can preserve these tests if it keeps the test ids and texts.
 
 ## Where the buttons come from
 
-Before you write the new test, predict: what actions does a pending order have? A paid order? A shipped one? Write your answers down. Now read the real rule in `apps/practice-shop/app/(dashboard)/orders/page.tsx`:
+Read the rule in `apps/practice-shop/app/(dashboard)/orders/page.tsx`:
 
 ```tsx
 const NEXT_STEPS: Record<OrderStatus, { status: OrderStatus; label: string; testId: string }[]> = {
@@ -74,13 +67,17 @@ const NEXT_STEPS: Record<OrderStatus, { status: OrderStatus; label: string; test
 }
 ```
 
-Each button gets the test id `${step.testId}-${order.id}`. So the cancel button of order 1001 is `orders-cancel-1001`. A pending order has two buttons, a paid one has two, and shipped or cancelled orders have none. Reading code like this is a skill: you find the rule in one place and your tests will not guess.
+The page loops over the list for each order's status to show the admin's actions. A pending order has two buttons, a paid one has two, and shipped or cancelled orders have none.
 
-## Why the order ids matter
+Each button gets the test id `${step.testId}-${order.id}`. The cancel button for order 1001 is `orders-cancel-1001`.
 
-An order status only moves forward. After a test marks an order as paid, it cannot be pending again. So each test needs its own order. The comment at the top of the spec says so.
+After the click, the page sends the change to the server with PATCH and fetches the orders again with `load()`. The status the test checks comes from that new read.
 
-The seed data has orders 1001 to 1012. They cycle: pending, paid, shipped, cancelled.
+## Choose the order
+
+An order status only moves forward. After marking it as paid, the API does not allow it to return to pending. Reserve a different order for each test that changes its status.
+
+The seed data contains orders 1001 to 1012:
 
 | Status | Order ids |
 | --- | --- |
@@ -89,27 +86,35 @@ The seed data has orders 1001 to 1012. They cycle: pending, paid, shipped, cance
 | shipped | 1003, 1007, 1011 |
 | cancelled | 1004, 1008, 1012 |
 
-The existing tests use 1003 and 1004 (the filter test) and 1005 (mark as paid). Search the spec for `1001`. It does not appear. Order 1001 is pending and free, so your test will use it.
+The existing tests use 1003 and 1004 for the filter and 1005 for marking as paid. Order 1001 is pending and available for cancellation.
 
-> **Tip:** Before you pick data, search all specs for the id. Press `Ctrl+Shift+F` in VS Code.
+Before choosing it, search all specs for `1001` with `Ctrl+Shift+F` in VS Code. The spec comment should record which test uses it.
+
+### The effect on the dashboard
+
+The card `stat-pending-orders` counts pending orders: 3 in the seed data, 2 after 1005 is paid and 1 after 1001 is cancelled. A test that always expects 3 depends on running before those changes.
+
+Playwright runs files in a fixed order, so it may pass for months and then fail the day someone renames a folder.
+
+`dashboard.spec.ts` checks that the card shows a number with `/^\d+$/`. If you need to check an exact total, prepare the data that determines that total inside the test.
 
 ## Step by step
 
-Plan the test in plain words first, before you code. This is **pseudocode**: steps in your own language.
+Write the test's pseudocode before adding it to the file.
 
-**Step 1.** Write the test name as a sentence a user would say: "an admin cancels a pending order".
+**Step 1.** Use the name "an admin cancels a pending order".
 
-**Step 2.** Open the page and guard. Order 1001 must be `pending`.
+**Step 2.** Open the page and check that order 1001 is `pending`.
 
-**Step 3.** Click the button. The test id is `orders-cancel-1001`.
+**Step 3.** Click `orders-cancel-1001`.
 
-**Step 4.** Assert the result. The status is `cancelled`. Both buttons are gone, because a cancelled order is final.
+**Step 4.** Check that the status is `cancelled` and both buttons are gone. The test should check the cancellation rule; the badge colour and table header are outside that behavior.
 
-**Step 5.** Update the comment at the top, so the next person knows 1001 is taken.
+**Step 5.** Update the opening comment to reserve order 1001.
 
 ## The full spec
 
-This is the whole file after your change.
+This is the file after adding the test:
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -156,31 +161,17 @@ test.describe("Orders", () => {
 
 ## Update COVERAGE.md
 
-A test without a coverage note is half done. Open `apps/practice-shop/e2e/COVERAGE.md`.
+Open `apps/practice-shop/e2e/COVERAGE.md` to record the behavior the suite now tests.
 
 In the table, change the Orders row so it says: "Status filter, admin marks a pending order as paid, admin cancels a pending order".
 
-In "Not covered yet", delete the line "Cancelling an order." The gap is now closed.
-
-### Back to the puzzle
-
-The dashboard test is fragile. The card `stat-pending-orders` counts the orders that are pending. Each order test lowers it by one: 3 in the seed, 2 after 1005 is paid, 1 after 1001 is cancelled. The test "the dashboard shows 3" passes only if it runs before the order tests. Playwright runs files in a fixed order, so it may pass for months and then fail the day someone renames a folder.
-
-So who is responsible? Nobody has to be blamed. The real lesson is that a test that reads shared data depends on every test that writes it. The better test checks what it controls: for example, that the card shows a number, as `dashboard.spec.ts` does with `/^\d+$/`. If you must check an exact number, create the data in the test.
+In "Not covered yet", delete the line "Cancelling an order."
 
 ## Go deeper
 
-### Why the guard line exists
+### Extend the filter with a data table
 
-Look at the first assertion in the cancel test: the status of 1001 is `pending`. Imagine you removed it. If an earlier run left 1001 cancelled, the click would fail with "element not found" for `orders-cancel-1001`. That error does not say why. The guard turns it into a clear message: expected `pending`, received `cancelled`. A good test tells you what is wrong, not only that something is wrong.
-
-### A wrong idea: "more assertions make a better test"
-
-Beginners often assert everything they can see. Then a small, harmless change breaks ten tests. Assert what the test is about. The cancel test checks the status, and that both buttons are gone, because that is the rule. It does not check the colour of the badge, or the table header.
-
-### How it shows up in real QA automation work
-
-The filter test checks one status. You may want to check all of them. You could copy the test three times. Instead, write the test body once and loop over a list of data:
+You can extend filter coverage using the same steps for several statuses. This example uses orders that the existing tests and the new cancellation test do not change:
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -207,11 +198,11 @@ test.describe("Orders filter by status", () => {
 })
 ```
 
-This is **DRY**: Don't Repeat Yourself. One test body, many inputs. The loop is the idea you learned as "loops and arrays of data". Each test needs a different name, so the name uses `status`. These orders are never changed by other tests, so they are safe. The rows of data come from **equivalence classes**: one example for each group of inputs that should behave the same.
+Each row gives the selected status, an order that should stay visible and one that should disappear. The name includes `status` to identify the case in the report.
 
-### The limit of DRY
+### Keep the shared steps
 
-In a test, a clear story matters more than the shortest code. If the loop body grows many `if` lines, stop. Two plain tests are better than one clever test that nobody can read. Use a loop when the steps are the same and only the data changes. This is **KISS** at work: keep it simple.
+Use a loop while only the data changes. If the cases need different actions and the body fills with `if` lines, write separate tests so each sequence can be read in full.
 
 ## Practice
 
@@ -223,28 +214,23 @@ In a test, a clear story matters more than the shortest code. If the loop body g
 pnpm --filter practice-shop e2e e2e/orders/orders.spec.ts -g "cancels"
 ```
 
-4. Run the whole file. Then run the whole suite twice. Both runs must pass.
+4. Run the whole file. Then run the whole suite twice. Both runs must pass; the setup resets the data at the start of each run.
 5. Update `COVERAGE.md` as described.
-
-> **Careful:** Run the file twice. Each run resets the data, so the test must pass again with fresh data.
 
 ## Challenge
 
-The shop says that a viewer is read only. You know two places where this rule must hold: the page and the API. Your task: write a test that proves both for the orders page.
+Check that a viewer cannot change orders through either the page or the API.
 
-Create `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` with one test. The test signs in as the viewer and opens `/orders`. It checks that order 1009 is visible, that it has no **Mark as paid** and no **Cancel** button, and that a direct request to change this order is refused by the server with the status the shop uses for "known user, not allowed". The test must not sign out of the shared admin session, and it must not change any data.
+Create `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` with one test. Sign in as the viewer and open `/orders`. Check that order 1009 is visible, with no **Mark as paid** or **Cancel** buttons. Send a request to change it and check that the server refuses it for lack of permission. The test must not change data or sign out of the shared admin session.
 
 It is done when:
 
-- The test passes, and it passes when you run the file twice in a row.
+- The test passes when you run the file twice in a row.
 - The test never signs out. The text `logout-button` does not appear in your file.
-- The refused request is sent from inside the test, and the test checks both the status code and that order 1009 is still `pending` on the page afterwards.
-- You ran the same test once as admin on purpose, saw it fail, and then put the viewer back. A test you have never seen fail is a test you cannot trust.
-- You used order 1009 and not 1005 or 1001, and you can say why in one sentence in a comment.
+- The request is sent from the test, which checks the status code and that order 1009 is still `pending` on the page afterwards. A comment explains why you use 1009 rather than 1005 or 1001.
+- You ran the same test once as admin on purpose, saw it fail and then put the viewer back.
 
-You will need something this lesson did not teach: how to be a different user inside one test, and how to send a request from the test itself. Search for: `playwright override storageState in a test`, `playwright page.request patch`, `playwright apirequestcontext cookies shared with page`. Look at `loginViaApi` in `lib/fixtures/api-client.ts` and at the sign out test in `auth/auth.spec.ts` for hints.
-
-> **Tip:** You may ask an AI assistant for help. But you must run the code, and you must be able to explain every line to a teammate. Never keep code you cannot explain. Ask the assistant to explain what it wrote, then check that against the documentation.
+Search for: `playwright override storageState in a test`, `playwright page.request patch`, `playwright apirequestcontext cookies shared with page`. Look at `loginViaApi` in `lib/fixtures/api-client.ts` and the sign out test in `auth/auth.spec.ts`.
 
 ## Think it through
 
@@ -258,70 +244,21 @@ test("an admin cancels a pending order", async ({ page }) => {
 })
 ```
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-The `await` is missing before `expect`. The assertion returns a promise that nobody waits for. Without `await`, the check is not joined to the test. It may start to poll, but the test does not wait for it. The check then fails when the test ends and the test is cleaned up, or it is simply not reported at the right place. So a wrong status may not fail the test in a clear way. A lint rule can catch this mistake, but only if the team turns it on. Always write `await expect(...)` for web-first assertions. The code looks right, which is why this bug is dangerous.
-
-</details>
-
-2. Version A: three separate tests for the filter (paid, shipped, cancelled). Version B: one loop over a list. Which is better here, and what would make you choose A?
-
-<details><summary>Answer</summary>
-
-B is better here because the steps are the same and only the data changes, and a new status needs one new line. You would choose A if the three cases needed different steps, for example if `cancelled` needed a check for an empty message. Then the loop would grow `if` lines, and plain tests are easier to read. The test names in the report also matter: with B, each name must carry the data, or you cannot tell which row failed.
+The `await` is missing before `expect`. The assertion returns a promise that nobody waits for. It may start to poll, but the test does not wait for it. So a wrong status may not fail the test in a clear way. Always write `await expect(...)` for web-first assertions.
 
 </details>
 
-3. What breaks if the business changes the rule: "a cancelled order can be reopened as pending"?
+2. Two admins press **Cancel** for order 1001 at nearly the same time, in two browser windows. Predict what the second admin sees, and why.
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-The comment at the top of the spec becomes false. The table of orders is still a good starting point, but the rule "each test needs its own order" is no longer needed for the cancel test, because the test could reopen the order at the end. The assertion `toHaveCount(0)` for the buttons of a cancelled order would fail, since a new button would exist. The guard line would still be useful. When a rule changes, tests that describe the old rule must change first, and a failing test is how you find them.
-
-</details>
-
-4. Two admins press **Cancel** for order 1001 at nearly the same time, in two browser windows. Predict what the second admin sees, and why.
-
-<details><summary>Answer</summary>
-
-The first request changes the order to `cancelled`. The second request arrives for an order that is already cancelled, and the server answers 409 with the message "An order that is cancelled cannot become cancelled." The page catches this error and shows it in the red message with the test id `orders-error`. Nothing breaks, but the second admin sees an error for something that already did what they wanted. This is a good edge case for a new test, since it uses the API to cancel first and the page second.
+The first request changes the order to `cancelled`. The second request arrives for an order that is already cancelled, and the server answers 409 with the message "An order that is cancelled cannot become cancelled." The page catches this error and shows it in the red message with the test id `orders-error`.
 
 </details>
-
-5. Explain the guard line to a teammate in three sentences. Do not use the words "check" or "verify".
-
-<details><summary>Answer</summary>
-
-Before the test acts, it reads the status of the order and compares it to what it needs. If the data is already different, the test stops with a message that names the real problem. Without it, the click would fail later with a vague message about a missing element. The line costs one row of code and saves minutes of searching.
-
-</details>
-
-6. Should the cancel test also read the order from the API after the click, to confirm the server saved it? There is no single right answer.
-
-<details><summary>Answer</summary>
-
-If the page re-reads the data from the server after the change, the new status on the screen already proves that the server saved it. In the shop, `load()` runs again after the PATCH, so the UI is enough. An extra API read would test the same thing twice and tie the test to the API shape. It would be useful if the page showed the new status without asking the server, because then the screen could be wrong. The choice depends on what the page really does, and on how much a missed save costs.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What is the Arrange, Act, Assert pattern in testing?**
-   - Search for: `arrange act assert pattern unit testing`
-   - Try it: open `e2e/products/products.spec.ts`. Choose one test and add the comments `// Arrange`, `// Act` and `// Assert` before the matching lines. Find one test where the Arrange part is hidden inside a helper.
-   - A good answer explains: the three parts of a test and why keeping them separate makes a test easier to read.
-
-2. **What is data-driven testing, and when is it better than writing separate tests?**
-   - Search for: `data-driven testing parameterized tests`
-   - Try it: copy the loop example from this lesson into a temporary file `e2e/orders/filter-loop.spec.ts`. Run it, read the test names in the report, then add a fourth row of your own and run again. Delete the file when you finish.
-   - A good answer explains: how one test body runs with many inputs, and one case where separate tests are clearer.
-
-3. **Why do testers say each test should be independent of the others?**
-   - Search for: `test independence isolation automation`
-   - Try it: run your cancel test, then open `/dashboard` and read the Pending orders card. Run `fetch("/api/test/reset", { method: "POST" }).then((r) => r.json())` in the browser Console, reload the dashboard, and compare the two numbers.
-   - A good answer explains: what can go wrong when tests depend on each other, and one way to make a test independent.
 
 ## Next step
 

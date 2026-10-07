@@ -15,6 +15,10 @@ const STORAGE_KEY = "qaa-academy:locale"
 
 const messages = {
   en: {
+    "media.enlarge": "Enlarge image: {caption}",
+    "media.fullscreen": "View video full screen",
+    "media.viewer": "Image viewer",
+    "media.close": "Close",
     "nav.course": "Course",
     "nav.practice": "Practice app",
     "nav.main": "Main",
@@ -43,6 +47,10 @@ const messages = {
     "home.github": "Get the code on GitHub",
   },
   es: {
+    "media.enlarge": "Ampliar imagen: {caption}",
+    "media.fullscreen": "Ver video en pantalla completa",
+    "media.viewer": "Visor de imágenes",
+    "media.close": "Cerrar",
     "nav.course": "Curso",
     "nav.practice": "Practice app",
     "nav.main": "Principal",

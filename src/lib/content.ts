@@ -186,6 +186,9 @@ const markdown = new Marked({
       return `<pre data-lang="${language ?? "text"}" tabindex="0"><code>${html}</code></pre>`
     },
     image({ href, text }) {
+      if (href.startsWith("/icons/")) {
+        return `<img class="tech-icon" src="${href}" alt="" aria-hidden="true" width="20" height="20">`
+      }
       // A lesson shows a screen recording with the image syntax:
       //   ![What the clip shows](/clips/name.webm)
       // The text becomes the caption and the label for screen readers.

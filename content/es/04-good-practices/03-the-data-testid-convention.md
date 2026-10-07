@@ -1,109 +1,52 @@
 ---
 title: La convención data-testid
-summary: Aprende la regla del equipo para los test ids, por qué los ids de fila llevan el id del registro y cómo juzgar cuándo un test id es la herramienta correcta.
-duration: 75 min
+duration: 60 min
 ---
-
-## Empieza con un acertijo
-
-Un test encuentra el botón de borrar con `page.getByText("Delete")` y hace clic en él. Durante tres semanas el test pasa. Luego falla con este mensaje:
-
-```text
-Error: strict mode violation: getByText('Delete') resolved to 10 elements
-```
-
-Nadie editó el test. Nadie editó el código de la página. El test corrió en el mismo servidor de antes.
-
-¿Qué cambió? ¿Y el test está mal, o la página está mal?
-
-Escribe tu respuesta antes de seguir leyendo.
 
 ## Objetivo
 
+En esta lección aplicas la convención de test ids de la tienda a controles, filas y diálogos. Revisas cómo elegir el registro correcto aunque cambie el orden de la tabla.
+
 - Nombrar un test id con la regla `<feature>-<element>`.
-- Predecir cuántos elementos encuentra un locator antes de ejecutarlo.
-- Encontrar el bug en un id de fila construido con una posición, y no con un registro.
-- Decidir cuándo un test id es la herramienta correcta, y cuándo es mejor un rol o una etiqueta.
+- Construir ids de fila con el id del registro.
+- Seleccionar grupos por su prefijo y buscar un diálogo fuera de la fila.
+- Distinguir lo que comprueba un test id de lo que comprueba un locator por rol o etiqueta.
 
-## Qué es data-testid
+## La regla de nombres
 
-Un **test id** es un atributo del HTML de la página que existe solo para los tests. Su nombre es `data-testid`. Los usuarios no lo ven.
-
-Playwright encuentra un elemento por su test id con `getByTestId`:
-
-```ts
-await page.getByTestId("products-search").fill("mouse")
-```
-
-El test id no cambia cuando cambia el texto, el color o el diseño de la página. Por eso el test sigue funcionando.
-
-### De vuelta al acertijo
-
-El código de la página y el test no cambiaron, así que cambiaron los datos. Durante tres semanas la página mostró un producto, así que `getByText("Delete")` encontraba un botón. Luego alguien agregó productos, y la página mostró 10 filas, cada una con un botón "Delete". Playwright es estricto: un clic sobre un *locator* (localizador de elementos) que encuentra muchos elementos falla.
-
-El test siempre fue débil. Funcionaba solo porque la página era pequeña. La página no está mal: diez filas con la misma palabra es normal. La lección es que un texto que se repite no es una forma segura de encontrar una sola cosa. El arreglo es un id que nombre la fila, como `products-delete-12`. Verás por qué a continuación.
-
-## La regla
-
-Cada elemento interactivo tiene un `data-testid` con esta forma:
+La tienda usa esta forma para los ids de sus elementos interactivos:
 
 ```text
 <feature>-<element>
 ```
 
-El **feature** (funcionalidad) es la página o el área. El **element** (elemento) es lo que es la cosa. Estos son ids reales de la tienda:
+`feature` nombra la página o el área; `element` nombra el control. Las palabras van en minúsculas, separadas por guiones. Estos son ids reales de la tienda:
 
 - `login-email`, `login-password`, `login-submit`
 - `products-search`, `products-status-filter`, `products-new`
 - `product-name`, `product-sku`, `product-save`
 - `orders-status-filter`
 
-Todas las palabras van en minúscula, con un guion entre ellas. Puedes leer el id y saber dónde está el elemento.
+Los conteos y mensajes de error también tienen ids porque los tests los comprueban.
 
-> **Nota:** "Interactivo" significa que le haces clic, escribes en él o eliges algo de él. En esta tienda, los elementos que solo lees, como un conteo o un mensaje de error, también tienen ids, porque los tests los comprueban.
-
-### Un experimento: ¿cuántos elementos coinciden?
-
-Una regla es fácil de decir. Pruébala con una pregunta. Aquí hay siete ids de la tienda. Antes de ejecutar nada, adivina cuántos encuentra cada patrón.
-
-```ts
-const ids = [
-  "products-row-12",
-  "products-name-12",
-  "products-delete-12",
-  "products-search",
-  "products-count",
-  "product-name",
-  "orders-row-1003",
-]
-
-for (const pattern of [/^products-row-/, /^products-/, /row/]) {
-  console.log(String(pattern), "matches", ids.filter((id) => pattern.test(id)).length)
-}
-```
-
-El resultado es:
+Si una tabla muestra diez productos, `page.getByText("Delete")` encuentra diez botones. Al intentar hacer clic, Playwright exige una sola coincidencia y falla:
 
 ```text
-/^products-row-/ matches 1
-/^products-/ matches 5
-/row/ matches 2
+Error: strict mode violation: getByText('Delete') resolved to 10 elements
 ```
 
-El primer patrón es exacto. El segundo es demasiado amplio: recoge nombres, botones y conteos. El tercero es demasiado suelto: también atrapa los pedidos. Una regla de nombres hace posible un buen patrón. Una regla descuidada lo haría imposible.
+Para elegir el botón de un producto, el test necesita identificar el registro.
 
 ## Los ids de fila incluyen el id del registro
 
-Una tabla tiene muchas filas. Todas se ven igual, así que el id debe decir cuál fila es. El id del registro va al final.
-
-Este es el código real de `apps/practice-shop/app/(dashboard)/products/page.tsx`:
+En `apps/practice-shop/app/(dashboard)/products/page.tsx`, cada fila y su celda de nombre incluyen el id del producto:
 
 ```tsx
 <TableRow key={product.id} data-testid={`products-row-${product.id}`}>
   <TableCell data-testid={`products-name-${product.id}`}>
 ```
 
-Para el producto con id 12, los ids son `products-row-12` y `products-name-12`. El botón de borrar es igual:
+Para el producto con id 12, los ids son `products-row-12` y `products-name-12`. El botón de borrar sigue la misma regla:
 
 ```tsx
 <Button
@@ -118,23 +61,23 @@ Para el producto con id 12, los ids son `products-row-12` y `products-name-12`. 
 </Button>
 ```
 
-Este botón tiene el id `products-delete-12` para el producto 12. En un test construyes el id con el id que conoces:
+En el test construyes el id del botón con el id del producto:
 
 ```ts
 await page.getByTestId(`products-delete-${product.id}`).click()
 ```
 
-### ¿Por qué no usar la posición?
+### La posición puede apuntar a otro producto
 
-Un principiante podría construir los ids de fila con la posición en la lista. Mira esta idea y encuentra qué está mal antes de seguir leyendo:
+Un id construido con la posición depende del orden de la lista:
 
 ```tsx
 <TableRow data-testid={`products-row-${index}`}>
 ```
 
-La tienda ordena primero lo más nuevo. Cuando un test agrega un producto, todas las filas bajan una posición. El id `products-row-0` ahora apunta a otro producto. Un test que hace clic en `products-delete-0` puede borrar la fila equivocada, y ningún error te avisa.
+La tienda ordena primero lo más nuevo. Al agregar un producto al principio, las filas anteriores cambian de posición. Un test que pulsa `products-delete-0` puede borrar otro producto sin que Playwright detecte el error.
 
-Este programa pequeño muestra el mismo efecto:
+Este programa muestra el cambio:
 
 ```ts
 type Product = { id: number; name: string }
@@ -169,131 +112,19 @@ after:  products-row-0 is now New Mouse
 after:  products-row-12 is still Desk Lamp
 ```
 
-El id del registro es estable. El producto 12 es `products-row-12` hoy y mañana. Usa algo que pertenezca al registro, nunca a su lugar en la pantalla.
+`products-row-0` pasa a identificar el producto nuevo. `products-row-12` conserva la identidad de la lámpara porque se construye con su id de registro.
 
-## Un diálogo compartido, un id compartido
+## Seleccionar grupos por prefijo
 
-Algunos elementos existen una sola vez en la página a la vez. El diálogo de confirmación es uno de ellos. La tienda usa un solo diálogo para todos los borrados, también en la página de detalle del producto. Sus botones siempre tienen los mismos ids: `confirm-delete-button` y `confirm-delete-cancel`.
-
-Mira qué pasa con la fila cuando cancelas, y cuando confirmas.
-
-![Delete abre un diálogo. Cancelar conserva la fila; confirmar la quita y muestra un mensaje.](/clips/shop-delete-dialog.webm)
-
-Puedes verlo en `apps/practice-shop/components/confirm-delete-dialog.tsx`. Un comentario al inicio lo explica. El diálogo está construido sobre el `AlertDialog` de shadcn. Se dibuja al final de la página, fuera de la tabla, con el rol `alertdialog`.
-
-Entonces el flujo de borrado tiene dos pasos con dos tipos de ids. El primer clic usa un id de fila. El segundo clic usa el id compartido.
-
-Piensa en esto: el diálogo está fuera de la fila de la tabla. Si escribes `page.getByTestId("products-row-12").getByTestId("confirm-delete-button")`, ¿cuántos elementos esperas encontrar? Cero. La fila no contiene el diálogo. Busca siempre el diálogo compartido desde `page`, no desde una fila.
-
-## Cuando falta un id
-
-A veces necesitas un elemento que no tiene test id. No uses un selector frágil, como una clase CSS o la posición de un elemento.
-
-Tienes dos opciones.
-
-1. **Pregúntale al desarrollador.** Dile qué elemento, qué página y qué nombre sugieres, como `products-export`.
-2. **Agrégalo tú.** Es un atributo en el JSX. Por ejemplo, el enlace de producto nuevo se ve así:
-
-```tsx
-<Button asChild>
-  <Link href="/products/new" data-testid="products-new">
-    New product
-  </Link>
-</Button>
-```
-
-Mira con atención. `Button asChild` significa que el estilo del botón se le da al `Link` de adentro. Entonces el elemento real es una etiqueta `<a>`, y el test id está en ese `<a>`. Lo mismo ocurre con el enlace Edit de cada fila: es un enlace, no un `<button>`. Un test que busca `getByRole("button", { name: "Edit" })` no encuentra nada. Los test ids esconden esta diferencia, y eso es útil. Pero es un recordatorio de que debes saber qué estás pulsando.
-
-Agregar `data-testid` no cambia cómo funciona ni cómo se ve la página. Si no estás seguro de poder cambiar el archivo, pregunta primero.
-
-## Test ids contra roles y etiquetas
-
-Playwright tiene otras formas de encontrar elementos. `getByRole` encuentra un elemento por su significado, como un botón. `getByLabel` encuentra un campo de formulario por su etiqueta visible. `getByText` lo encuentra por las palabras en pantalla.
-
-Muchos equipos prefieren roles y etiquetas, porque también comprueban que la página sea accesible. Este equipo eligió test ids. La regla en `apps/practice-shop/e2e/README.md` dice:
-
-```text
-Select with `page.getByTestId(...)`. No CSS, no XPath, no text selectors for things you click.
-```
-
-Las razones son prácticas.
-
-- El texto cambia. Un botón llamado "Delete" puede pasar a ser "Remove". Todos los tests que usan el texto se romperían.
-- El texto puede aparecer dos veces. En la tabla de productos, cada fila tiene un botón "Delete".
-- Un id es un contrato. Un desarrollador que ve `data-testid` sabe que un test depende de él.
-
-El costo es que los desarrolladores deben agregar los ids. Por eso la regla se aplica a todos los elementos.
-
-Como ahora la tienda usa etiquetas reales, `page.getByLabel("Search")` también encuentra el cuadro de búsqueda. En el código, la etiqueta está junto al campo, unida con el atributo `htmlFor`. Esto funciona porque `<Label htmlFor="products-search">` y el campo tienen ids que coinciden. Las dos formas son válidas. ¿Cuál es mejor? Depende de qué quieres que demuestre el test, y lo pensarás en las preguntas.
-
-### Prueba lo que ve el usuario, no cómo está construido el código
-
-Los locators por rol y por etiqueta dicen lo que ve una persona: "un botón llamado Sign in". Un test id dice cómo marcaron el código los desarrolladores. Cuando un locator por rol falla, muchas veces señala un problema real para el usuario: falta la etiqueta. Un test id nunca falla por esa razón. Usa test ids para lo que no tiene un buen nombre, como una fila de una tabla, y usa roles y etiquetas donde la página tiene nombres reales.
-
-## Profundiza
-
-### Por qué `getByTestId` es solo una búsqueda por atributo
-
-`getByTestId` no es magia. Busca un elemento cuyo atributo `data-testid` tenga ese valor. Estas dos líneas hacen el mismo trabajo:
-
-```ts
-await page.getByTestId("products-search").fill("mouse")
-await page.locator('[data-testid="products-search"]').fill("mouse")
-```
-
-La segunda línea es un selector CSS de atributo. La primera es más corta y más fácil de leer. El nombre `data-testid` es solo el valor por defecto. Si tu equipo ya usa otro nombre, como `data-qa`, una línea en la configuración lo cambia, y la aplicación no cambia:
-
-```ts
-use: { testIdAttribute: "data-qa" },
-```
-
-Los atributos que empiezan con `data-` están reservados por HTML para tu propia información. El navegador los ignora. Por eso son seguros para los tests.
-
-### Cómo ayuda la regla en el trabajo real
-
-Un nombre consistente permite seleccionar grupos. El Page Object usa esta línea:
+En `apps/practice-shop/e2e/lib/pages/products.page.ts`, esta línea selecciona las filas de productos:
 
 ```ts
 this.rows = page.getByTestId(/^products-row-/)
 ```
 
-La parte `/^products-row-/` es una **expresión regular**: un patrón que coincide con texto. Significa "empieza con `products-row-`". Coincide con las 10 filas, y no coincide con `products-name-5`, porque el feature y el elemento son distintos. Una regla de nombres descuidada haría esto imposible.
+La expresión regular `/^products-row-/` busca ids que empiezan con `products-row-`. El prefijo permite elegir filas sin incluir sus botones ni las filas de pedidos.
 
-Esto también es DRY en acción. El texto del id se escribe una vez en la aplicación y una vez en el Page Object. Los specs no lo repiten.
-
-### Un límite de los test ids
-
-Un test id no dice nada sobre el usuario. Un botón puede tener `data-testid="products-new"` y aun así no tener un nombre legible para un lector de pantalla. El test pasa. Un usuario real con un lector de pantalla no puede usarlo. Los test ids hacen los tests estables. No demuestran que la página sea accesible.
-
-## Práctica
-
-1. Abre `apps/practice-shop/app/(dashboard)/products/page.tsx`.
-2. Encuentra cada `data-testid` del archivo. Anota tres que incluyan un id de registro.
-3. Abre `apps/practice-shop/e2e/lib/pages/products.page.ts`. Encuentra dónde se usa `products-search`.
-4. Inicia la tienda con `pnpm shop:dev`. Abre http://localhost:5190 e inicia sesión como `admin@qa-shop.test` con la contraseña `Admin123!`.
-5. Abre la página de productos. En tu navegador, haz clic derecho en un botón Delete y elige **Inspect** (Inspeccionar).
-6. Encuentra el atributo `data-testid` del botón. Comprueba que el número coincide con el producto.
-7. Haz lo mismo con el cuadro de búsqueda de la página. Luego inspecciona un enlace Edit: ¿es un `<button>` o un `<a>`?
-
-## Reto
-
-Escribe un test que audite los test ids de una página. Lee cada id de la página y comprueba que cada uno sigue la regla.
-
-Crea el archivo `apps/practice-shop/e2e/challenges/testid-audit.spec.ts`. Elige tu mundo: audita la página de productos (`/products`) o la de pedidos (`/orders`).
-
-Está terminado cuando:
-
-- El primer test abre tu página, espera a que la tabla sea visible y luego recoge todos los valores de `data-testid` de la página.
-- La regla es una función `isGoodTestId(id: string): boolean` que escribes tú. Acepta palabras en minúscula unidas con guiones, con un número opcional al final.
-- Si un id rompe la regla, el mensaje de fallo lista los ids malos. Un mensaje que dice solo "expected true" no cuenta.
-- Un segundo test no necesita navegador. Llama a tu función con al menos tres ids buenos y cuatro malos, como `Products-New`, `products_new`, `new` y `products-row-`, para que veas que la regla puede fallar.
-- Ejecutaste el spec y leíste el resultado. Si un id de la página real rompe tu regla, escribe en un comentario qué decidiste: ¿la regla es demasiado estricta, o el id está mal?
-
-Vas a necesitar algo que esta lección no enseñó: cómo leer un atributo de muchos elementos a la vez, y cómo escribir un patrón que acepte un número solo al final. Busca: `playwright locator evaluateAll`, `playwright locator all getAttribute`, `regex lowercase letters hyphen digits`.
-
-## Piénsalo bien
-
-1. Mira estos siete ids y estos tres patrones. ¿Cuántos ids encuentra cada patrón?
+Compara tres patrones sobre los mismos ids:
 
 ```ts
 const ids = [
@@ -305,16 +136,112 @@ const ids = [
   "product-name",
   "orders-row-1003",
 ]
-// patterns: /^products-row-/   /^products-/   /row/
+
+for (const pattern of [/^products-row-/, /^products-/, /row/]) {
+  console.log(String(pattern), "matches", ids.filter((id) => pattern.test(id)).length)
+}
 ```
 
-<details><summary>Respuesta</summary>
+El resultado es:
 
-El primero encuentra 1 (`products-row-12`). El segundo encuentra 5: todos los ids que empiezan con `products-`, que son la fila, el nombre, el botón de borrar, el cuadro de búsqueda y el conteo. El tercero encuentra 2: `products-row-12` y `orders-row-1003`, porque busca la palabra en cualquier lugar. El prefijo debe ser específico para elegir solo el grupo que quieres, y el `^` evita que un patrón coincida con el medio de otros ids.
+```text
+/^products-row-/ matches 1
+/^products-/ matches 5
+/row/ matches 2
+```
 
-</details>
+El primer patrón es exacto. El segundo es demasiado amplio: recoge nombres, botones y conteos. El tercero también incluye filas de pedidos.
 
-2. Un desarrollador construye los ids de fila con la posición en la lista. Este test siempre pasa, pero otro test de la suite a veces falla después de él. Encuentra el bug.
+## Un diálogo compartido, un id compartido
+
+La tienda reutiliza el diálogo de confirmación en la lista y en la página de detalle del producto. Sus botones tienen los ids `confirm-delete-button` y `confirm-delete-cancel`.
+
+![Delete abre un diálogo. Cancelar conserva la fila; confirmar la quita y muestra un mensaje.](/clips/shop-delete-dialog.webm)
+
+El componente está en `apps/practice-shop/components/confirm-delete-dialog.tsx`. Usa el `AlertDialog` de shadcn, con el rol `alertdialog`, fuera de la tabla en el DOM.
+
+El clic en el botón de una fila abre el diálogo; el clic en el botón compartido confirma el borrado. La búsqueda `page.getByTestId("products-row-12").getByTestId("confirm-delete-button")` encuentra cero elementos porque busca dentro de la fila. Busca el botón del diálogo desde `page`.
+
+## Cuando falta un id
+
+Pide al desarrollador que agregue el atributo e indica el elemento, la página y el nombre sugerido, como `products-export`. También puedes agregarlo tú si tienes permiso para cambiar el archivo.
+
+El enlace de producto nuevo muestra dónde colocarlo:
+
+```tsx
+<Button asChild>
+  <Link href="/products/new" data-testid="products-new">
+    New product
+  </Link>
+</Button>
+```
+
+`Button asChild` aplica el estilo al `Link` que contiene. El elemento del DOM es un `<a>` y el test id queda en ese enlace. Lo mismo ocurre con Edit en cada fila: `getByRole("button", { name: "Edit" })` no encuentra ese enlace.
+
+Agregar `data-testid` no cambia cómo funciona ni cómo se ve la página.
+
+## Test ids, roles y etiquetas
+
+Muchos equipos prefieren roles y etiquetas, porque también comprueban que la página sea accesible. Este equipo eligió test ids. La regla en `apps/practice-shop/e2e/README.md` dice:
+
+```text
+Select with `page.getByTestId(...)`. No CSS, no XPath, no text selectors for things you click.
+```
+
+El equipo usa los ids como un contrato entre desarrollo y QA: el nombre se conserva aunque cambien el texto o el estilo. Los desarrolladores deben agregar y mantener esos atributos.
+
+En la tienda, `page.getByLabel("Search")` también encuentra el cuadro de búsqueda. La etiqueta `<Label htmlFor="products-search">` apunta al campo cuyo atributo `id` tiene el mismo valor. Esa asociación es distinta del atributo `data-testid`.
+
+## Profundiza
+
+### El atributo que busca Playwright
+
+Estas dos líneas seleccionan el mismo campo:
+
+```ts
+await page.getByTestId("products-search").fill("mouse")
+await page.locator('[data-testid="products-search"]').fill("mouse")
+```
+
+La segunda usa un selector CSS de atributo. `getByTestId` usa `data-testid` por defecto. Si la aplicación ya usa `data-qa`, esta opción hace que Playwright busque ese atributo:
+
+```ts
+use: { testIdAttribute: "data-qa" },
+```
+
+Los atributos que empiezan con `data-` están reservados por HTML para tu propia información. El navegador los ignora. Por eso son seguros para los tests.
+
+### El alcance de un test id
+
+Un botón puede tener `data-testid="products-new"` y aun así carecer de un nombre accesible. Encontrarlo por su test id no comprueba ese nombre.
+
+Usa test ids para lo que no tiene un buen nombre, como una fila de una tabla, y usa roles y etiquetas donde la página tiene nombres reales.
+
+## Práctica
+
+1. Abre `apps/practice-shop/app/(dashboard)/products/page.tsx`. Anota tres `data-testid` que incluyan un id de registro.
+2. Abre `apps/practice-shop/e2e/lib/pages/products.page.ts`. Encuentra dónde se usa `products-search`.
+3. Inicia la tienda con `pnpm shop:dev`. Abre http://localhost:5190 e inicia sesión como `admin@qa-shop.test` con la contraseña `Admin123!`.
+4. Abre la página de productos. Haz clic derecho en un botón Delete y elige **Inspect** (Inspeccionar).
+5. Encuentra el atributo `data-testid` del botón. Comprueba que el número coincide con el producto.
+6. Inspecciona el cuadro de búsqueda y comprueba su test id. Luego inspecciona un enlace Edit y verifica si su etiqueta es `<button>` o `<a>`.
+
+## Reto
+
+Crea `apps/practice-shop/e2e/challenges/testid-audit.spec.ts` para auditar los test ids de la página de productos (`/products`) o de pedidos (`/orders`).
+
+Está terminado cuando:
+
+- El primer test espera a que la tabla sea visible y recoge todos los valores de `data-testid` de la página. Si alguno incumple la regla, el mensaje de fallo lista los ids malos.
+- Tu función `isGoodTestId(id: string): boolean` acepta palabras en minúscula unidas con guiones, con un número opcional al final.
+- Un segundo test, sin navegador, prueba al menos tres ids buenos y cuatro malos, como `Products-New`, `products_new`, `new` y `products-row-`.
+- Ejecutaste el spec y leíste el resultado. Si un id real incumple tu regla, un comentario indica si la regla es demasiado estricta o el id está mal.
+
+Necesitarás leer un atributo de muchos elementos a la vez y escribir un patrón que acepte un número solo al final. Busca: `playwright locator evaluateAll`, `playwright locator all getAttribute`, `regex lowercase letters hyphen digits`.
+
+## Piénsalo bien
+
+1. Un desarrollador construye los ids con la posición en la lista. Tras agregar un producto al principio, este test pasa aunque ya no borra la lámpara. ¿Dónde está el bug y qué comprobación lo oculta?
 
 ```ts
 test("deleting the lamp shows a message", async ({ page }) => {
@@ -327,65 +254,25 @@ test("deleting the lamp shows a message", async ({ page }) => {
 
 <details><summary>Respuesta</summary>
 
-El id usa la posición, y la tienda ordena primero lo más nuevo. El test se escribió cuando la lámpara estaba en la fila 0. Cuando otro test acaba de agregar un producto, la fila 0 es ese producto nuevo, así que el test borra el equivocado. La única comprobación es que aparece un mensaje, así que pasa de todos modos. El producto que otro test necesita ya no está, y ese test falla más tarde sin un vínculo claro. Usa ids construidos con el id del registro, crea la lámpara dentro del test para conocer su id, y comprueba que desaparece la fila correcta.
+`products-delete-0` elige el producto nuevo, que ahora ocupa la primera posición. La aserción solo comprueba que aparece un mensaje. Crea la lámpara dentro del test para conocer su id, úsalo en el locator y comprueba que desaparece su fila.
 
 </details>
 
-3. Las dos líneas encuentran el cuadro de búsqueda de la página de productos. ¿Cuál es mejor aquí y qué te haría elegir la otra?
-
-```ts
-await page.getByTestId("products-search").fill("mouse")
-await page.getByLabel("Search").fill("mouse")
-```
+2. El botón Delete ahora dice "Eliminar" y conserva su test id. ¿Cuáles de estos locators siguen encontrándolo: `getByText("Delete")`, `getByRole("button", { name: "Delete" })`, `getByTestId("products-delete-12")`?
 
 <details><summary>Respuesta</summary>
 
-La línea del test id es estable: no cambia cuando cambia el texto de la etiqueta, y la regla del equipo lo pide. La línea de la etiqueta demuestra otra cosa: una persona real ve un campo llamado "Search", y un lector de pantalla puede nombrarlo. Si faltara la etiqueta, la segunda línea fallaría, y eso sería un bug real de accesibilidad. Un equipo que se preocupa por la accesibilidad puede usar la versión con etiqueta, o usar las dos: test ids para los pasos, y un test que compruebe que las etiquetas existen. La elección depende de lo que quieras que demuestre el test.
+Solo `getByTestId("products-delete-12")`. Los otros dos buscan la palabra "Delete", que cambió. El test id tampoco detectaría que falta una traducción o un nombre accesible.
 
 </details>
 
-4. La tienda se traduce al español y el botón Delete ahora dice "Eliminar". ¿Cuáles de estos locators siguen funcionando: `getByText("Delete")`, `getByRole("button", { name: "Delete" })`, `getByTestId("products-delete-12")`? ¿Qué dice tu respuesta sobre la regla del equipo?
+3. Una búsqueda no devuelve productos. ¿Cuántos elementos encuentra `page.getByTestId(/^products-row-/)` y qué pasa al llamar a `.first().click()` sobre ese locator?
 
 <details><summary>Respuesta</summary>
 
-Solo el test id sigue funcionando. El texto y el nombre del rol usan la palabra "Delete", y la palabra cambió. Esta es la razón por la que el equipo eligió test ids para lo que se pulsa. El precio es que un test id no notaría que falta la traducción, o que un botón no tiene ningún nombre. Si el producto tiene varios idiomas, puedes agregar a propósito algunos tests basados en roles, para comprobar que los nombres son correctos.
+Encuentra cero elementos. Playwright sigue buscando una primera coincidencia hasta agotar el timeout. Para comprobar este estado, usa `toHaveCount(0)` sobre las filas y comprueba que `products-empty` sea visible.
 
 </details>
-
-5. Explícale a un compañero nuevo, en tres frases y sin la palabra "selector", por qué el botón de borrar del producto 12 tiene el id `products-delete-12` y no solo `delete`.
-
-<details><summary>Respuesta</summary>
-
-Una buena respuesta dice: la tabla muestra diez filas, y cada una tiene su propio botón de borrar. Si todos tuvieran el id `delete`, un test no podría decir cuál quiere, y Playwright se detendría con un error de strict mode. El número al final es el id del registro, así que el id apunta a un solo producto, y no cambia cuando cambia el orden de la lista.
-
-</details>
-
-6. El usuario busca una palabra que no coincide con ningún producto. ¿Qué encuentra `page.getByTestId(/^products-row-/)`? ¿Qué pasa si el test luego llama a `.first().click()` sobre eso? ¿Qué elemento le muestra al usuario que la lista está vacía?
-
-<details><summary>Respuesta</summary>
-
-Encuentra cero elementos. Un clic sobre `.first()` de una coincidencia vacía espera un elemento que nunca llega, y el test termina con un error de timeout, no con un mensaje claro. La página tiene el id `products-empty` para el mensaje de lista vacía. Un buen test para este caso comprueba que el conteo de filas es 0 con `toHaveCount(0)` y que `products-empty` es visible. Nunca hace clic en una fila que puede no existir.
-
-</details>
-
-## Investiga por tu cuenta
-
-Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
-
-1. **¿Qué son los atributos `data-*` en HTML y para qué sirven?**
-   - Busca: `html data-* attributes custom data`
-   - Pruébalo: abre la tienda en tu navegador, presiona F12 y abre la Console (Consola). Ejecuta `document.querySelector('[data-testid="products-search"]').dataset`. Lee lo que devuelve y luego prueba `.dataset.testid`.
-   - Una buena respuesta explica: cómo escribir uno, cómo lo puede leer JavaScript y por qué el navegador lo ignora al mostrar la página.
-
-2. **¿Qué recomienda la documentación de Playwright para encontrar elementos y por qué?**
-   - Busca: `playwright locators best practices getByRole`
-   - Pruébalo: elige tres elementos de la página de login. Escribe el locator de cada uno en el orden que prefiere la documentación. Comprueba cada uno en el inspector de Playwright o en un spec corto.
-   - Una buena respuesta explica: el orden de preferencia de los locators y la razón por la que se prefieren los que usan lo que ve el usuario.
-
-3. **¿Por qué los selectores de clase CSS y de XPath se llaman frágiles en la automatización de tests?**
-   - Busca: `brittle selectors XPath CSS test automation`
-   - Pruébalo: en las DevTools del navegador, haz clic derecho en el botón Delete de la primera fila, elige Copy (Copiar), y copia el selector CSS y el XPath. Compáralos con `products-delete-12`. Escribe qué parte de cada uno se rompería si un desarrollador cambiara el diseño.
-   - Una buena respuesta explica: qué cambia en una página que rompe esos selectores, y cuál es una alternativa estable.
 
 ## Siguiente paso
 

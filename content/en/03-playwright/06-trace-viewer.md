@@ -1,31 +1,22 @@
 ---
 title: The trace viewer
-summary: Record a trace of a failed test, open it from the HTML report, and use it to tell a wrong test from a real bug.
-duration: 90 min
+duration: 60 min
 ---
-
-## Start with a puzzle
-
-A test fails. The message says that `expect(locator).toContainText(expected)` failed after a timeout of 5000 ms.
-
-The test clicks "Load report" and waits for the text `12 tests`. You have two guesses. Guess one: the app never showed the report. Guess two: the test looked at the wrong element. The error message is the same for both.
-
-You may open one panel of a recording of the run. Which panel or panels let you decide in under a minute? What exactly do you look for in each?
-
-Write down your guess before you read on.
 
 ## Goal
 
-- Decide whether a failure is a bug in the test or a bug in the app, using evidence from a trace.
-- Record a trace on your machine and open it from the HTML report.
-- Read the panels: actions, snapshots, console, network and source.
-- Choose when a project should record traces, and say what each choice costs.
+In this lesson you record a test run and review the evidence of a failure in the trace viewer.
 
-## What a trace is
+- Record a trace on your machine and open it from the HTML report.
+- Read the actions, snapshots, console, network and source code.
+- Distinguish a test error from an app bug.
+- Choose when to record traces based on the cost and the evidence you need.
+
+## What a trace stores
 
 A **trace** is a recording of a test run. It is a file that keeps, for every step, a copy of the page, the console messages and the network calls.
 
-With a trace, you can look at a failed test after it finished. You can click inside the page and read the details. A trace is the first thing to open when a test fails.
+The trace viewer displays those records after the test has finished, so you can review the page and the steps that led to the failure.
 
 ## When this project records a trace
 
@@ -35,15 +26,15 @@ Open `playwright.config.ts`. In the `use` section you find:
 trace: "on-first-retry",
 ```
 
-It means: record a trace only when a test is run again after a failure. A run again is a **retry**.
+It means: record a trace only when a test is run again after a failure. Running the test again is a **retry**.
 
-Retries are on in CI, the automatic server run, and off on your machine. So on your machine this setting records nothing. Before you read on, guess: how would you get a trace on your machine, without changing the config file? Then compare:
+The project enables retries in CI and disables them on your machine. With this configuration, a local run records no traces. To record them without changing the config file:
 
 ```bash
 pnpm e2e e2e/playground.spec.ts --trace on
 ```
 
-The option `--trace on` records a trace for every test in this run. Use it on one file, not on the whole suite.
+The option `--trace on` records a trace for every test in this run. Limit recording to the file you are reviewing.
 
 > **Note:** The config also has `screenshot: "only-on-failure"`. A failed test always has a picture of the page at the end. A trace gives you much more.
 
@@ -55,11 +46,9 @@ Each run writes an HTML report. To open it, run:
 pnpm e2e:report
 ```
 
-Playwright starts a small local server and opens the report in your browser. The terminal stays busy. Press Ctrl+C to stop it.
+Playwright starts a local server and opens the report in your browser. The terminal stays busy until you press Ctrl+C to stop it.
 
-In the report, a failed test has a red mark. Click it. You see the error message, the code and the screenshot. If a trace was recorded, there is a "Traces" section. Click the trace picture to open the trace viewer.
-
-Watch how a failed test looks in the report.
+In the report, a failed test has a red mark. Click it to see the error message, the code and the screenshot. If a trace was recorded, a "Traces" section appears. Click the trace picture to open the trace viewer.
 
 ![The report lists passed and failed tests. Open the failed one to see the error and trace.](/clips/html-report.webm)
 
@@ -73,68 +62,46 @@ pnpm exec playwright show-trace test-results/<test-folder>/trace.zip
 
 **Actions.** On the left is the list of steps in order: `page.goto`, `locator.fill`, `expect.toHaveText` and so on. A step that failed is in red. Click a step to see the page at that moment.
 
-**Before and after snapshots.** At the top you see the page. Tabs let you choose "Before" or "After" the action. A **snapshot** is a copy of the page at one moment. It is not a picture. You can open the browser developer tools on it and inspect elements. The highlighted element is the one the action used.
+**Before and after snapshots.** The "Before" and "After" tabs show the page around the action. The viewer displays the saved DOM, which you can inspect with the browser developer tools. The highlighted element is the one the action used.
 
-**Console.** Messages the page wrote to its console, and errors in the page code.
+**Console.** Shows messages the page wrote to its console and errors in the page code.
 
-**Network.** The calls the page made to servers: address, status and time.
+**Network.** Shows the calls the page made to servers: address, status and time.
 
-**Source.** Your test code, with the current step marked.
+**Source.** Shows your test code, with the current step marked.
 
-There are other tabs, such as "Call" (the locator and the time used) and "Errors" (the failure message).
-
-Watch how each action shows the page, and how Errors tells you why the test failed.
+The "Call" tab shows the locator and the time used. "Errors" shows the failure message.
 
 ![Click each action to see the page, then open Errors to read why the test failed.](/clips/trace-viewer.webm)
 
-### Experiment: what does the Network tab show?
+### A delay without a network request
 
-Take the test "shows the report when loading ends" from `e2e/playground.spec.ts`. The button `report-load` waits 1.5 seconds in the page code. It does not call a server.
+The test "shows the report when loading ends" in `e2e/playground.spec.ts` clicks the `report-load` button. The page code waits 1.5 seconds before showing the result; it does not call a server. That delay produces no new request in Network.
 
-Predict: when you click the action for `report-load`, will the Network tab show a new request? Write your answer. Run the file with `--trace on`, open the trace, and check. What does your result tell you about where the 1.5 seconds go?
+## Diagnose a failure
 
-## A routine to diagnose a failure
-
-Debug like a scientist: one guess, one small experiment, one change at a time. Do not change code before you know the cause.
+Review the evidence before changing the test:
 
 1. Read the error message: assertion, locator, Expected and Received.
-2. Open the trace. Go to the red step.
-3. Look at the "Before" snapshot. Is the page in the state you expect?
-4. Look at the highlighted element. Is it the one you meant?
-5. Look at the steps before. Did a step do something different from what you thought?
-6. Check the Console for page errors and the Network for failed calls.
-7. Decide: is it a wrong test, or a bug in the app?
-8. Fix the test, or report the bug. Run the test again.
+2. Open the trace and select the red step.
+3. Check the page state in the "Before" snapshot and the highlighted element.
+4. Review earlier steps to find an unexpected action.
+5. Look for page errors in Console and failed calls in Network.
+6. Compare the result with the requirement to decide whether to fix the test or report a bug. After fixing it, run the test again.
 
-The decision in step 7 is the most important. A test can fail because the app has a bug. That is the reason the test exists.
+For example, a test clicks "Load report" and waits for the text `12 tests`. You have two guesses. Guess one: the app never showed the report. Guess two: the test looked at the wrong element. The error message is the same for both.
 
-### Back to the puzzle
-
-Two panels answer the question. In the snapshot, look at the highlighted element. If it is the wrong element, guess two is true: your locator is wrong. If it is the right element and it still shows only `Loading…` or nothing, guess one is true. Then the Console and Network tabs can tell you why: a page error, or a request with a bad status.
-
-The error text only tells you what the test expected. The trace shows what the page really did.
+In the snapshot, look at the highlighted element. If it is the wrong element, guess two is true: your locator is wrong. If it is the right element and it still shows only `Loading…` or nothing, guess one is true. Then the Console and Network tabs can tell you why: a page error, or a request with a bad status.
 
 ## Go deeper
 
-### Why a trace is more than a video
+### Share the file
 
-A trace is a `.zip` file. Inside it Playwright keeps, for each step: a snapshot of the page, the console messages, the network calls and the line of test code. It is not a video.
+Playwright saves the trace in a `.zip` file. The viewer uses the saved snapshots and records to display the run without the app running. You can send a `trace.zip` to a colleague for review.
 
-A video can only show what the page looked like. A snapshot is a copy of the page content. So the viewer can highlight the element your action used, and you can open the developer tools on a past moment. The viewer works from the file only. It does not need the app to be running. You can send a `trace.zip` to a colleague, and they see the same thing.
+### The cost of recording
 
-### How it shows up in real QA work: a bug report that developers believe
-
-A failed test can be a test problem or an app bug. The trace helps you decide, and it helps you prove it.
-
-Suppose a test fails because a report never shows its text. In the trace you open the Network tab. The page asked the server for the report, and the server answered with status 500. A 500 means "the server had an error". The test and the locator were right. The app has a bug.
-
-Now your bug report can say: "The report request returns 500. The trace is attached." A bug report with evidence is much faster to fix than one that says "it does not work".
-
-In the Practice app, the report does not call a server, so this exact case does not happen here. In a real application, it does.
-
-### A trade-off: when to record
-
-Recording makes tests slower and creates big files. The option `trace` in the config decides when to pay.
+Recording traces adds work during a run and uses disk space. The `trace` option determines when to record and which files to keep:
 
 ```ts
 use: {
@@ -143,11 +110,11 @@ use: {
 ```
 
 - `"off"` never records.
-- `"on"` records every test and keeps every trace. Use it for one file while you learn.
+- `"on"` records every test and keeps every trace.
 - `"on-first-retry"` records only when a test runs again. This project uses it. It costs little, but it needs retries.
-- `"retain-on-failure"` records every test and deletes the trace of tests that pass. You get a trace for every failure, without retries. Every test is slower.
+- `"retain-on-failure"` records every test and deletes the trace of tests that pass. You get a trace for every failure, without retries.
 
-There is no best option. Ask: how often do tests fail, and how much does it cost to run them twice?
+Keeping the failed run helps when the failure is hard to reproduce. Recording only a retry reduces the work of recording, but leaves the first run without a trace.
 
 ## Practice
 
@@ -165,9 +132,7 @@ pnpm e2e e2e/exercises/03-playwright/trace-practice.spec.ts --trace on
 
 ## Challenge
 
-Make three tests that each fail for a different reason, then prove each cause with the trace alone.
-
-Create the file `e2e/challenges/06-three-failures.spec.ts`. Use the Practice page. The first test must fail because the expected text is wrong. The second must fail because one locator matches more than one element. The third must fail even though the app is right and the expected text is right. Choose which part of the Practice page each test uses.
+Create `e2e/challenges/06-three-failures.spec.ts` with three tests of the Practice page that fail for different reasons. The first must have incorrect expected text; the second, a locator that matches more than one element. The third must fail even though the app and the expected text are right. Demonstrate each cause with the trace.
 
 It is done when:
 
@@ -176,19 +141,19 @@ It is done when:
 - The three error messages are different from each other.
 - After you change one thing in each test, the same command reports `3 passed`.
 
-You will need something this lesson did not teach: how Playwright reports a locator that matches many elements, and how to give one assertion a shorter time limit. Search for: `playwright strict mode violation`, `playwright expect timeout option`.
+You will need to know how Playwright reports a locator that matches many elements and how to give one assertion a shorter time limit. Search for: `playwright strict mode violation`, `playwright expect timeout option`.
 
 ## Think it through
 
-1. In CI, a test fails on the first run and passes on the retry. The config has `trace: "on-first-retry"` and `retries: 2`. Which run does the trace record, and what problem does this cause for you?
+1. In CI, a test fails on the first run and passes on the retry. The config has `trace: "on-first-retry"` and `retries: 2`. Which run does the trace record, and what evidence are you missing?
 
 <details><summary>Answer</summary>
 
-The trace records the retry, which is the second run. The first run, the one that failed, has no trace. So the trace you open shows a run that passed, and the cause of the first failure is not in it. This is one reason `retain-on-failure` is useful for tests that fail rarely. The report will also mark the test as flaky.
+It records the first retry, the second run. The failed run has no trace, so you cannot inspect its cause directly. The report marks the test as flaky.
 
 </details>
 
-2. A teammate sees the red step in the trace and fixes the test like this. The test now passes. What is wrong with the fix?
+2. A teammate sees the red step in the trace and adds this delay. The test now passes. What problem does the change leave?
 
 ```ts
 await page.getByTestId("report-load").click()
@@ -198,60 +163,17 @@ await expect(page.getByTestId("report-result")).toContainText("12 tests")
 
 <details><summary>Answer</summary>
 
-The test passes, but the fix hides the reason it failed. A fixed delay is either too long, so every run wastes time, or too short, so the test fails again on a slow machine. The assertion already waits and retries for a few seconds. The trace should have told the teammate whether the wait was too short or the element was wrong. The team rule forbids `waitForTimeout`.
+The change does not identify the cause of the failure. The fixed delay adds three seconds even if the result arrives sooner, and it may be insufficient on another run. The assertion already waits and retries; check the locator and timeout in the trace. The team rule forbids `waitForTimeout`.
 
 </details>
 
-3. Your team has 400 tests. About 2 in 100 fail on a normal day. Do you choose `on-first-retry` or `retain-on-failure`, and what would make you choose the other?
+3. A test fails on its first action, `page.goto("/#/practice")`. The snapshot is blank. What can the trace still show?
 
 <details><summary>Answer</summary>
 
-With `on-first-retry` you pay a little on every run, but you need retries and you only see the retry. With `retain-on-failure` every test records, so the run is slower, but each failure has a trace of the failing run. If the suite is fast and failures are rare and hard to repeat, choose `retain-on-failure`. If CI time is expensive and failures are usually easy to repeat, `on-first-retry` is enough. It depends on the cost of time and of disk space.
+Errors shows the message, for example that the connection was refused. Network lets you check whether the request received a response. Check whether the site is running and whether `QAA_E2E_PORT` points to the correct port.
 
 </details>
-
-4. You send `trace.zip` to a colleague who does not have the app running. What breaks, and what still works?
-
-<details><summary>Answer</summary>
-
-Nothing in the viewer breaks. The file has the page copies, the console and the network calls, so the viewer needs only the file. What does not work is running the test again or trying a new locator on the live page. For that, the colleague needs the app.
-
-</details>
-
-5. Explain to a developer, in three sentences and without using the word "screenshot", why you attach a trace to a bug report.
-
-<details><summary>Answer</summary>
-
-Example: "The trace shows every step, so you see how the page got into the bad state. It also has the network calls and the console, so you can see the failed request. You can open it without running the app." A good answer says what the developer gets that a still picture cannot give: the steps before the failure and the hidden data.
-
-</details>
-
-6. A test fails on its very first action, `page.goto("/#/practice")`. You open the trace. The snapshot is blank. What can the trace still tell you?
-
-<details><summary>Answer</summary>
-
-The "Before" and "After" snapshots are blank because no page loaded. The Errors tab shows the message, for example that the connection was refused. The Network tab shows whether the request got any answer. A common cause is that the site is not running or that `QAA_E2E_PORT` points to another port. The trace does not give a page, but it still gives the cause.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What do the Playwright trace modes `on-first-retry` and `retain-on-failure` do, and when would you choose each?**
-   - Search for: `playwright trace retain-on-failure on-first-retry`
-   - Try it: Run a file with one passing test and one failing test, first with `--trace on`, then with `--trace retain-on-failure`. Look in the `test-results` folder after each run. Which runs left a `trace.zip` for the passing test?
-   - A good answer explains: when each mode records and keeps the trace, and the cost of each in time and disk space.
-
-2. **What makes a good bug report for a developer?**
-   - Search for: `good bug report steps expected actual result`
-   - Try it: Write a bug report for this made-up bug: "the counter shows `NaN of 1 passed`". Give it to a classmate. Ask them to find the bug in the Practice page using only your text, without asking you anything.
-   - A good answer explains: the main parts of a bug report, such as steps, expected result, actual result and evidence, and why each one saves time.
-
-3. **What is the browser console, and what is the difference between an error and a warning there?**
-   - Search for: `browser console errors warnings devtools`
-   - Try it: In a scratch test, add `await page.evaluate(() => console.error("my own error"))`. Run it with `--trace on` and find the message in the Console tab of the trace.
-   - A good answer explains: what kinds of messages appear in the console, and why a page error can explain a test that fails with no clear reason.
 
 ## Next step
 

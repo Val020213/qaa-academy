@@ -1,45 +1,30 @@
 ---
 title: What to automate
-summary: Choose which checks deserve an automated end-to-end test, using the test pyramid, cost numbers and a risk-based way of thinking.
-duration: 75 min
+duration: 60 min
 ---
-
-## Start with a puzzle
-
-A shop has one rule: the price of a product must be greater than 0. A developer writes three tests for it.
-
-- Test A calls the price rule directly in code. It takes 2 milliseconds.
-- Test B sends a request to the server. It takes 40 milliseconds.
-- Test C opens a browser, signs in, fills the form and clicks Save. It takes 6 seconds.
-
-All three fail when the price is 0. All three pass when the price is 5.
-
-The team can keep only two of them. Which one do you delete? Two answers feel right: "delete the slowest, speed matters" and "keep C, it is the most like a real user".
-
-Write down your guess before you read on.
 
 ## Goal
 
-- Predict how long a suite takes when you move a check from the browser to a lower level.
-- Decide what to automate using risk, frequency and stability.
-- Explain why an honest list of gaps is more useful than a list of test counts.
-- Choose which checks stay manual, and defend the choice.
+In this lesson you choose which checks to automate and which test level to use. You compare their execution cost with the risks they can detect.
+
+- Calculate the time for several checks at each level of the pyramid.
+- Prioritize using risk, frequency and stability.
+- Choose which checks to keep manual.
+- Record coverage and its gaps.
 
 ## The test pyramid
 
-Software tests come in three common sizes.
+The pyramid proposes many unit tests, fewer integration tests and few E2E tests. Each level checks a different part of the application:
 
-- A **unit test** checks one small piece of code, such as a function that adds tax to a price. It runs in milliseconds.
-- An **integration test** checks that several pieces work together. An **API test** is a common kind: it sends a request to the server and checks the answer. It runs in tens of milliseconds.
-- An **end-to-end test**, or **E2E test**, opens a real browser and uses the application like a person. It runs in seconds.
+- A **unit test** calls a small piece of code directly, such as a function that validates a price.
+- An **integration test** checks several pieces together. An **API test** sends a request to the server and checks the response.
+- An **E2E test** uses a browser to go through the application, like the tests you have already written with Playwright.
 
-Teams draw these as a pyramid: many unit tests at the bottom, fewer API tests in the middle, the fewest E2E tests at the top.
+### The cost of repeating a check
 
-Do not accept the shape because a book says so. Test it with numbers.
+Suppose a unit test takes 2 milliseconds, an API test takes 40 milliseconds and a browser test takes 6 seconds. These are example times, not measurements from the shop.
 
-### An experiment: what does one rule cost at each level?
-
-The shop has 12 rules. Each rule has 8 interesting inputs (valid ones, empty, too long, zero, and so on). That is 96 checks. Use the times from the puzzle. Before you run anything, guess: how long do the 96 checks take at each level?
+The shop has 12 rules, each with 8 inputs to check: 96 checks. The following calculation adds their times if they run one after another.
 
 Save this as `exercises/challenges/cost.ts` and run it with `node exercises/challenges/cost.ts`:
 
@@ -67,87 +52,71 @@ api: 96 checks take 3.8 seconds
 browser: 96 checks take 576.0 seconds
 ```
 
-That is almost 10 minutes in the browser. A developer waits 10 minutes after every change, or stops running the suite. Both outcomes are bad.
+With these times, checking every input in the browser takes almost 10 minutes. Moving rule checks to the API reduces the wait without requiring the browser to repeat every input.
 
-## Why E2E tests are expensive
+## The cost and coverage of an E2E test
 
 An E2E test starts a browser, loads pages and waits for the screen. It touches the whole system, so it can fail for many reasons: the page, the server, the data or the network.
 
-This has three costs.
+Alongside execution time, account for the work of investigating failures and maintaining steps when the screen changes. Reserve E2E tests for important journeys, such as signing in, creating a product and seeing it in the list.
 
-- The suite takes longer to run, so people run it less often.
-- A failure is harder to explain, because many parts could be the cause.
-- The test breaks more often when the screen changes.
+### The bugs each level detects
 
-So an E2E test should cover an **important user journey**. A journey is a path a user follows to reach a goal, such as "sign in, create a product, see it in the list".
+For the rule “the price must be greater than 0,” consider three tests:
 
-An E2E test should not cover every input combination. Checking ten invalid prices in the browser is slow. Those checks belong lower in the pyramid, close to the code.
+- A calls the price validation function directly.
+- B sends the price to the server and checks the response.
+- C submits the form in the browser and checks the error message.
 
-> **Note:** You will mostly write E2E tests in this course. That is your job at the top of the pyramid. Knowing the lower levels helps you ask developers for the right tests there.
+These tests cover different failures:
 
-### The other side: what only the browser can catch
+1. The function accepts 0: A, B and C fail.
+2. The function is correct, but the server does not call it: B and C fail.
+3. The server rejects the price, but the form does not show the error: only C fails.
 
-Now be fair to Test C. Think about three different bugs.
+The browser test covers the connection between the screen and the server. If it fails, you have more pieces to investigate than with A, which calls the function directly.
 
-1. The price rule is wrong in the code: it accepts 0.
-2. The rule is right, but the server forgets to call it.
-3. The rule is right and the server calls it, but the form never shows the error.
+You can keep B for boundary values and C to check the form message. Consider removing A only if B covers the same cases, is fast enough and the rule lives on the server.
 
-Which of the three tests fails for each bug? Work it out on paper first.
+## Choosing what to automate
 
-Test A fails only for bug 1. Test B fails for bugs 1 and 2. Test C fails for all three. So the browser test catches the most kinds of bugs, but it also tells you the least about where the bug is. A lower test catches fewer kinds of bugs, and it points at the cause.
+Evaluate each check using three criteria:
 
-### Back to the puzzle
+1. **Risk:** the damage a failure causes. Login, payments and data loss are high risk.
+2. **Frequency:** how often you repeat the check. Automating a check you run every release can save work.
+3. **Stability:** how much the part you test changes. Frequent screen changes can require frequent test changes.
 
-There is no single right answer. Look at what each test catches that the others do not. If B already fails for bug 1, then A adds little, so A is the best one to delete. If you delete C, bug 3 is not caught by anything, and the user sees nothing when the price is wrong.
+A high-risk check that is repeated and stable is a good first choice.
 
-A sensible team keeps B, and tests the rule's edge values there (0, negative, a letter). It keeps one browser test that checks the form shows the message. It deletes A only if B is fast enough, and the rule sits in server code anyway. The two answers from the start were both too simple, because they looked at speed or at realism, and not at which bug each test is the only one to catch.
+### A score for ranking candidates
 
-## How to pick what to automate
+You can give each criterion a score from 1 (low) to 3 (high) and multiply them. Using these example ratings:
 
-You are a manual tester. You already know how to find important checks. Ask three questions about each one.
+- Login with a valid account: 3 x 3 x 3 = 27.
+- Status badge color: 1 x 2 x 2 = 4.
+- A new CSV export, rarely used and still under development: 2 x 1 x 1 = 2.
 
-1. **Risk.** What happens if this breaks? Login, payments and data loss are high risk. A wrong colour is low risk.
-2. **Frequency.** How often do you run this check by hand? A check you repeat every release is a good candidate.
-3. **Stability.** Does this part of the product change every week? If yes, wait. A test for a screen that changes often costs more than it saves.
-
-A check that is high risk, repeated often and stable is the best first choice.
-
-### Try it on three checks
-
-Here are three checks from a shop. Before you read my score, give each one a number from 1 (low) to 3 (high) for risk, frequency and stability. Then multiply the three numbers.
-
-- Login with a valid account.
-- The colour of the status badge.
-- A new CSV export, built last week, which the team still changes every few days.
-
-Login scores 3 x 3 x 3 = 27. The badge colour scores 1 x 2 x 2 = 4: a low risk, even if the page is stable. The CSV export scores 2 x 1 x 1 = 2, because it changes a lot and few people use it. Your numbers may differ a little. The point is the order: login first, the export last.
-
-> **Careful:** Multiplying is a thinking aid, not a law. A check with risk 3 and stability 1 scores 3 x 2 x 1 = 6, low on the list. But it may still be the most important check you have. Do not let a score make the decision for you.
+The score puts login first, but review the risk before deciding. A check with risk 3, frequency 2 and stability 1 scores 6 and may still be the most urgent.
 
 ## What stays manual
 
-Not everything should be automated.
+Keep manual work when you need to explore or judge the user experience:
 
-- **Exploratory testing.** You explore the product without a script and look for surprises. A test can only check what someone thought of in advance. A person finds the unexpected.
-- **Usability and visual feel.** Is the page clear? Is the text easy to read?
-- **Checks you run once.** Writing a test costs more than doing the check one time.
+- In **exploratory testing**, you look for behavior that the tests do not yet account for.
+- To assess **usability and visual clarity**, you review whether the page and its text are understandable.
+- For a **one-time check**, compare the effort of writing and maintaining a test with checking by hand.
 
-Automation does not replace you. It removes the repeated work, so you have time to explore.
+**YAGNI**, “You Aren't Gonna Need It,” recommends building for a real need. Before adding a test “just in case,” identify the risk it would detect and when you will need to repeat it.
 
-There is a name for a trap here: **YAGNI**, "You Aren't Gonna Need It". It means do not build for a need you only imagine. A team that writes tests "in case we need them later" builds a large suite that nobody reads. Write the test when the risk is real.
+## A coverage inventory
 
-## An honest coverage inventory
-
-The practice shop keeps a list of what its tests cover. Open `apps/practice-shop/e2e/COVERAGE.md`. It has two parts.
-
-The first part is a table of what is covered. One row looks like this:
+Open `apps/practice-shop/e2e/COVERAGE.md`. The "What is covered" table records covered behaviors and the file that checks them. One row looks like this:
 
 ```text
 | Orders    | Status filter, admin marks a pending order as paid                                            | `orders/orders.spec.ts`       |
 ```
 
-The second part is "Not covered yet". It lists gaps on purpose:
+The "Not covered yet" section records gaps. This is an excerpt:
 
 ```text
 - Editing a product.
@@ -158,17 +127,11 @@ The second part is "Not covered yet". It lists gaps on purpose:
 - The viewer role: no New, Edit or Delete buttons, and the API answers 403.
 ```
 
-This is honest. It does not say "everything is tested". It says what is tested and what is not. A reader can trust the first part because the second part exists.
+Use those gaps to prioritize the next test. Update the inventory in the same change as the tests, so the team knows which risks remain unchecked.
 
-Keep such a file for your own project. Update it in the same change as the tests.
+## Checking a rule without a browser
 
-## Go deeper
-
-### Why the same check costs so much more in a browser
-
-Think about one rule: a SKU must look like `SKU-0001`. You can check it in a browser. The test opens the page, signs in, opens the form, types the value, clicks save and reads the error. That takes seconds.
-
-The rule itself is one line of code. A unit test can check it in milliseconds. Here is the idea in plain TypeScript. It checks five inputs with one loop:
+A function that validates a SKU's format can receive several inputs without opening pages or filling forms:
 
 ```ts
 function isValidSku(value: string): boolean {
@@ -189,19 +152,15 @@ for (const row of rows) {
 }
 ```
 
-It prints five lines, and each one ends with `ok`. In a browser, the same five checks would take about 25 seconds if each takes 5 seconds.
+It prints five lines, and each one ends with `ok`. The function trims spaces and converts the text to uppercase before checking the format.
 
-Notice the shape: one body of code and a table of inputs. This is **DRY**, "Don't Repeat Yourself", from the lesson "Don't repeat yourself (DRY)" in the programming module. The rows in the table are also **boundary values** and **equivalence classes**: `SKU-1` and `SKU-12345` sit just outside the allowed length, and `""` is the empty case. Lesson 10 of this module applies the table idea to tests.
+The rows in the table are also **boundary values** and **equivalence classes**: `SKU-1` and `SKU-12345` sit just outside the allowed length, and `""` is the empty case.
 
-### A common wrong idea: more tests mean more safety
+### Checking the API response
 
-Many beginners think 200 tests are safer than 20. Not always. If 150 of them walk the same journey with small changes, one broken button turns 150 tests red. You get one problem and 150 messages.
+In the shop, the form sends the values to the server. The server validates the data and returns errors; the form displays them under the fields.
 
-Coverage is not a count of tests. It is a list of risks that a test would notice. `COVERAGE.md` is useful because it lists risks, not test numbers.
-
-### How it shows up in QA work: test a rule through the API
-
-You can often reach the rule without the screen. The shop API checks the same rules as the form. This test needs no browser page:
+This test checks the rejection of a name that is too short without using a browser page:
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -217,113 +176,75 @@ test("the API rejects a name that is too short", async ({ request }) => {
 })
 ```
 
-The status `422` means the server understood the request but the data is not valid. This test is fast. One E2E test can then check only that the form shows the error to the user.
+The server returns status `422` and a message for the field. The test checks both, while an E2E test can check that the form shows that message to the user.
+
+## Go deeper
+
+### Test count does not demonstrate coverage
+
+If 150 tests follow the same journey with different inputs, a broken button can make all 150 fail. The number of failures does not tell you how many distinct risks they cover.
+
+An inventory such as `COVERAGE.md` lets you review which behaviors are checked and which are missing, even when the suite has many tests.
 
 ## Practice
 
-1. Open `apps/practice-shop/e2e/COVERAGE.md`. Count the rows in the "What is covered" table. There are 7.
-2. Pick one item from "Not covered yet". Write which of the three questions (risk, frequency, stability) makes it worth testing.
-3. Pick the item that you would automate last. Explain why in one sentence.
-4. Think of a feature in your own work. Write one line for each question: risk, frequency, stability. Decide: automate, or keep manual.
-5. Run the existing suite once. Start the shop in one terminal:
+1. Open `apps/practice-shop/e2e/COVERAGE.md` and review the 7 rows in "What is covered".
+2. From "Not covered yet", choose one item to automate first and another to leave until last. Justify each choice using risk, frequency or stability.
+3. Choose a feature from your work. Write one line for each criterion and decide whether to automate it or keep it manual.
+4. Start the shop in one terminal:
 
 ```bash
 pnpm shop:dev
 ```
 
-6. In a second terminal, run the tests:
+5. In a second terminal, run the suite:
 
 ```bash
 pnpm shop:e2e
 ```
 
-7. Read the output. Count the tests. Note how long the whole run takes. Then find the slowest test in the list. Is it a journey, or a rule?
+6. Note the test count and total time. Identify the slowest test and review whether it checks a journey or a rule.
 
 ## Challenge
 
-Split one rule across the pyramid. Choose one field of the product form: name, SKU, price or stock. Test its rule fast through the API, with a table of wrong values. Then add exactly one browser test that proves the user sees the error.
+Choose one field of the product form: name, SKU, price or stock. Check at least four invalid values through the API and add one browser test for the form message.
 
 Create the file `apps/practice-shop/e2e/challenges/pyramid-split.spec.ts`.
 
 It is done when:
 
-- At least four wrong values for your chosen field are tested through `/api/products`, and each one expects status `422` and the exact message for that field.
-- Each wrong value is its own test, and its test name contains the value, so a red line tells you which value failed.
-- One browser test submits the form with one wrong value in your field. It checks the message under that field, and checks that the error elements of the other fields do not exist.
+- Each invalid value is tested through `/api/products` and expects status `422` and the exact message for the chosen field.
+- Each value has its own test, whose name contains the value being tested.
+- The browser test checks the message under the chosen field and that no error elements exist for the other fields.
 - You ran `pnpm shop:e2e challenges/pyramid-split.spec.ts`, all tests passed, and you can read in the output that each API test is much faster than the browser test.
 
-You will need something this lesson did not teach: how to make many tests from one array of data, and how to send a request that is wrong in only one field. Search for: `playwright parameterize tests for loop`, `playwright list reporter test duration`.
-
-> **Tip:** An AI assistant can explain the loop idea. You may ask one. But run the code, and be able to explain every line to a teammate. Never keep a line you cannot explain.
+To create tests from an array and send invalid data in just one field, search for: `playwright parameterize tests for loop`, `playwright list reporter test duration`.
 
 ## Think it through
 
-1. A team has 40 E2E tests. Each one types a different wrong price in the product form, and each takes 12 seconds. How long is the suite? Now the team moves 38 of them to the API (0.04 seconds each) and keeps 2 in the browser. Predict the new time, and say what you would keep in the browser.
+1. A team has 40 E2E tests for invalid prices. Each takes 12 seconds, and they run one after another. If the team moves 38 to the API (0.04 seconds each) and keeps 2 in the browser, how long does each run take?
 
 <details><summary>Answer</summary>
 
-Before: 40 x 12 = 480 seconds, which is 8 minutes. After: 2 x 12 + 38 x 0.04 = 24 + 1.52, about 26 seconds. The price rule is in the server code, so it does not need a browser. The two tests that stay should check that the form shows the error message, so the screen is still tested once. The failure also points to the cause more clearly.
+Before: 40 x 12 = 480 seconds, or 8 minutes. After: 2 x 12 + 38 x 0.04 = 25.52 seconds, about 26 seconds. The browser tests should check that the form shows the error.
 
 </details>
 
-2. You can automate only one check this week. Check A is the checkout, which is high risk and used every release, but the page is redesigned next week. Check B is password reset, which is also high risk and has not changed for two years, but you test it by hand only once a month. Which do you pick first?
+2. Your team wants one E2E test for every gap in "Not covered yet" in `COVERAGE.md`. Next month it will remove the orders area. What is wrong with the plan?
 
 <details><summary>Answer</summary>
 
-Pick B. Both are high risk. A is unstable: the redesign will break the test, and you pay twice. B is stable, so the test will keep working. Frequency is lower for B, but stability decides this time. Write the checkout test after the redesign.
+The new order tests would have a short useful life. Record that this area will be removed and prioritize gaps in the areas that will remain available.
 
 </details>
 
-3. A teammate says: "We have 300 E2E tests, so we are safe." Another says: "We have 40, and a list of what they do not cover." Who is more likely to find a problem before the users do? What would you ask each of them?
+3. A colleague adds the input `" SKU-0001 "` to the SKU table and expects `false`. The code prints `WRONG`. What does the function return, and what should you review before changing it?
 
 <details><summary>Answer</summary>
 
-You cannot tell from the numbers. Ask the first: "Which risks do the 300 tests notice?" If most walk the same journey, one failure gives 300 red tests and many risks are still unchecked. Ask the second: "Which gap worries you most?" The person with the list knows where the system is blind, and that is the start of a plan. Honest knowledge of gaps is worth more than a large count.
+It returns `true`, because `.trim()` removes the spaces before checking the format. Review the requirement to decide the expected value. In the shop, `validation.ts` also trims the SKU.
 
 </details>
-
-4. Your team wants one E2E test for every row of `COVERAGE.md`'s "Not covered yet" list. Next month the product team will remove the whole orders area. What breaks in your plan, and what would you do instead?
-
-<details><summary>Answer</summary>
-
-The tests for the orders gaps (cancel, ship, empty filter) would be written and thrown away. This is the stability question: an area that will disappear should not get new tests. Keep the orders gaps in the list and mark them "will be removed". Spend the time on gaps in areas that stay, such as editing a product or pagination.
-
-</details>
-
-5. The SKU table in this lesson has five rows. A colleague adds a sixth row: `" SKU-0001 "` with spaces around it, and expects `false`. The test says `WRONG`. Who is right: the test data or the function? How do you decide?
-
-<details><summary>Answer</summary>
-
-The function calls `.trim()`, so it accepts the spaces and returns `true`. The row is not "wrong" in itself: it is a question about the rule. You decide by asking what the requirement says, and what the real server does. In the shop, `validation.ts` also trims the SKU, so `true` is the true behaviour, and the expected value in the row is the mistake. The case shows why a row is a decision about the product, and not only a line of code.
-
-</details>
-
-6. You have two hours before a release. You can write three automated tests, or explore the new feature by hand. The feature changed a lot this week. What do you do, and what does your answer depend on?
-
-<details><summary>Answer</summary>
-
-Most testers would explore by hand first. The feature is new and unstable, so a script would be rewritten, and exploring finds the surprises a script cannot. The answer depends on the risk: if a core journey such as login could be affected, you check that by hand in 5 minutes first, and automate it after the release. It also depends on what already exists. If a stable regression suite already runs, you are free to explore. There is no single right answer.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What is the testing trophy, and how is it different from the test pyramid?**
-   - Search for: `testing trophy vs testing pyramid`
-   - Try it: take the rows of `COVERAGE.md`. Write each one at a level (unit, API, E2E) twice: once for a pyramid team and once for a trophy team. Mark where your two lists differ.
-   - A good answer explains: which levels each shape stresses, and why some teams choose the trophy.
-
-2. **What is risk-based testing, and how do teams rank risks?**
-   - Search for: `risk-based testing likelihood impact`
-   - Try it: list six features of the shop. Give each a likelihood and an impact from 1 to 3. Multiply, sort, and compare your order with the "Not covered yet" list.
-   - A good answer explains: how likelihood and impact combine into a priority, and how it helps you choose what to automate.
-
-3. **What is the difference between a smoke test and a regression test?**
-   - Search for: `smoke test vs regression test`
-   - Try it: run `pnpm shop:e2e auth/auth.spec.ts`, then the whole suite. Note both times. Decide which spec files you would put in a "smoke" run of under 30 seconds.
-   - A good answer explains: the purpose, size and timing of each, and which one you would run first after a new build.
 
 ## Next step
 

@@ -1,12 +1,66 @@
 ---
 title: Actions
-summary: Do what a user does with goto, click, fill, press, check, selectOption and clear, learn how Playwright waits, and choose the action that says what you mean.
-duration: 75 min
+duration: 60 min
 ---
 
-## Start with a puzzle
+## Goal
 
-A test needs the first case in the Practice app to be ticked. The case list has one case. A teammate writes a small helper, and the test calls it in two places, because two steps both need a ticked case:
+In this lesson you use locators to interact with the Practice app and choose the action for the result you need. You also distinguish waiting before an action from waiting for its result.
+
+- Navigate, click, and use form controls.
+- Tick a checkbox without changing it by mistake when you repeat the step.
+- Understand Playwright's checks before an action.
+- Create one test for each input in a data table.
+
+## goto and click
+
+`goto` opens an address. With the configured `baseURL`, `/#/practice` becomes `http://localhost:5180/#/practice`.
+
+```ts
+await page.goto("/#/practice")
+```
+
+`click` clicks the element that the locator finds.
+
+```ts
+await page.getByTestId("login-submit").click()
+```
+
+## fill and clear
+
+`fill` replaces the text that was in the field.
+
+```ts
+await page.getByTestId("login-email").fill("qa@example.com")
+```
+
+`clear` empties the field.
+
+```ts
+await page.getByTestId("login-email").clear()
+```
+
+## press
+
+`press` presses a key on the keyboard. Use it for keys like `Enter`, `Tab` or `Escape`.
+
+```ts
+await page.getByTestId("cases-input").fill("Press Enter to add")
+await page.getByTestId("cases-input").press("Enter")
+```
+
+In the Practice app, the browser submits the form when you press `Enter` in the field. The app adds the case, just as it does when you click Add.
+
+## check and uncheck
+
+`check` ticks a checkbox. `uncheck` removes the tick.
+
+```ts
+await page.getByTestId("cases-toggle-1").check()
+await page.getByTestId("cases-toggle-1").uncheck()
+```
+
+If the checkbox is already ticked, `check` leaves its state unchanged. A click toggles the tick each time you repeat it. This test calls the same helper twice with one case in the list:
 
 ```ts
 async function markAsPassed(page: Page) {
@@ -18,88 +72,9 @@ await markAsPassed(page)
 await expect(page.getByTestId("cases-counter")).toHaveText("1 of 1 passed")
 ```
 
-The test fails. Nobody changed the app. Then the teammate replaces `click()` with `check()` and the test passes.
+The first click ticks the checkbox and the second removes the tick. The counter shows "0 of 1 passed", so the assertion fails.
 
-What does the counter show after the first version? Why does one word make the difference?
-
-Write down your guess before you read on.
-
-## Goal
-
-- Choose the action that says what you mean, not only the action that works today.
-- Predict how long Playwright waits before an action, and when it gives up.
-- Explain what Playwright does not wait for.
-- Turn one list of inputs into many tests without copying code.
-
-## What an action is
-
-An **action** is something a user does: open a page, type, click, tick a box. In Playwright, an action is a method on a locator or on the page.
-
-Every action needs `await`. You learned why in the async lesson. Without it, the test moves on before the step ends. The result is a flaky test.
-
-## goto
-
-`goto` opens an address.
-
-```ts
-await page.goto("/#/practice")
-```
-
-The start of the address comes from `baseURL` in the config. So `/#/practice` becomes `http://localhost:5180/#/practice`.
-
-## click
-
-`click` clicks an element.
-
-```ts
-await page.getByTestId("login-submit").click()
-```
-
-## fill and clear
-
-`fill` puts a text in a field. It replaces what was in the field before.
-
-```ts
-await page.getByTestId("login-email").fill("qa@example.com")
-```
-
-`clear` empties a field.
-
-```ts
-await page.getByTestId("login-email").clear()
-```
-
-What do you expect? You fill the field with "Hello", and then fill it with "World". Does the field hold "HelloWorld" or "World"? It holds "World". `fill` is a replace, not an append.
-
-## press
-
-`press` presses one key on the keyboard. Use it for keys like `Enter`, `Tab` or `Escape`.
-
-```ts
-await page.getByTestId("cases-input").fill("Press Enter to add")
-await page.getByTestId("cases-input").press("Enter")
-```
-
-In the Practice app, `Enter` in the field sends the form, so a case is added. You did not click the Add button. This is how a user with a keyboard works, so it is a test worth having.
-
-## check and uncheck
-
-`check` ticks a checkbox. `uncheck` removes the tick.
-
-```ts
-await page.getByTestId("cases-toggle-1").check()
-await page.getByTestId("cases-toggle-1").uncheck()
-```
-
-If the box is already ticked, `check` does nothing. This is better than `click`, because `click` would remove the tick. `check` says what you want: a ticked box.
-
-An action can say two things. `click` says "do this movement". `check` says "make this true". When you care about the result and not about the movement, use the action that names the result.
-
-### Back to the puzzle
-
-`click()` is a movement. The first call ticks the box, and the second call removes the tick. The counter shows "0 of 1 passed", so the assertion fails. `check()` is a goal: "the box must be ticked". The second call finds the box already ticked and does nothing. The counter shows "1 of 1 passed".
-
-A helper named `markAsPassed` promises a result. It should be written with the action that keeps that promise, even when it is called twice. Programmers call such a step **idempotent**: doing it twice gives the same result as doing it once.
+Replacing `click()` with `check()` leaves the checkbox ticked on the second call, and the counter shows "1 of 1 passed". The operation is **idempotent**: repeating it produces the same result as running it once.
 
 ## selectOption
 
@@ -111,11 +86,9 @@ await page.getByTestId("cases-filter").selectOption("passed")
 
 In the Practice app, the options have the values `all`, `pending` and `passed`. After this step, the list shows only the passed cases.
 
-The list in the Practice app is a native `<select>` element. `selectOption` works only on this kind of element. A drop-down made of `div` elements would need other steps: click it, then click an option.
+The control is a native `<select>` element. `selectOption` works only on this kind of element. A drop-down made of `div` elements needs a click to open it and another to select an option.
 
 ## Playwright waits before it acts
-
-You never write "wait until the button exists". Playwright does this for you.
 
 Before an action, Playwright checks that the element is ready. These checks are called **actionability**. In simple words, the element must:
 
@@ -127,7 +100,7 @@ Before an action, Playwright checks that the element is ready. These checks are 
 
 If a check fails, Playwright waits and tries again. It stops when the test timeout ends, which is 30 seconds by default. Then the test fails and the message tells you which check was not true.
 
-Try it. In the Practice app, press "Load report". The button is disabled for about one and a half seconds. Now predict: a test clicks `report-load` twice, one line after the other, and then waits for the text "12 tests":
+In the Practice app, Load report disables the button for about one and a half seconds. This test tries to click twice in a row:
 
 ```ts
 await page.getByTestId("report-load").click()
@@ -135,13 +108,13 @@ await page.getByTestId("report-load").click()
 await expect(page.getByTestId("report-result")).toContainText("12 tests")
 ```
 
-Does the second click fail because the button is disabled? No. Playwright waits until the button is enabled, about 1.5 seconds, and then clicks. The second click starts a second report. The text "12 tests" is ready about 3 seconds after the first click.
+Playwright waits until the button is enabled, about 1.5 seconds, and then clicks. The second click starts a second report. The text "12 tests" is ready about 3 seconds after the first click.
 
-> **Careful:** Waiting before an action does not wait for the result of the action. After you click, the app may still be working. To wait for a result, use an assertion. The next lesson shows how.
+The app may still be working after the click finishes. The assertion checks the report's result.
 
-## Put it together
+## A login test
 
-This test uses four actions and one assertion:
+This test opens the page, fills the fields, and clicks Sign in. The assertion checks that the welcome message appears.
 
 ```ts
 import { expect, test } from "../../lib/test"
@@ -157,39 +130,9 @@ test("signs in with the test credentials", async ({ page }) => {
 })
 ```
 
-Read it as a manual test case: open the page, type the email, type the password, click Sign in, check the welcome message.
+## A table of inputs
 
-## Go deeper
-
-### Why fill is not the same as typing
-
-When a person types, the browser gets one key event for each key. `fill` does not do this. It puts the whole text in the field at once and tells the page that the value changed.
-
-For most forms this is enough, and it is fast. But some pages react to each key, for example a search box that shows suggestions after every letter. For such a field, use `pressSequentially`. It presses the keys one by one:
-
-```ts
-await page.getByTestId("cases-input").pressSequentially("Login", { delay: 100 })
-```
-
-The `delay` is the time in milliseconds between two keys. Use this only when `fill` does not trigger the behaviour you want to test.
-
-### A common wrong idea: "force fixes a click that does not work"
-
-Sometimes a click waits and then fails because another element covers the button. A beginner finds the option `force: true`:
-
-```ts
-await page.getByTestId("report-load").click({ force: true })
-```
-
-`force` skips the actionability checks. The click is sent even if the button is covered or disabled. But it does not promise that your button gets the click: an overlay may receive it, and a disabled button does nothing. The test can go green anyway. But a real user cannot click a covered button. The test now hides a real bug.
-
-So when a click fails, read the message. It says which check was not true. Then ask: would a user have the same problem? If yes, you found a bug in the app, and the test did its job.
-
-### How it shows up in real QA work: one body, many inputs
-
-A QA analyst often tests the same action with many inputs. The Practice app shows an error for empty fields and another error for a wrong password. Without care, you copy the test and change two values.
-
-DRY means "Don't Repeat Yourself". Write the steps once and loop over the data:
+The Practice app shows one error for empty fields and another for a wrong password. When the steps are the same and only the data changes, you can write the steps once and loop over the inputs:
 
 ```ts
 import { expect, test } from "./lib/test"
@@ -221,11 +164,39 @@ for (const { name, email, password, message } of invalidLogins) {
 }
 ```
 
-Playwright creates two tests with two names. A new case needs one new object, not a new test.
+When the file loads, Playwright's test runner registers one test for each call to `test`. The loop registers two tests with different names; each uses the data from its row.
 
-The limit: this works when the steps are the same and only the data changes. If each case needs different steps, separate tests are easier to read. Another limit is **YAGNI**, "You Aren't Going to Need It": do not build a table and a loop for a need you only imagine. With two cases, two plain tests are also fine. A table pays off when rows are many, or when you expect the list to grow.
+If the cases need different steps, separate tests are easier to read. With two cases, two simple tests are also fine. Use a table when the rows justify sharing the steps.
 
-The rows of such a table should not be random. Choose them with a method. **Equivalence classes** are groups of inputs that the app treats in the same way: "all valid emails", "all empty fields". Take one input from each group. **Boundary values** are the inputs at the edge of a group: the shortest text, the longest text, empty, just one character. Bugs live at the edges.
+Choose inputs by **equivalence classes**: groups of values that the app treats in the same way, such as empty titles or titles containing only spaces. Test one input from each group.
+
+Also include **boundary values**, such as empty text or a single character. If the field has a length limit, test text that reaches that limit.
+
+## Go deeper
+
+### Keyboard events with pressSequentially
+
+When a person types, the browser receives keyboard events for each key. `fill` replaces the field's text and tells the page that the value changed, without reproducing each key.
+
+If the behavior you are testing depends on keyboard events, use `pressSequentially`:
+
+```ts
+await page.getByTestId("cases-input").pressSequentially("Login", { delay: 100 })
+```
+
+The `delay` is the time in milliseconds between two keys. Use this action when `fill` does not trigger the behavior you want to test.
+
+### The limits of force
+
+If another element covers the button, a click may wait and fail. The option `force: true` lets you force the click:
+
+```ts
+await page.getByTestId("report-load").click({ force: true })
+```
+
+`force` skips the actionability checks. The click is sent even if the button is covered or disabled. But it does not promise that your button gets the click: an overlay may receive it, and a disabled button does nothing. The test can go green anyway. But a real user cannot click a covered button. The test now hides a real bug.
+
+Read the failure message before forcing an action. If a user cannot use the button either, investigate the problem in the app.
 
 ## Practice
 
@@ -237,27 +208,24 @@ The rows of such a table should not be random. Choose them with a method. **Equi
 pnpm e2e e2e/exercises/03-playwright/03-actions.spec.ts
 ```
 
-4. In one test, remove an `await` before an action. Run the file and look at the result. Put the `await` back.
-
 Compare with `e2e/exercises/03-playwright/solutions/03-actions.spec.ts` when you finish.
 
 ## Challenge
 
-Create the file `e2e/challenges/03-actions.spec.ts`. The case list of the Practice app takes a title. Test it with a table of inputs, and make one test for each row. Choose the rows with the ideas of equivalence classes and boundary values. Find out first, by hand in the browser, what the app does with each input. Then write down what you expect, and let the tests tell you if you were right.
+Create `e2e/challenges/03-actions.spec.ts`. Test titles in the case list with a table of inputs and one test per row. First check in the browser what the Practice app does with each input, and use that result in your assertions.
 
 It is done when:
 
-- The file has a table of at least five inputs and creates one test per row, with a name that says which input it is.
-- The inputs include: a normal title, a title with spaces before and after, a title with only spaces, an empty title, and a very long title of 300 characters. You do not type the long title by hand.
-- Each test checks the number of rows in the list and the text of the counter `cases-counter`. When a row is added, it also checks the title that the list shows.
+- The table has at least five inputs: a normal title, one with spaces before and after, one with only spaces, an empty one, and one of 300 characters generated in code.
+- The file creates one test per row, with a name that identifies the input.
+- Each test checks the row count and the text of `cases-counter`. If it adds a row, it also checks the title shown in the list.
 - All tests pass with `pnpm e2e e2e/challenges/03-actions.spec.ts`, and `pnpm e2e e2e/challenges/03-actions.spec.ts --list` shows one test name for each row.
-- You changed one expected value on purpose and the failure message told you which row failed. Then you changed it back.
 
-You will need something this lesson did not teach: how to build a long text in code, and how to check that nothing was added. Search for: `javascript string repeat`, `playwright toHaveCount 0`.
+Search for how to build long text in code and check that nothing was added: `javascript string repeat`, `playwright toHaveCount 0`.
 
 ## Think it through
 
-1. Predict the result and say why. In the Practice app with an empty list:
+1. In the Practice app with an empty list, what number goes in place of `?`, and what does the field hold at the end?
 
 ```ts
 await page.getByTestId("cases-input").fill("Login")
@@ -266,11 +234,9 @@ await page.getByTestId("cases-input").press("Enter")
 await expect(page.getByTestId("cases-item")).toHaveCount(?)
 ```
 
-What number goes in place of `?`, and what does the field hold at the end?
-
 <details><summary>Answer</summary>
 
-The count is 1, and the field is empty. The first Enter sends the form, the app adds the case and clears the field. The second Enter sends the form again, but now the title is empty, and the app ignores an empty title. The second action was not wrong. The app simply had nothing to do.
+The count is 1 and the field is empty. The first Enter submits the form; the app adds the case and clears the field. The second Enter submits an empty title, which the app ignores.
 
 </details>
 
@@ -291,56 +257,13 @@ The assertion says that nothing exists. That is true at the start, so it can pas
 
 </details>
 
-3. Two versions both work. Version A is a table of two login cases and a loop that makes two tests. Version B is two separate tests with the steps written twice. Which is better, and what would make you choose the other?
+3. What breaks if a developer replaces the native `<select data-testid="cases-filter">` with a drop-down made of `div` elements, with the same test id and the same visible options?
 
 <details><summary>Answer</summary>
 
-With two cases, B is fine and easier to read: the whole story is in one place, and a new reader does not need to understand a loop. This is the idea of YAGNI. A is better when there are many rows, or when the list will grow, because a new case is one new line. Choose A when only the data changes. Choose B when the cases need different steps or different checks.
+`selectOption` fails because it requires a real `<select>` element. The test must click the drop-down and then an option. The custom control also needs to implement the keyboard behavior and accessibility that the native control provides.
 
 </details>
-
-4. What breaks if a developer replaces the native `<select data-testid="cases-filter">` with a drop-down made of `div` elements, with the same test id and the same visible options?
-
-<details><summary>Answer</summary>
-
-`selectOption` fails, because it works only on a real `<select>` element. The message says that the element is not a `select`. The user sees no change, so the app is not wrong, but the test must now click the drop-down and then click an option. Also the keyboard behaviour of a `div` is a new risk to test. A native control gives keyboard and screen reader support for free, and a custom control must build it again.
-
-</details>
-
-5. Explain to a teammate in three sentences what actionability does. Do not use the word "wait".
-
-<details><summary>Answer</summary>
-
-Before Playwright clicks or types, it asks if a real user could do it now: the element is there, you can see it, it is not moving, it is not disabled and nothing covers it. If the answer is no, it asks again and again until the answer is yes or the time is over. So you describe what to do, and Playwright takes care of when.
-
-</details>
-
-6. A cookie banner covers the Sign in button on a small phone screen, so `click()` fails after 30 seconds. A colleague proposes `click({ force: true })`. Another proposes to close the banner first. A third proposes a bigger screen for the test. What would you do?
-
-<details><summary>Answer</summary>
-
-There is no single right answer. `force: true` makes the test green but hides the problem: a real user on a phone cannot press the button either, so it may be a real bug. A bigger screen avoids the problem but also avoids the test of the phone. Closing the banner first is what a real user does, so it is the most honest test. The right choice depends on the goal of the test. If the goal is the phone layout, report the covered button as a defect. If the goal is the login logic, close the banner as a set-up step.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What is the difference between `fill()` and `pressSequentially()` in Playwright?**
-   - Search for: `playwright fill vs pressSequentially`
-   - Try it: On the Practice app, open DevTools, and in the Console select the field `cases-input` in the Elements panel, then type `$0.addEventListener("keydown", (e) => console.log(e.key))`. Type three letters by hand and watch. Then write a test that uses `pressSequentially` on the same field and run it with `pnpm e2e:headed`.
-   - A good answer explains: how each one enters text, which events the page receives, and one situation where `fill` is not enough.
-
-2. **What is the difference between the HTML `disabled` attribute and `aria-disabled`?**
-   - Search for: `html disabled vs aria-disabled button`
-   - Try it: In DevTools, select the Load report button. Add the attribute `aria-disabled="true"` by editing the HTML, and click the button. Then remove it and add `disabled`. Compare what happens.
-   - A good answer explains: what each one does for a mouse user and for a screen reader user, and why this matters when you test a button that "cannot be clicked".
-
-3. **What is data-driven testing, and when is it a good idea?**
-   - Search for: `data-driven testing parameterized tests`
-   - Try it: Write a table of three rows for the login form in a new file, loop over it to make tests, and run `pnpm e2e <your file> --list`. Read how the names appear. Then rename one row and see the name change.
-   - A good answer explains: how one test with a table of inputs works, what is gained, and when separate tests are clearer.
 
 ## Next step
 

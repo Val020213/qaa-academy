@@ -28,7 +28,7 @@ Una terminal que ya estaba abierta no ve los programas que instalaste después d
 
 ## 1. VS Code
 
-Descarga el instalador de Windows desde el sitio oficial de VS Code. Ejecútalo y acepta las opciones por defecto.
+Descarga el instalador de Windows desde el [sitio oficial de VS Code](https://code.visualstudio.com). Ejecútalo y acepta las opciones por defecto.
 
 Abre VS Code y luego la terminal con Terminal > New Terminal. Aparece en la parte de abajo de la ventana. Ejecuta:
 
@@ -48,7 +48,7 @@ Tus números serán distintos, y está bien.
 
 ## 2. Node.js 24 LTS
 
-Ve al sitio de Node.js, nodejs.org, y descarga el instalador de Windows para **24 LTS**. LTS significa soporte a largo plazo (*long-term support*): es la versión estable. Ejecútalo y acepta las opciones por defecto.
+Ve al sitio de Node.js, [nodejs.org](https://nodejs.org), y descarga el instalador de Windows para **24 LTS**. LTS significa soporte a largo plazo (*long-term support*): es la versión estable. Ejecútalo y acepta las opciones por defecto.
 
 Con una terminal nueva, ejecuta:
 
@@ -66,7 +66,7 @@ Los números después del 24 pueden ser distintos.
 
 ## 3. Git para Windows
 
-Descarga Git para Windows desde el sitio oficial de Git. Ejecuta el instalador y acepta las opciones por defecto.
+Descarga Git para Windows desde el [sitio oficial de Git](https://git-scm.com). Ejecuta el instalador y acepta las opciones por defecto.
 
 Con una terminal nueva, ejecuta:
 

@@ -1,41 +1,30 @@
 ---
 title: De casos de prueba a datos de prueba
-summary: Convierte tu habilidad para diseñar casos de prueba en una tabla de filas, deriva clases de equivalencia y valores límite del código de validación real, y genera un test por fila.
-duration: 90 min
+duration: 60 min
 ---
-
-## Empieza con un acertijo
-
-Un formulario de la tienda dice que el nombre necesita "al menos 3 caracteres". Una tester prueba "ab" y ve un error. Prueba "abc" y se guarda. Ahí se detiene.
-
-Otro tester prueba 40 nombres: "Mouse", "Keyboard", "Monitor 27", y así. Todos se guardan. Reporta 40 tests aprobados.
-
-Los dos testers ejecutaron un número distinto de casos. Uno de ellos encontró dónde vive la regla. El otro no encontró nada nuevo después del primer caso. ¿Quién probó mejor, y por qué? Ahora piensa en el campo del precio, que debe ser "mayor que 0". ¿Qué tres valores probarías primero?
-
-Escribe tu respuesta antes de seguir leyendo.
 
 ## Objetivo
 
-- Derivar clases de equivalencia y valores límite a partir del código de validación.
-- Escribir una tabla de casos como datos y generar un test por fila.
-- Decidir qué filas van en un test *end-to-end* (de extremo a extremo) y cuáles en una comprobación más barata de la API.
-- Revisar un test con Arrange, Act, Assert (preparar, actuar, comprobar) y FIRST.
+Elige las entradas de una tabla de casos a partir de las reglas de validación y los requisitos. Usa esa tabla para generar un test por fila.
 
-## Los casos son datos
+- Elegir clases de equivalencia y valores límite.
+- Cubrir entradas aceptadas y rechazadas con una tabla de datos.
+- Separar las comprobaciones de la API de las del formulario.
+- Revisar los tests con FIRST.
 
-Como tester manual ya escribes casos de prueba: un nombre, una entrada y un resultado esperado. Una tabla de casos en código es lo mismo. Es un *array* (lista) de objetos, y un bucle convierte cada objeto en un test. Usaste este patrón en las lecciones 1.09 y 4.10. Esta lección decide qué va en las filas.
+## Elegir las filas
 
-Dos ideas eligen las filas.
+Ya usaste un array de objetos y un bucle para generar tests. Ahora el trabajo es elegir qué entradas y resultados esperados poner en las filas.
 
-Una **clase de equivalencia** es un grupo de entradas que la app trata de la misma manera. Si "Mouse" y "Keyboard" pasan la misma comprobación, con una basta. Probar la segunda no te da información nueva.
+Una **clase de equivalencia** agrupa entradas que la app trata de la misma manera. Si los nombres "Mouse" y "Keyboard" pasan la misma comprobación de longitud, una fila puede representar esa clase.
 
-Un **valor límite** es una entrada en el borde entre dos clases. Los bugs viven ahí, porque los programadores escriben `<` cuando quieren decir `<=`. Prueba el borde, un paso por debajo y un paso por encima.
+Los **valores límite** están en el borde donde cambia una decisión. Para revisar una comparación, elige el borde, un paso por debajo y un paso por encima. En la regla del nombre, `name.length < 3`, las longitudes 2, 3 y 4 permiten comprobar dónde cambia el resultado.
 
 ## Lee las reglas en el código
 
-Las reglas están en `apps/practice-shop/lib/validation.ts`. Lee las líneas del nombre, el precio y el stock. Antes de mirar la tabla, adivina: para la regla del nombre `name.length < 3`, ¿cuál es la última entrada que falla?
+Abre `apps/practice-shop/lib/validation.ts`. La función quita los espacios de los extremos del nombre antes de comprobar su longitud. Convierte el precio y el stock a números antes de comprobarlos.
 
-Fíjate en cuántos errores muestra el formulario vacío, y cuántos quedan después de arreglar el nombre.
+El formulario envía los valores a la API. El servidor ejecuta la validación y devuelve los errores; el formulario los muestra junto a los campos:
 
 ![Un formulario vacío muestra cuatro errores. Al arreglar el nombre, quedan tres errores.](/clips/shop-form-validation.webm)
 
@@ -45,13 +34,13 @@ Fíjate en cuántos errores muestra el formulario vacío, y cuántos quedan desp
 | Precio | un número finito, mayor que 0 | no es un número; infinito (`Infinity`, `1e309`); cero o menos; mayor que cero | `"abc"`, `"0"`, `"-1"` rechazados; `"0.01"` aceptado |
 | Stock | un número entero, 0 o más | no es un número; negativo; no entero; entero y 0 o más | `"-1"`, `"1.5"`, `""` rechazados; `"0"` aceptado |
 
-Fíjate en lo que la tabla no muestra. El nombre no tiene límite superior. El precio no tiene límite superior. Una fila como "un nombre de 10000 caracteres" prueba una regla que no existe. Leer el código te dice qué filas son reales.
+El nombre no tiene límite superior. El precio no tiene límite superior. Una fila como "un nombre de 10000 caracteres" prueba una regla que no existe.
 
-> **Cuidado:** El código no es el requisito. Si el requisito dice "nombre: de 3 a 50 caracteres" y el código no tiene máximo, la tabla de arriba encuentra un bug que ningún test del código mostraría. Compara los dos, y luego pregunta al responsable del producto.
+> **Cuidado:** El código no es el requisito. Si el requisito dice "nombre: de 3 a 50 caracteres" y el código no tiene máximo, falta una validación. Compara las reglas con los requisitos y consulta la diferencia con el responsable del producto.
 
 ## Una tabla, un bucle
 
-El formulario está en `/products/new`. Este spec cubre nombre, precio y stock. Tiene los dos lados: las filas aceptadas guardan el producto, las filas rechazadas muestran el texto del error. Aquí el formulario del producto es lo que se prueba, así que el test lo llena por la interfaz. Cada fila cambia un campo de un formulario que por lo demás es válido.
+El formulario está en `/products/new`. Cada fila cambia un campo de un formulario que por lo demás es válido. Las filas aceptadas comprueban la vuelta a la lista; las rechazadas comprueban el mensaje y que el formulario siga abierto.
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -112,21 +101,15 @@ for (const row of cases) {
 }
 ```
 
-Cada fila crea su propio SKU dentro del test. Ninguna fila depende de otra. Nueve filas dan nueve tests con nueve títulos claros, y una fila que falla se nombra sola en el reporte.
+El bucle llama a `test` una vez por fila, y el runner de Playwright registra nueve tests con títulos distintos. Si uno falla, el reporte identifica su entrada.
 
-### De vuelta al acertijo
+Cada test crea su propio SKU dentro del cuerpo. La preparación construye los valores válidos y aplica el cambio de la fila. Las acciones llenan y guardan el formulario; las aserciones comprueban el resultado. Un test, un Act. Si necesitas dos Acts, tienes dos tests.
 
-La primera tester probó las dos entradas a cada lado del borde. El segundo tester probó 40 entradas de una misma clase. Para el precio, empieza con `0` (el borde, rechazado), `0.01` (un valor por encima del borde, aceptado) y un valor que no es un número. Tres filas valen más que cuarenta.
+## Filas para la API y para el navegador
 
-## La forma de cada test
+Usa el navegador para comprobar cómo muestra el formulario un error y qué ocurre al guardar. Para comprobar solo una regla del servidor, envía los datos directamente a la API.
 
-Cada test de arriba tiene tres partes. Esto se llama **Arrange, Act, Assert** (preparar, actuar, comprobar). Arrange arma la situación inicial. Act hace la única cosa que se prueba. Assert comprueba lo que el usuario puede ver. Un test, un Act. Si necesitas dos Acts, tienes dos tests.
-
-## ¿Qué filas necesitan un navegador?
-
-Una fila de la tabla es barata de escribir. No es barata de ejecutar. Un test en el navegador abre una página, escribe en cuatro campos y espera a la pantalla.
-
-Los tests de navegador de arriba comprueban que el formulario muestra el error junto al campo. Eso necesita un navegador, pero una o dos filas lo prueban. La regla misma, "el precio debe ser mayor que 0", se comprueba en el servidor, y una comprobación del servidor no necesita pantalla. Este test envía la petición directo a la API y usa `page.request`, que lleva la sesión del administrador desde el login guardado:
+Este test usa `page.request`, que comparte las cookies del contexto del navegador. La configuración de la tienda carga la sesión guardada del administrador:
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -142,114 +125,74 @@ test("the API rejects a price of 0", async ({ page }) => {
 })
 ```
 
-El código de estado 422 significa "el servidor entendió la petición, pero los datos no son válidos". El cuerpo lista un mensaje por cada campo equivocado. Este test se ejecuta en unos pocos milisegundos. Pon aquí todas las filas de reglas, y deja dos o tres filas en el navegador para mostrar que el error le llega al usuario.
+Con precio 0 y los demás campos válidos, el servidor responde con el estado 422 y el error de precio. El test comprueba tanto el estado como el cuerpo de la respuesta.
+
+Este test se ejecuta en unos pocos milisegundos. Pon aquí todas las filas de reglas, y deja dos o tres filas en el navegador para mostrar que el error le llega al usuario.
 
 ## Revisa un test con FIRST
 
-Usa estas cinco palabras como lista de revisión. Haz cada pregunta sobre un test que escribiste.
+Usa **FIRST** como lista de revisión:
 
-1. **Fast (rápido):** ¿hace solo lo que necesita, y prepara los datos por la API cuando la interfaz no es lo que se prueba?
+1. **Fast (rápido):** ¿hace solo lo que necesita y prepara los datos por la API cuando la interfaz no es lo que se prueba?
 2. **Independent (independiente):** ¿puede ejecutarse solo y en cualquier orden?
 3. **Repeatable (repetible):** ¿da el mismo resultado en cada ejecución, gracias a datos únicos y sin pausas?
-4. **Self-checking (autoverificable):** ¿contiene una aserción, para que nadie tenga que mirar la pantalla y decidir?
+4. **Self-checking (autoverificable):** ¿contiene una aserción que decide si pasa o falla?
 5. **Timely (oportuno):** ¿se escribió junto con la función, cuando las reglas estaban frescas?
 
-## El límite
-
-Más filas no es más valor. Cada fila debe poder encontrar un bug que ninguna otra fila encuentra. Pregunta por cada fila: "¿qué línea de código equivocada haría fallar solo a esta fila?" Si no puedes nombrar una, borra la fila.
+Cada fila debe poder encontrar un bug que ninguna otra fila encuentra. Pregunta por cada fila: "¿qué línea de código equivocada haría fallar solo a esta fila?" Si no puedes nombrar una, borra la fila.
 
 ## Profundiza
 
-Las clases de equivalencia y los valores límite son las mismas herramientas que usas en las pruebas manuales. Escribirlos como datos agrega dos beneficios. La tabla es un documento de revisión: un desarrollador o el responsable del producto puede leer nueve líneas y decir "olvidaste la longitud máxima". El bucle también evita que la tabla se aleje de los tests, porque la tabla son los tests.
+### Combinaciones de campos inválidos
 
-Las filas también pueden esconder una debilidad. Si cada fila cambia un campo y mantiene los demás válidos, nunca pruebas dos campos equivocados juntos. Es una decisión deliberada: cuando una fila falla, conoces la causa. Agrega unas pocas filas combinadas solo cuando sospeches que los campos se afectan entre sí.
+Cambiar un solo campo por fila facilita identificar la causa de un fallo, pero deja sin probar las combinaciones de campos inválidos. Agrega unas pocas filas combinadas cuando sospeches que los campos se afectan entre sí.
 
 ## Práctica
 
-1. Abre `apps/practice-shop/lib/validation.ts`. Para cada uno de los cinco campos, escribe una frase: la regla y sus clases.
-2. Crea `apps/practice-shop/e2e/products/product-form-boundaries.spec.ts` y escribe a mano el spec con tabla de arriba.
-3. Ejecútalo con `pnpm shop:e2e products/product-form-boundaries.spec.ts` y lee los nueve títulos de test en el reporte.
-4. Rompe una regla a propósito en tu propia copia: cambia `name.length < 3` por `name.length < 4`. ¿Qué fila falla? Devuelve la línea a como estaba.
+1. Abre `apps/practice-shop/lib/validation.ts`. Para cada uno de los cinco campos, escribe la regla y sus clases.
+2. Crea `apps/practice-shop/e2e/products/product-form-boundaries.spec.ts` y escribe el spec con tabla de arriba.
+3. Ejecútalo con `pnpm shop:e2e products/product-form-boundaries.spec.ts` y lee los nueve títulos en el reporte.
+4. En tu copia, cambia `name.length < 3` por `name.length < 4`. Ejecuta de nuevo el spec y comprueba qué fila falla. Restaura la línea original.
 5. Agrega la comprobación de la API como un segundo archivo y ejecútala.
 
 ## Reto
 
-Escribe un spec guiado por una tabla para el campo SKU. Un SKU debe verse como `SKU-0001`. El servidor también pasa el texto a mayúsculas antes de comprobarlo, y rechaza un SKU que otro producto ya usa.
+Escribe un spec con tabla para el campo SKU en `apps/practice-shop/e2e/products/sku-boundaries.spec.ts`. Un SKU debe verse como `SKU-0001`. El servidor pasa el texto a mayúsculas antes de comprobarlo y rechaza los duplicados.
 
 Está terminado cuando:
 
-- la tabla tiene al menos 8 filas, y un comentario sobre cada grupo de filas nombra su clase de equivalencia;
-- la tabla tiene filas en el lado aceptado y en el lado rechazado de cada límite que encontraste;
-- la fila del SKU duplicado crea su primer producto por la API, no por el formulario;
-- puedes nombrar, para cada fila, una línea de código equivocada que la haría fallar;
+- La tabla tiene al menos 8 filas, con un comentario que nombra cada clase de equivalencia, y cubre los lados aceptado y rechazado de cada límite que encontraste.
+- La fila del SKU duplicado crea su primer producto por la API.
+- Puedes nombrar, para cada fila, una línea de código equivocada que la haría fallar.
 - `pnpm shop:e2e products/sku-boundaries.spec.ts` pasa.
 
-Vas a necesitar algo que esta lección no enseñó: cómo leer el patrón `^SKU-\d{4}$` y encontrar sus bordes. Busca `regular expression anchors` y `regex digit quantifier`.
-
-Crea el archivo `apps/practice-shop/e2e/products/sku-boundaries.spec.ts`. Elige tus propias filas extra. ¿Un `sku-1234` en minúsculas está en la clase aceptada o en la rechazada?
+Para leer el patrón `^SKU-\d{4}$` y encontrar sus bordes, busca `regular expression anchors` y `regex digit quantifier`.
 
 ## Piénsalo bien
 
-1. **Predice.** Un tester escribe un solo espacio en el campo Stock y guarda un producto válido. Usando `validation.ts`, di qué hace el formulario y por qué. (Pista: lee cómo se construye `stock` antes de las comprobaciones.)
+1. Un tester escribe un solo espacio en el campo Stock y guarda un producto con los demás campos válidos. Según `validation.ts`, ¿qué ocurre y por qué?
 
-   <details><summary>Respuesta</summary>
+<details><summary>Respuesta</summary>
 
-   El formulario guarda el producto con un stock de 0. El código comprueba `data.stock === ""`, y un espacio no es una cadena vacía. Luego `Number(" ")` da 0, que es un número entero y no es negativo. Así que todas las comprobaciones pasan. Es un bug si el requisito dice que el stock es obligatorio. Muestra por qué una entrada que parece vacía es una clase aparte: `""` y `" "` se ven iguales para una persona y son distintas en el código.
-   </details>
+El formulario guarda el producto con stock 0. La comprobación `data.stock === ""` no rechaza el espacio. Luego `Number(" ")` da 0, que pasa las comprobaciones de entero y no negativo. `""` y `" "` necesitan filas distintas porque el validador las trata de manera diferente.
 
-2. **Encuentra el bug.** Un compañero escribe `const sku = uniqueSku()` una sola vez al inicio del archivo y usa `sku` en cada fila. Las filas rechazadas pasan. Seis meses después las filas "aceptadas" empiezan a fallar. ¿Por qué?
+</details>
 
-   <details><summary>Respuesta</summary>
+2. Un compañero escribe `const sku = uniqueSku()` una sola vez al inicio del archivo y usa `sku` en todas las filas. ¿Por qué fallan las filas aceptadas después de guardar el primer producto?
 
-   Cada fila aceptada guarda un producto con el mismo SKU. La primera tiene éxito. La segunda choca con la regla de duplicados y muestra "This SKU is already used by another product.", así que falla. Las filas rechazadas nunca guardan, así que ocultan el problema. Los tests no eran independientes: compartían datos. Cada test debe llamar a `uniqueSku()` dentro de su propio cuerpo.
-   </details>
+<details><summary>Respuesta</summary>
 
-3. **Dos versiones.** La versión A tiene un test por fila. La versión B pone todas las filas rechazadas en un solo test: llena el formulario seis veces seguidas y comprueba seis errores. ¿Cuál es mejor aquí, y qué te haría elegir la otra?
+Las filas aceptadas intentan guardar el mismo SKU. Después del primer producto, el servidor rechaza ese SKU con "This SKU is already used by another product.". Las filas rechazadas no guardan productos, así que pueden ocultar el problema. Llama a `uniqueSku()` dentro de cada test.
 
-   <details><summary>Respuesta</summary>
+</details>
 
-   La versión A es mejor. Un fallo nombra la fila, las filas corren aisladas y un reintento repite un solo caso. La versión B se detiene en el primer paso que falla y oculta las filas que siguen. Elegirías B solo si cada fila cuesta mucho, por ejemplo un login lento para cada test, y las filas no cambian el estado. Aun así, la solución más barata suele ser mover las filas a una comprobación de la API.
-   </details>
+3. El responsable del producto agrega un máximo de 50 caracteres al nombre. ¿Qué filas siguen siendo válidas y cuáles debes agregar?
 
-4. **Qué se rompe si...** El responsable del producto agrega una regla: el nombre puede tener como máximo 50 caracteres. ¿Qué filas de la tabla siguen siendo válidas, cuáles deben cambiar y cuáles hay que agregar?
+<details><summary>Respuesta</summary>
 
-   <details><summary>Respuesta</summary>
+Las filas de 2 y 3 caracteres siguen siendo válidas. Los nombres de `uniqueName("Boundary")` tienen menos de 50 caracteres, así que tampoco cambian las otras filas. Agrega 50 caracteres como entrada aceptada y 51 como rechazada, con el mensaje de la nueva validación.
 
-   Las filas de 2 y 3 caracteres siguen siendo válidas. Los nombres únicos que crea `uniqueName("Boundary")` se quedan por debajo de 50, así que las otras filas también siguen funcionando. Debes agregar filas en el nuevo borde: 50 caracteres (aceptado) y 51 caracteres (rechazado), con un mensaje de error que sacas del código nuevo. También puedes agregar una fila para el nombre vacío. Una regla nueva significa filas nuevas y no código de test nuevo, que es el beneficio de la tabla.
-   </details>
-
-5. **Explícalo.** Explica a un compañero, en tres frases, por qué un test con el precio `0` y otro con `0.01` valen más que diez tests con precios como 5, 10 y 99. No uses las palabras "límite" ni "equivalencia".
-
-   <details><summary>Respuesta</summary>
-
-   Una buena respuesta dice que todos los precios por encima de cero siguen el mismo camino en el código, así que después de uno, los demás no te dicen nada nuevo. El error del programador es más probable en el borde, donde el código decide entre "aceptar" y "rechazar", así que los dos valores a cada lado del borde pueden atrapar una comparación equivocada. Diez valores parecidos prueban la misma línea diez veces, mientras que dos valores bien elegidos prueban la decisión misma.
-   </details>
-
-6. **Criterio.** Tu tabla tiene 30 filas para el campo del precio. ¿Deben ser todas tests de navegador?
-
-   <details><summary>Respuesta</summary>
-
-   No hay una sola respuesta correcta. El navegador prueba que el error se le muestra al usuario, y una o dos filas lo prueban. Las otras filas comprueban la regla, y la comprobación de la API lo hace más rápido y con menos causas de fallo. La decisión depende de dónde vive la regla: si el navegador también valida, como en muchas apps, necesitas filas de navegador para esa copia también. También depende de cuánto puede tardar la suite y de quién debe leer los resultados.
-   </details>
-
-## Investiga por tu cuenta
-
-Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
-
-1. **¿Cuántos valores debes probar en cada borde: dos o tres?**
-   - Busca: `boundary value analysis two-value three-value`
-   - Pruébalo: agrega las filas extra para el campo del precio que pide el método de tres valores, y mira si alguna puede encontrar un bug que las filas de dos valores no pueden.
-   - Una buena respuesta explica: cuándo ayuda el valor extra y qué tipo de error de programación atrapa.
-
-2. **¿Qué hace `Number()` con texto raro?**
-   - Busca: `javascript Number conversion string whitespace empty string`
-   - Pruébalo: ejecuta `Number("")`, `Number(" ")`, `Number("1e3")` y `Number("0x10")` en un archivo pequeño de TypeScript o en la consola del navegador, y escribe una entrada de formulario para cada uno que un usuario podría teclear.
-   - Una buena respuesta explica: cuáles de los resultados sorprenderían a un usuario y qué filas agregan a la tabla.
-
-3. **¿Puede un programa inventar las filas por ti?**
-   - Busca: `property-based testing fast-check`
-   - Pruébalo: escribe una función simple `isValidName(text)` que copie la regla del nombre, y piensa en tres propiedades que siempre deben cumplirse, como "cualquier texto de 3 o más caracteres que no sean espacios se acepta".
-   - Una buena respuesta explica: qué encuentra el *property-based testing* (pruebas basadas en propiedades) que una tabla hecha a mano no encuentra, y cuánto cuesta.
+</details>
 
 ## Siguiente paso
 

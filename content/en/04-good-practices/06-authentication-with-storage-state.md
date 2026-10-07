@@ -1,45 +1,32 @@
 ---
 title: Authentication with storage state
-summary: Sign in once, save the session, reuse it in every test, and learn which tests must never share it.
-duration: 75 min
+duration: 60 min
 ---
-
-## Start with a puzzle
-
-Two tests start from the same saved session file. Test A opens the dashboard and clicks "Sign out". Test B opens `/products` and checks the page title.
-
-Run alone, each test passes. Run A first and then B, test B fails: the browser is on the login page. The code of B has no mistake. The saved file did not change on your disk. Not one byte.
-
-What did test A change, and where does that change live?
-
-Write down your guess before you read on.
 
 ## Goal
 
-- Predict what happens to a test when its saved session stops being valid.
-- Decide which tests may share one session and which need their own.
-- Explain why a session file holds a token and not "who you are".
-- Read the `setup` and `chromium` projects and say what breaks if you change them.
+Save a session at the start of a run and use it in tests that need authentication. Distinguish the browser's state from the session the server maintains.
 
-## The problem: the same four steps, again and again
+- Read the dependency between the `setup` and `chromium` projects.
+- Save and load a session with storage state.
+- Start tests signed out or with their own session.
+- Recognize when a saved token becomes invalid.
 
-Almost every page of the shop needs a login. Suppose every test signed in through the login page. Each test would repeat the same steps: open the page, type the email, type the password, click.
+## Reusing authentication
 
-Think about two numbers before you read on. Your suite has 60 tests. Signing in takes 3 seconds. How much time goes only to signing in? And if the login page breaks, how many tests turn red? How many of them are about the login?
+If every test signs in through the UI, it repeats the login steps even when testing another page. A saved session lets product tests skip those steps. `auth.spec.ts` still tests the login form with an empty session.
 
-The answers are 3 minutes, 60 tests and one. That is waste and noise. The fix is to sign in **once** and reuse the result.
+After login, the shop's server returns a cookie containing a session token. The browser stores the cookie and sends it with requests to the shop. The server looks up that token to identify the user.
 
-## Storage state
+Playwright can save a browser context's cookies to a **storage state** file. Each test gets a new context that loads those values: the contexts are separate, but they use the same session token.
 
-When you sign in, the server gives your browser a **cookie**. A cookie is a small piece of data the browser keeps. The browser sends it with each request, so the server knows who is asking.
+The shop's cookie is called `shop_session`. The server creates it in `app/api/auth/login/route.ts` with `httpOnly: true`, which prevents JavaScript on the page from reading it. Playwright can save it because it accesses the browser from outside the page.
 
-Playwright can save the cookies of a browser to a file. This is called **storage state**. A new test can start with that file, so it is already signed in.
-
-Look at the shop. Its session cookie is called `shop_session`. The server creates it in `app/api/auth/login/route.ts`, with `httpOnly: true`. That setting hides the cookie from JavaScript on the page. Playwright can still read it, because it talks to the browser from outside the page.
+Storage state can also save `localStorage`. The shop does not use it to authenticate users, so `origins` is empty in its session file.
 
 ## The setup project
 
-Open `apps/practice-shop/playwright.config.ts`. It has two **projects**. A project is a named group of tests with its own settings.
+Open `apps/practice-shop/playwright.config.ts`:
 
 ```ts
 projects: [
@@ -58,22 +45,15 @@ projects: [
 ],
 ```
 
-The `setup` project runs only `global.setup.ts`. The `chromium` project has `dependencies: ["setup"]`, so it starts only after setup finishes.
+The `setup` project runs `global.setup.ts`. The `dependencies: ["setup"]` dependency makes the runner execute that project before the `chromium` tests.
 
-Stop and predict. Two changes, one at a time:
+If you remove the dependency and run a single file, such as `pnpm shop:e2e products/products.spec.ts`, the runner selects tests matching that file. `global.setup.ts` does not match. On a fresh checkout `e2e/.auth/admin.json` does not exist, so every test fails because it cannot read the file.
 
-1. You delete the line `dependencies: ["setup"]`.
-2. You put the line back, and you delete `use: { storageState: ... }` from the `setup` project.
+Empty storage in `setup` prevents it from inheriting `storageState: "e2e/.auth/admin.json"` from the general config. Without that option, setup would try to read the file before it could create it.
 
-What happens in each case? Guess, then read on.
+## Saving the session in setup
 
-In case 1, nothing makes Playwright run the setup first. When you run one file, such as `pnpm shop:e2e products/products.spec.ts`, only the tests that match are selected, and `global.setup.ts` does not match. On a fresh checkout `e2e/.auth/admin.json` does not exist, so every test fails because it cannot read the file.
-
-In case 2, the setup project inherits the default `storageState: "e2e/.auth/admin.json"`. On a fresh checkout that file does not exist yet, so setup fails before it can create it. The empty session is not decoration. It breaks a circle: the setup needs the file, and the file needs the setup.
-
-## The setup test
-
-Open `apps/practice-shop/e2e/global.setup.ts`. After it fills the login form and clicks submit, it ends with:
+Open `apps/practice-shop/e2e/global.setup.ts`. After filling in the form, the test ends with:
 
 ```ts
 await page.getByTestId("login-submit").click()
@@ -83,22 +63,22 @@ await expect(page).toHaveURL(/\/dashboard/)
 await page.context().storageState({ path: AUTH_FILE })
 ```
 
-The test waits for the dashboard URL first. That proves the login worked. Then it saves the cookies to `e2e/.auth/admin.json`.
+The assertion waits for the dashboard URL before saving the state. The file `e2e/.auth/admin.json` therefore contains the cookie the browser received after login.
 
-The default setting in `use` loads that file:
+The general `use` setting loads that file:
 
 ```ts
 // Every test starts already signed in as admin (saved by the setup project).
 storageState: "e2e/.auth/admin.json",
 ```
 
-So every test in the `chromium` project starts signed in as admin. A test that visits `/products` goes straight to the list.
+Tests that keep this setting start with the admin session. They can open `/products` directly, without going through the login form.
 
-## Why .auth is ignored by git
+## Protecting the session file
 
-The file `e2e/.auth/admin.json` holds a live session cookie. Anyone with this file can act as the admin. Treat it like a password.
+The file `e2e/.auth/admin.json` contains an active session cookie. Anyone with the file can use that session as admin while the server accepts it. Treat it like a password.
 
-So the folder is listed in `apps/practice-shop/e2e/.gitignore`:
+The folder is listed in `apps/practice-shop/e2e/.gitignore`:
 
 ```text
 .auth/
@@ -106,16 +86,16 @@ So the folder is listed in `apps/practice-shop/e2e/.gitignore`:
 
 Git skips ignored files, so the session is never committed. Each person and each CI run makes a new one when the setup runs.
 
-## Testing signed-out behaviour
+## Testing signed out
 
-Some tests need a visitor who is not signed in. To remove the session, use `test.use` with an empty one. `auth.spec.ts` does this at the top of the file:
+To test a visitor's access, change the setting with `test.use`. `auth.spec.ts` uses empty storage at the top of the file:
 
 ```ts
 // These tests start signed out: an empty session instead of the saved admin one.
 test.use({ storageState: { cookies: [], origins: [] } })
 ```
 
-Every test in that file now starts signed out. The first test checks the redirect:
+Each test in that file starts signed out. The first test checks the redirect to login:
 
 ```ts
 await page.goto("/products")
@@ -124,11 +104,13 @@ await expect(page).toHaveURL(/\/login\?next=%2Fproducts/)
 await expect(page.getByTestId("login-card")).toBeVisible()
 ```
 
-## Why the sign out test logs in again
+You can also apply the setting inside a `test.describe` group, as in the practice.
 
-Here is the second half of the puzzle. Signing out deletes the session on the server. If a test signed out the shared admin session, every later test would lose its login.
+## Giving the logout test its own session
 
-So the sign out test makes its own session first:
+Signing out deletes the token on the server through `app/api/auth/logout/route.ts`. If a test signs out the shared session, other contexts keep the cookie, but the server no longer recognizes its token. The file `admin.json` does not change: the change is in the server's session list.
+
+Tests that sign out or invalidate a session need their own. The shop's logout test signs in again before opening the dashboard:
 
 ```ts
 // Log in with a NEW session just for this test. Signing out deletes the
@@ -137,23 +119,15 @@ await loginViaApi(page.request, ADMIN)
 await page.goto("/dashboard")
 ```
 
-`loginViaApi` calls the login API. The server sends a new cookie, and it goes into this test's own browser. The next lesson explains `page.request`.
+`loginViaApi` calls the login API. The server returns a new cookie. Since `page.request` shares cookies with the page, that test's browser receives the new session.
 
-> **Careful:** Never click sign out in a test that uses the shared admin session. The `e2e/README.md` repeats this rule.
-
-### Back to the puzzle
-
-Test A clicked "Sign out". The browser asks the server to delete the session token, in `app/api/auth/logout/route.ts`. The server keeps its list of tokens in memory. The file `admin.json` only holds the token, so it did not change. But the token is no longer in the server's list.
-
-Test B sends the same token, and the server does not know it. The server treats B as a visitor and redirects to the login page. The change lives on the server, not in the file and not in B. This is why the failure looks strange: nothing in B is wrong, and the cause is a test that ran earlier.
+The `request` fixture has its own cookies, separate from the page. Signing in with that fixture does not replace the browser's cookie.
 
 ## Go deeper
 
-### Why a cookie file is enough to sign in
+### A saved file can contain an invalid session
 
-The web has no memory. Each request is separate, and the server does not know that you signed in a moment ago. A cookie fixes this. After login, the server sends back a cookie that holds a random token. The browser sends the token with every later request.
-
-The shop keeps a list of tokens in server memory. This is the real code from `lib/session.ts`:
+The shop keeps the mapping between each token and a user in memory. `lib/session.ts` looks up that mapping:
 
 ```ts
 const token = (await cookies()).get(SESSION_COOKIE)?.value
@@ -162,34 +136,14 @@ if (!token) return undefined
 const userId = store().sessions.get(token)
 ```
 
-So `admin.json` stores only the token, not who you are. The server looks up the token in its own list. If the server forgets the list, for example after a restart, the file still exists, but the token means nothing. The next request is treated as signed out. This is one reason the setup project signs in again on every run, and does not reuse an old file.
+If the server restarts and loses its sessions in memory, the file still exists, but its token becomes invalid. That is why setup signs in again on each run.
 
-One more detail. The reset endpoint puts the data back to the seed data, but it keeps the sessions. The comment in `lib/store.ts` says why: "Sessions are kept, so logged-in tests stay logged in."
-
-### A common wrong idea: storage state skips the login test
-
-Some beginners think that saving the session means login is never tested. It is still tested. `auth.spec.ts` signs in through the real page, with an empty session. The saved session removes the login steps from tests that are about something else. Login stays under test in one place.
-
-Also, storage state is not only cookies. It can hold `localStorage`, the data a site keeps in the browser. The shop's file has none, so `origins` is empty. A site that keeps its token in `localStorage` needs that part saved too.
-
-### How it shows up in QA work
-
-Real products have many roles: admin, viewer, customer. Teams often make one setup test and one saved file for each role. A test picks its role with `test.use`. You will test the viewer role in module 5. The sign-in steps are written once in the setup, not in every test. This is DRY applied to a flow.
-
-### When not to use it
-
-Do not use a shared saved session for a test that changes the session itself. Signing out, changing a password and expiring a session are examples. The sign out test makes its own session with `loginViaApi`. A good question to ask: "Does this test change who is signed in?" If yes, give it its own session.
+Resetting test data preserves sessions. The comment in `lib/store.ts` states this: "Sessions are kept, so logged-in tests stay logged in."
 
 ## Practice
 
-1. Open `apps/practice-shop/playwright.config.ts`. Find the line that says which project the `chromium` project depends on.
-2. In PowerShell, check that the session file exists. Do not share it or paste it anywhere.
-
-```bash
-Test-Path apps/practice-shop/e2e/.auth/admin.json
-```
-
-3. Create the file `apps/practice-shop/e2e/auth/storage-practice.spec.ts` with this code:
+1. Open `apps/practice-shop/playwright.config.ts` and find the `chromium` project's dependency.
+2. Create `apps/practice-shop/e2e/auth/storage-practice.spec.ts` with this code:
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -213,41 +167,47 @@ test.describe("Signed out", () => {
 })
 ```
 
-4. Start the shop with `pnpm shop:dev`. In another terminal run:
+3. Start the shop with `pnpm shop:dev`. In another terminal run:
 
 ```bash
 pnpm shop:e2e auth/storage-practice.spec.ts
 ```
 
-5. Both tests should pass. Notice the second one needs `test.use` inside its group.
-6. Now test your prediction about the circle. In the `Signed out` group, change the empty session to a file that does not exist: `test.use({ storageState: "e2e/.auth/nothing.json" })`. Run the file again and read the error. Then undo the change.
+4. Check that both tests pass and that the second uses `test.use` inside its group. In PowerShell, check that setup created the session file. Do not share it or paste it anywhere.
+
+```bash
+Test-Path apps/practice-shop/e2e/.auth/admin.json
+```
+
+5. In the `Signed out` group, replace the empty session with a file that does not exist: `test.use({ storageState: "e2e/.auth/nothing.json" })`. Run the spec, read the missing-file error, and undo the change.
 
 ## Challenge
 
-Brief: the shop has a second role, the viewer. A viewer can look at products but cannot create them. You must prove this with a test that has its own session. The test signs in as the viewer, saves that session to a file, and opens a browser from that file. The shared admin session must stay untouched.
+Write a test that signs in as viewer, saves that session, and opens a browser context from the file. The viewer can read products but cannot create them. Preserve the shared admin session.
 
-Create the file `apps/practice-shop/e2e/challenges/viewer-session.spec.ts`. The account is `VIEWER` in `e2e/lib/fixtures/api-client.ts`.
+Create `apps/practice-shop/e2e/challenges/viewer-session.spec.ts`. The account is `VIEWER` in `e2e/lib/fixtures/api-client.ts`.
 
 It is done when:
 
-- Your code, not your hands, writes the viewer session to `e2e/.auth/viewer.json`. If you delete that file and run again, the test still passes.
-- The test opens `/products` as the viewer. The `user-role` badge says `viewer`, and there is no `products-new` link.
-- In the same browser context, a `POST` to `/api/products` is answered with status 403.
-- The test never clicks sign out, and `pnpm shop:e2e auth/auth.spec.ts` still passes after your spec ran.
+- The test writes `e2e/.auth/viewer.json` and passes even if you delete that file before running it.
+- It opens `/products` as viewer: `user-role` says `viewer` and there is no `products-new` link.
+- In the same browser context, a `POST` to `/api/products` receives status 403.
+- The test never clicks sign out and `pnpm shop:e2e auth/auth.spec.ts` still passes after running your spec.
 
-You will need something this lesson did not teach: how to create an API client without the config's saved session, save its cookies to a file, and make a new browser context from that file. Search for: `playwright request.newContext`, `playwright APIRequestContext storageState path`, `playwright browser.newContext storageState`, `playwright test.beforeAll`.
+Search for how to create an API client without the config's saved session, save its cookies, and create a browser context from that file: `playwright request.newContext`, `playwright APIRequestContext storageState path`, `playwright browser.newContext storageState`, `playwright test.beforeAll`.
 
 ## Think it through
 
-1. **Predict.** A teammate removes `dependencies: ["setup"]` from the `chromium` project, then clones the repository on a new computer and runs the suite for the first time. Say what happens, and say what would happen on the second run on the same computer.
+1. You remove `dependencies: ["setup"]` from the `chromium` project and run `pnpm shop:e2e products/products.spec.ts` on a fresh checkout. What fails before the products page opens?
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-Without the dependency, Playwright does not promise that the setup runs before your tests. If you run a single spec file, the setup file is not selected at all, so `admin.json` is never written. On a new computer the file does not exist. Every test that uses the saved admin session fails with an error about a missing file, not about the shop. A test that starts with empty storage and signs in by itself can still pass. On the second run the file exists from the first full run, so the suite may pass, but with a session the server may have forgotten. The danger is that the problem comes and goes. The `dependencies` line makes the order a rule and not a matter of luck.
+The runner does not select `global.setup.ts`, because it does not match the requested file and is no longer a dependency. Tests that load `e2e/.auth/admin.json` fail while creating the context: the file does not exist yet.
 
 </details>
 
-2. **Find the bug.** This sign out test passes. Why is it still wrong?
+2. This test uses the general config with the saved admin session. It passes, but can make other tests fail. Find the bug.
 
 ```ts
 test("signing out returns to the login page", async ({ page, request }) => {
@@ -261,62 +221,21 @@ test("signing out returns to the login page", async ({ page, request }) => {
 })
 ```
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-The test logs in with the `request` fixture, which has its own cookies, separate from the page. The browser still carries the shared admin cookie from the saved file. The click on "Sign out" then deletes the shared admin session on the server, and every later test loses its login. The fix is `loginViaApi(page.request, ADMIN)`, because `page.request` shares cookies with the page. The test passes in both versions, and that is why the bug is dangerous.
-
-</details>
-
-3. **Two versions.** `global.setup.ts` signs in through the real login page. It could call `loginViaApi` and save the state instead. Which is better here, and what would make you choose the other?
-
-<details><summary>Answer</summary>
-
-The API version is faster and has no `toPass` block, so it has fewer ways to be flaky. The UI version proves once per run that a real person can sign in, which also warns you early when the login page is broken. Here the dedicated tests in `auth.spec.ts` already cover the login page, so the API version would be enough. Choose the UI version when your suite has no other login test, or when the login has steps an API call would skip, such as a code sent by email.
+`loginViaApi` creates a session in the `request` fixture, which does not share cookies with the page. The browser keeps the shared admin session, and logout deletes it on the server. Use `loginViaApi(page.request, ADMIN)` so the browser receives its own session before signing out.
 
 </details>
 
-4. **What breaks if.** A requirement changes: the shop must end every session after 5 minutes. Your suite takes 20 minutes. What breaks, which tests fail first, and what are two ways to fix it?
+3. A requirement changes: the shop must end every session after 5 minutes. Your suite takes 20 minutes. Which tests fail, and what are two ways to fix it?
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
 The saved token is made once at the start. After 5 minutes the server rejects it, so every test that starts after that moment is sent to the login page. The tests fail in the second half of the run, and each one passes if you run it alone and early. One fix is to make the session last longer in the test environment only. A second fix is to sign in again through the API at the start of each test file, so no session is older than a few minutes.
 
 </details>
-
-5. **Explain it.** Explain storage state to a new teammate in three sentences. Do not use the words "cookie" or "token".
-
-<details><summary>Answer</summary>
-
-A good answer: "When you sign in, the server gives your browser a small secret that says you are allowed in. Playwright can copy that secret into a file at the start of the run. Each test then starts with a copy of the file, so it begins already signed in and skips the login screen." The key ideas are that the secret is what proves who you are, that it is saved once, and that many tests reuse it. A weak answer says only "it saves the login", because it hides what is saved.
-
-</details>
-
-6. **Judgement.** A teammate says the shared admin session is risky and every test should sign in on its own through the API. Do you agree?
-
-<details><summary>Answer</summary>
-
-There is no single right answer. One session per test removes the sign out problem, because no test can harm another, and it costs one fast request per test. A shared session is faster and simpler, and it fails only for the few tests that change the session itself. The choice depends on how many tests change the session, how many tests you have, and how costly one extra request is. In the shop only one test signs out, so a shared session plus one exception is a fair choice. If many tests changed sessions, per-test sessions would be better.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What do the cookie attributes `HttpOnly`, `Secure` and `SameSite` do?**
-   - Search for: `http cookies HttpOnly Secure SameSite MDN`
-   - Try it: sign in to the shop in your browser. Open DevTools, then Application, then Cookies, and find `shop_session`. Note which boxes are ticked. Then open the Console tab and type `document.cookie`. See if the session cookie appears.
-   - A good answer explains: what attack or risk each attribute reduces, and why `document.cookie` does not show an `HttpOnly` cookie.
-
-2. **How does a server decide that a session token is not valid?**
-   - Search for: `session token validation server side session store`
-   - Try it: open your own `e2e/.auth/admin.json` in an editor, and do not share it. Copy the cookie object into a new spec as an inline `test.use({ storageState: { cookies: [...], origins: [] } })`, change only the `value` to `"abc"`, and open `/products`. Write down what you see.
-   - A good answer explains: where the server looks up a token, why an invented value fails, and one reason a real token becomes invalid.
-
-3. **Why must session files and passwords never be committed, and where do teams keep test secrets instead?**
-   - Search for: `secrets in git repository environment variables CI`
-   - Try it: in PowerShell run `git check-ignore -v apps/practice-shop/e2e/.auth/admin.json` and read which rule ignores the file. Then remove that line from a copy of the rule in your head and say what `git status` would show.
-   - A good answer explains: the risk of a committed secret, and one safe place to keep it, such as CI secrets.
 
 ## Next step
 

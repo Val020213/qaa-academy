@@ -1,29 +1,20 @@
 ---
 title: Leer un spec y ampliarlo
-summary: Lee el spec de pedidos línea por línea, predice qué ofrece la página, agrega el test "un admin cancela un pedido pendiente" y actualiza COVERAGE.md.
-duration: 90 min
+duration: 75 min
 ---
-
-## Empieza con un acertijo
-
-Un compañero escribió la semana pasada un test para el dashboard: "la tarjeta Pending orders (pedidos pendientes) muestra 3". En los datos iniciales, los pedidos 1001, 1005 y 1009 están pendientes, así que el test pasa.
-
-Hoy la suite ya contiene un test que marca el pedido 1005 como pagado. Estás por agregar un test que cancela el pedido 1001. Lo agregas, lo ejecutas y pasa.
-
-Ahora piensa en el test del dashboard. ¿Seguirá pasando? ¿Depende de qué archivo se ejecuta primero? ¿Y quién es responsable si falla: tú, porque agregaste el test nuevo, o tu compañero, porque el test era frágil?
-
-Escribe tu respuesta antes de seguir leyendo.
 
 ## Objetivo
 
-- Leer un spec existente y explicar cada parte.
-- Predecir qué controles ofrece una página a partir de su código, antes de ejecutar nada.
-- Elegir datos que ningún otro test usa, y decir por qué.
-- Agregar un test nuevo junto a los existentes y actualizar `COVERAGE.md`.
+Vas a ampliar el spec de pedidos con un test de cancelación y registrar la nueva cobertura.
+
+- Leer la preparación, la acción y las aserciones de un test existente.
+- Identificar las acciones disponibles a partir del código de la página.
+- Elegir un pedido que ningún otro test modifica.
+- Agregar el test y actualizar `COVERAGE.md`.
 
 ## Lee el spec
 
-Abre `apps/practice-shop/e2e/orders/orders.spec.ts`. Tiene dos tests. Lee primero el segundo. Aquí se omite el primer test.
+Abre `apps/practice-shop/e2e/orders/orders.spec.ts`. Tiene dos tests; aquí se muestra el segundo.
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -45,19 +36,21 @@ test.describe("Orders", () => {
 })
 ```
 
-El primer test (el filtro de estado) sigue la misma forma. Mira la forma de este: **Arrange, Act, Assert** (preparar, actuar, comprobar).
+En este test, **Arrange, Act, Assert** queda así:
 
 - Arrange: abre `/orders` y comprueba que el pedido está `pending`.
 - Act: haz clic en el botón.
 - Assert: el estado es `paid` y el botón ya no está.
 
-La primera aserción es una **guarda**. Demuestra que los datos son los que esperas antes de actuar.
+La primera aserción es una **guarda**: comprueba el estado que necesita el test antes del clic. Si una ejecución anterior dejó el pedido pagado, el test falla ahí y muestra el estado inesperado.
 
-Fíjate en lo que el test no dice. No dice qué clase CSS tiene el botón, ni qué componente dibuja la tabla. Describe lo que ve un usuario: un estado, un botón, un estado que cambió. Esta es la regla **prueba lo que ve el usuario, no cómo está construido el código**. La página se reconstruyó con componentes nuevos, y estos tests no cambiaron, porque los test ids y los textos se mantuvieron.
+Sin la guarda, el clic fallaría con "element not found" para el botón que ya no existe.
+
+Las aserciones comprueban el comportamiento visible: el estado cambia y desaparece la acción que ya no está permitida. Un cambio en los componentes puede conservar estos tests si mantiene los test ids y los textos.
 
 ## De dónde vienen los botones
 
-Antes de escribir el test nuevo, predice: ¿qué acciones tiene un pedido pendiente? ¿Uno pagado? ¿Uno enviado? Escribe tus respuestas. Ahora lee la regla real en `apps/practice-shop/app/(dashboard)/orders/page.tsx`:
+Lee la regla en `apps/practice-shop/app/(dashboard)/orders/page.tsx`:
 
 ```tsx
 const NEXT_STEPS: Record<OrderStatus, { status: OrderStatus; label: string; testId: string }[]> = {
@@ -74,13 +67,17 @@ const NEXT_STEPS: Record<OrderStatus, { status: OrderStatus; label: string; test
 }
 ```
 
-Cada botón recibe el test id `${step.testId}-${order.id}`. Así que el botón de cancelar del pedido 1001 es `orders-cancel-1001`. Un pedido pendiente tiene dos botones, uno pagado tiene dos, y los pedidos enviados o cancelados no tienen ninguno. Leer código así es una habilidad: encuentras la regla en un solo lugar y tus tests no tienen que adivinar.
+La página recorre la lista del estado de cada pedido para mostrar las acciones al admin. Un pedido pendiente tiene dos botones, uno pagado tiene dos, y los pedidos enviados o cancelados no tienen ninguno.
 
-## Por qué importan los ids de los pedidos
+Cada botón recibe el test id `${step.testId}-${order.id}`. El botón de cancelar del pedido 1001 es `orders-cancel-1001`.
 
-El estado de un pedido solo avanza. Después de que un test marca un pedido como pagado, no puede volver a ser pendiente. Por eso cada test necesita su propio pedido. El comentario al inicio del spec lo dice.
+Después del clic, la página envía el cambio al servidor con PATCH y vuelve a consultar los pedidos con `load()`. El estado que comprueba el test viene de esa nueva lectura.
 
-Los datos iniciales tienen los pedidos 1001 a 1012. Se repiten en ciclo: pending, paid, shipped, cancelled.
+## Elige el pedido
+
+El estado de un pedido solo avanza. Después de marcarlo como pagado, la API no permite devolverlo a pendiente. Reserva un pedido distinto para cada test que cambie su estado.
+
+Los datos iniciales tienen los pedidos 1001 a 1012:
 
 | Estado | Ids de pedido |
 | --- | --- |
@@ -89,27 +86,35 @@ Los datos iniciales tienen los pedidos 1001 a 1012. Se repiten en ciclo: pending
 | shipped | 1003, 1007, 1011 |
 | cancelled | 1004, 1008, 1012 |
 
-Los tests existentes usan 1003 y 1004 (el test del filtro) y 1005 (marcar como pagado). Busca `1001` en el spec. No aparece. El pedido 1001 está pendiente y libre, así que tu test lo usará.
+Los tests existentes usan 1003 y 1004 para el filtro y 1005 para marcar como pagado. El pedido 1001 está pendiente y disponible para cancelar.
 
-> **Consejo:** Antes de elegir datos, busca el id en todos los specs. Pulsa `Ctrl+Shift+F` en VS Code.
+Antes de elegirlo, busca `1001` en todos los specs con `Ctrl+Shift+F` en VS Code. El comentario del spec debe registrar qué test lo usa.
+
+### El efecto en el dashboard
+
+La tarjeta `stat-pending-orders` cuenta los pedidos pendientes: 3 en los datos iniciales, 2 después de pagar el 1005 y 1 después de cancelar el 1001. Un test que espere siempre 3 depende de ejecutarse antes de esos cambios.
+
+Playwright ejecuta los archivos en un orden fijo, así que puede pasar durante meses y fallar el día que alguien renombre una carpeta.
+
+`dashboard.spec.ts` comprueba que la tarjeta muestre un número con `/^\d+$/`. Si necesitas comprobar un total exacto, prepara los datos que determinan ese total dentro del test.
 
 ## Paso a paso
 
-Planea primero el test con palabras simples, antes de programar. Esto es **pseudocódigo**: pasos en tu propio idioma.
+Escribe el pseudocódigo del test antes de agregarlo al archivo.
 
-**Paso 1.** Escribe el nombre del test como una frase que diría un usuario: "an admin cancels a pending order" (un admin cancela un pedido pendiente).
+**Paso 1.** Usa el nombre "an admin cancels a pending order".
 
-**Paso 2.** Abre la página y pon la guarda. El pedido 1001 debe estar `pending`.
+**Paso 2.** Abre la página y comprueba que el pedido 1001 está `pending`.
 
-**Paso 3.** Haz clic en el botón. El test id es `orders-cancel-1001`.
+**Paso 3.** Haz clic en `orders-cancel-1001`.
 
-**Paso 4.** Comprueba el resultado. El estado es `cancelled`. Los dos botones ya no están, porque un pedido cancelado es final.
+**Paso 4.** Comprueba que el estado es `cancelled` y que los dos botones desaparecieron. El test debe comprobar la regla de cancelación; el color de la insignia y el encabezado de la tabla quedan fuera de ese comportamiento.
 
-**Paso 5.** Actualiza el comentario del inicio, para que la siguiente persona sepa que el 1001 está ocupado.
+**Paso 5.** Actualiza el comentario del inicio para reservar el pedido 1001.
 
 ## El spec completo
 
-Este es el archivo entero después de tu cambio.
+Este es el archivo después de agregar el test:
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -156,31 +161,17 @@ test.describe("Orders", () => {
 
 ## Actualiza COVERAGE.md
 
-Un test sin nota de cobertura está a medias. Abre `apps/practice-shop/e2e/COVERAGE.md`.
+Abre `apps/practice-shop/e2e/COVERAGE.md` para registrar el comportamiento que ahora prueba la suite.
 
 En la tabla, cambia la fila de Orders para que diga: "Status filter, admin marks a pending order as paid, admin cancels a pending order".
 
-En "Not covered yet", borra la línea "Cancelling an order." El hueco ya está cerrado.
-
-### De vuelta al acertijo
-
-El test del dashboard es frágil. La tarjeta `stat-pending-orders` cuenta los pedidos que están pendientes. Cada test de pedidos la baja en uno: 3 en los datos iniciales, 2 después de pagar el 1005, 1 después de cancelar el 1001. El test "el dashboard muestra 3" pasa solo si se ejecuta antes que los tests de pedidos. Playwright ejecuta los archivos en un orden fijo, así que puede pasar durante meses y fallar el día que alguien renombre una carpeta.
-
-Entonces, ¿quién es responsable? Nadie tiene que cargar con la culpa. La lección real es que un test que lee datos compartidos depende de cada test que los escribe. El mejor test comprueba lo que controla: por ejemplo, que la tarjeta muestre un número, como hace `dashboard.spec.ts` con `/^\d+$/`. Si tienes que comprobar un número exacto, crea los datos dentro del test.
+En "Not covered yet", borra la línea "Cancelling an order."
 
 ## Profundiza
 
-### Por qué existe la línea de guarda
+### Amplía el filtro con una tabla de datos
 
-Mira la primera aserción del test de cancelar: el estado del 1001 es `pending`. Imagina que la quitas. Si una ejecución anterior dejó el 1001 cancelado, el clic fallaría con "element not found" para `orders-cancel-1001`. Ese error no dice por qué. La guarda lo convierte en un mensaje claro: se esperaba `pending`, se recibió `cancelled`. Un buen test te dice qué está mal, no solo que algo está mal.
-
-### Una idea equivocada: "más aserciones hacen un mejor test"
-
-Los principiantes suelen comprobar todo lo que ven. Entonces un cambio pequeño e inofensivo rompe diez tests. Comprueba de qué trata el test. El test de cancelar comprueba el estado, y que los dos botones ya no están, porque esa es la regla. No comprueba el color de la insignia ni el encabezado de la tabla.
-
-### Cómo aparece esto en el trabajo real de automatización QA
-
-El test del filtro comprueba un estado. Quizá quieras comprobarlos todos. Podrías copiar el test tres veces. En cambio, escribe el cuerpo del test una vez y recorre una lista de datos con un bucle:
+Puedes ampliar la cobertura del filtro con los mismos pasos para varios estados. Este ejemplo usa pedidos que los tests existentes y el nuevo test de cancelación no modifican:
 
 ```ts
 import { expect, test } from "../lib/test"
@@ -207,11 +198,11 @@ test.describe("Orders filter by status", () => {
 })
 ```
 
-Esto es **DRY**: Don't Repeat Yourself (no te repitas). Un cuerpo de test, muchas entradas. El bucle es la idea que aprendiste como "bucles y arrays de datos". Cada test necesita un nombre distinto, por eso el nombre usa `status`. Otros tests nunca cambian estos pedidos, así que son seguros. Las filas de datos salen de las **clases de equivalencia**: un ejemplo por cada grupo de entradas que deben comportarse igual.
+Cada fila indica el estado elegido, un pedido que debe quedar visible y otro que debe desaparecer. El nombre incluye `status` para identificar el caso en el reporte.
 
-### El límite de DRY
+### Mantén los pasos comunes
 
-En un test, una historia clara importa más que el código más corto. Si el cuerpo del bucle empieza a llenarse de líneas con `if`, detente. Dos tests simples son mejores que un test ingenioso que nadie puede leer. Usa un bucle cuando los pasos son los mismos y solo cambian los datos. Esto es **KISS** en acción: mantenlo simple.
+Usa un bucle mientras solo cambien los datos. Si los casos necesitan acciones distintas y el cuerpo se llena de líneas con `if`, escribe tests separados para que cada secuencia se pueda leer completa.
 
 ## Práctica
 
@@ -223,28 +214,23 @@ En un test, una historia clara importa más que el código más corto. Si el cue
 pnpm --filter practice-shop e2e e2e/orders/orders.spec.ts -g "cancels"
 ```
 
-4. Ejecuta el archivo completo. Luego ejecuta toda la suite dos veces. Las dos ejecuciones deben pasar.
+4. Ejecuta el archivo completo. Luego ejecuta toda la suite dos veces. Las dos ejecuciones deben pasar; el setup reinicia los datos al inicio de cada ejecución.
 5. Actualiza `COVERAGE.md` como se describió.
-
-> **Cuidado:** Ejecuta el archivo dos veces. Cada ejecución reinicia los datos, así que el test debe volver a pasar con datos frescos.
 
 ## Reto
 
-La tienda dice que un viewer es de solo lectura. Conoces dos lugares donde esta regla debe cumplirse: la página y la API. Tu tarea: escribir un test que compruebe ambos para la página de pedidos.
+Comprueba que un viewer no puede cambiar pedidos desde la página ni desde la API.
 
-Crea `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` con un test. El test entra como viewer y abre `/orders`. Comprueba que el pedido 1009 es visible, que no tiene botón **Mark as paid** ni **Cancel** (cancelar), y que una petición directa para cambiar este pedido es rechazada por el servidor con el código de estado que usa la tienda para "usuario conocido, sin permiso". El test no debe cerrar la sesión compartida del admin, y no debe cambiar ningún dato.
+Crea `apps/practice-shop/e2e/orders/orders-viewer.spec.ts` con un test. Entra como viewer y abre `/orders`. Comprueba que el pedido 1009 es visible, sin botones **Mark as paid** ni **Cancel**. Envía una petición para cambiarlo y comprueba que el servidor la rechaza por falta de permiso. El test no debe cambiar datos ni cerrar la sesión compartida del admin.
 
 Está terminado cuando:
 
-- El test pasa, y pasa cuando ejecutas el archivo dos veces seguidas.
+- El test pasa al ejecutar el archivo dos veces seguidas.
 - El test nunca cierra sesión. El texto `logout-button` no aparece en tu archivo.
-- La petición rechazada se envía desde dentro del test, y el test comprueba tanto el código de estado como que el pedido 1009 sigue `pending` en la página después.
-- Ejecutaste el mismo test una vez como admin a propósito, viste que fallaba, y luego volviste a poner el viewer. Un test que nunca has visto fallar es un test en el que no puedes confiar.
-- Usaste el pedido 1009 y no el 1005 ni el 1001, y puedes decir por qué en una frase en un comentario.
+- La petición se envía desde el test, que comprueba el código de estado y que el pedido 1009 sigue `pending` en la página después. Un comentario explica por qué usas 1009 y no 1005 ni 1001.
+- Ejecutaste el mismo test una vez como admin a propósito, viste que fallaba y luego volviste a poner el viewer.
 
-Vas a necesitar algo que esta lección no enseñó: cómo ser un usuario distinto dentro de un test, y cómo enviar una petición desde el propio test. Busca: `playwright override storageState in a test`, `playwright page.request patch`, `playwright apirequestcontext cookies shared with page`. Mira `loginViaApi` en `lib/fixtures/api-client.ts` y el test de cerrar sesión en `auth/auth.spec.ts` para tener pistas.
-
-> **Consejo:** Puedes pedir ayuda a un asistente de IA. Pero debes ejecutar el código, y debes poder explicar cada línea a un compañero. Nunca conserves código que no puedas explicar. Pídele al asistente que explique lo que escribió y luego compáralo con la documentación.
+Busca: `playwright override storageState in a test`, `playwright page.request patch`, `playwright apirequestcontext cookies shared with page`. Mira `loginViaApi` en `lib/fixtures/api-client.ts` y el test de cerrar sesión en `auth/auth.spec.ts`.
 
 ## Piénsalo bien
 
@@ -258,70 +244,21 @@ test("an admin cancels a pending order", async ({ page }) => {
 })
 ```
 
-<details><summary>Respuesta</summary>
+<details>
+<summary>Respuesta</summary>
 
-Falta el `await` antes de `expect`. La aserción devuelve una promesa que nadie espera. Sin `await`, la comprobación no queda unida al test. Puede empezar a reintentar, pero el test no la espera. Entonces la comprobación falla cuando el test termina y se limpia, o simplemente no se reporta en el lugar correcto. Por eso un estado incorrecto puede no hacer fallar el test de forma clara. Una regla de lint puede detectar este error, pero solo si el equipo la activa. Escribe siempre `await expect(...)` en las aserciones web-first. El código parece correcto, y por eso este bug es peligroso.
-
-</details>
-
-2. Versión A: tres tests separados para el filtro (paid, shipped, cancelled). Versión B: un bucle sobre una lista. ¿Cuál es mejor aquí, y qué te haría elegir A?
-
-<details><summary>Respuesta</summary>
-
-B es mejor aquí porque los pasos son los mismos y solo cambian los datos, y un estado nuevo necesita una sola línea nueva. Elegirías A si los tres casos necesitaran pasos distintos, por ejemplo si `cancelled` necesitara comprobar un mensaje de lista vacía. Entonces el bucle se llenaría de líneas con `if`, y los tests simples son más fáciles de leer. Los nombres de los tests en el reporte también importan: con B, cada nombre debe llevar los datos, o no sabrás qué fila falló.
+Falta el `await` antes de `expect`. La aserción devuelve una promesa que nadie espera. Puede empezar a reintentar, pero el test no la espera. Por eso un estado incorrecto puede no hacer fallar el test de forma clara. Escribe siempre `await expect(...)` en las aserciones web-first.
 
 </details>
 
-3. ¿Qué se rompe si el negocio cambia la regla: "un pedido cancelado puede reabrirse como pendiente"?
+2. Dos admins pulsan **Cancel** en el pedido 1001 casi al mismo tiempo, en dos ventanas del navegador. Predice qué ve el segundo admin y por qué.
 
-<details><summary>Respuesta</summary>
+<details>
+<summary>Respuesta</summary>
 
-El comentario al inicio del spec se vuelve falso. La tabla de pedidos sigue siendo un buen punto de partida, pero la regla "cada test necesita su propio pedido" ya no es necesaria para el test de cancelar, porque el test podría reabrir el pedido al final. La aserción `toHaveCount(0)` de los botones de un pedido cancelado fallaría, ya que existiría un botón nuevo. La línea de guarda seguiría siendo útil. Cuando una regla cambia, los tests que describen la regla vieja deben cambiar primero, y un test que falla es la forma de encontrarlos.
-
-</details>
-
-4. Dos admins pulsan **Cancel** en el pedido 1001 casi al mismo tiempo, en dos ventanas del navegador. Predice qué ve el segundo admin y por qué.
-
-<details><summary>Respuesta</summary>
-
-La primera petición cambia el pedido a `cancelled`. La segunda petición llega para un pedido que ya está cancelado, y el servidor responde 409 con el mensaje "An order that is cancelled cannot become cancelled." La página captura este error y lo muestra en el mensaje rojo con el test id `orders-error`. Nada se rompe, pero el segundo admin ve un error por algo que ya hizo lo que quería. Es un buen *caso límite* para un test nuevo, ya que usa la API para cancelar primero y la página después.
+La primera petición cambia el pedido a `cancelled`. La segunda petición llega para un pedido que ya está cancelado, y el servidor responde 409 con el mensaje "An order that is cancelled cannot become cancelled." La página captura este error y lo muestra en el mensaje rojo con el test id `orders-error`.
 
 </details>
-
-5. Explica la línea de guarda a un compañero en tres frases. No uses las palabras "comprobar" ni "verificar".
-
-<details><summary>Respuesta</summary>
-
-Antes de actuar, el test lee el estado del pedido y lo compara con lo que necesita. Si los datos ya son distintos, el test se detiene con un mensaje que nombra el problema real. Sin ella, el clic fallaría más tarde con un mensaje vago sobre un elemento que falta. La línea cuesta una fila de código y ahorra minutos de búsqueda.
-
-</details>
-
-6. ¿Debería el test de cancelar también leer el pedido desde la API después del clic, para confirmar que el servidor lo guardó? No hay una única respuesta correcta.
-
-<details><summary>Respuesta</summary>
-
-Si la página vuelve a leer los datos del servidor después del cambio, el nuevo estado en pantalla ya demuestra que el servidor lo guardó. En la tienda, `load()` se ejecuta otra vez después del PATCH, así que la interfaz basta. Una lectura extra de la API probaría lo mismo dos veces y ataría el test a la forma de la API. Sería útil si la página mostrara el nuevo estado sin preguntar al servidor, porque entonces la pantalla podría estar equivocada. La elección depende de lo que realmente hace la página y de cuánto cuesta un guardado perdido.
-
-</details>
-
-## Investiga por tu cuenta
-
-Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
-
-1. **¿Qué es el patrón Arrange, Act, Assert en las pruebas?**
-   - Busca: `arrange act assert pattern unit testing`
-   - Pruébalo: abre `e2e/products/products.spec.ts`. Elige un test y agrega los comentarios `// Arrange`, `// Act` y `// Assert` antes de las líneas que corresponden. Encuentra un test donde la parte Arrange esté escondida dentro de un helper.
-   - Una buena respuesta explica: las tres partes de un test y por qué mantenerlas separadas hace que un test sea más fácil de leer.
-
-2. **¿Qué son las pruebas guiadas por datos y cuándo son mejores que escribir tests separados?**
-   - Busca: `data-driven testing parameterized tests`
-   - Pruébalo: copia el ejemplo del bucle de esta lección en un archivo temporal `e2e/orders/filter-loop.spec.ts`. Ejecútalo, lee los nombres de los tests en el reporte, luego agrega una cuarta fila tuya y ejecuta otra vez. Borra el archivo cuando termines.
-   - Una buena respuesta explica: cómo un cuerpo de test se ejecuta con muchas entradas, y un caso donde los tests separados son más claros.
-
-3. **¿Por qué los testers dicen que cada test debe ser independiente de los demás?**
-   - Busca: `test independence isolation automation`
-   - Pruébalo: ejecuta tu test de cancelar, luego abre `/dashboard` y lee la tarjeta Pending orders. Ejecuta `fetch("/api/test/reset", { method: "POST" }).then((r) => r.json())` en la Console del navegador, recarga el dashboard y compara los dos números.
-   - Una buena respuesta explica: qué puede salir mal cuando los tests dependen unos de otros, y una forma de hacer independiente a un test.
 
 ## Siguiente paso
 

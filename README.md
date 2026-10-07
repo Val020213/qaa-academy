@@ -87,6 +87,8 @@ The order inside a module comes from the number at the start of the file name.
 
 To show a screen recording in a lesson, put the file in `public/clips/` and write `![What the clip shows](/clips/name.webm)` on its own line. A screenshot works the same way: put it in `public/images/` and write `![What it shows](/images/name.png)`.
 
+For a small inline tool logo, put the SVG in `public/icons/` and write `![](/icons/typescript.svg) TypeScript` next to the tool name. Logos are decorative and have no caption. Lesson images open in a viewer by click, Enter or Space. Clips have a full-screen button when the browser supports it.
+
 ## Languages
 
 The site is in English and Spanish. The button in the top bar switches between them, and the choice is saved in the browser.

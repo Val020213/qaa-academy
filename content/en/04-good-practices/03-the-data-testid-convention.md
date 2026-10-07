@@ -1,109 +1,52 @@
 ---
 title: The data-testid convention
-summary: Learn the team rule for test ids, why row ids carry the record id, and how to judge when a test id is the right tool.
-duration: 75 min
+duration: 60 min
 ---
-
-## Start with a puzzle
-
-A test finds the delete button with `page.getByText("Delete")` and clicks it. For three weeks the test passes. Then it fails with this message:
-
-```text
-Error: strict mode violation: getByText('Delete') resolved to 10 elements
-```
-
-Nobody edited the test. Nobody edited the page code. The test ran on the same server as before.
-
-What changed? And is the test wrong, or is the page wrong?
-
-Write down your guess before you read on.
 
 ## Goal
 
+In this lesson you apply the shop's test-id convention to controls, rows and dialogs. You check how to select the right record when the table order changes.
+
 - Name a test id with the rule `<feature>-<element>`.
-- Predict how many elements a locator matches before you run it.
-- Find the bug in a row id that is built from a position, not from a record.
-- Decide when a test id is the right tool, and when a role or a label is better.
+- Build row ids from the record id.
+- Select groups by their prefix and find a dialog outside a row.
+- Distinguish what a test id checks from what a role or label locator checks.
 
-## What is data-testid
+## The naming rule
 
-A **test id** is an attribute in the page HTML that exists only for tests. Its name is `data-testid`. Users do not see it.
-
-Playwright finds an element by its test id with `getByTestId`:
-
-```ts
-await page.getByTestId("products-search").fill("mouse")
-```
-
-The test id does not change when the text, the colour or the layout of the page changes. So the test keeps working.
-
-### Back to the puzzle
-
-The page code and the test did not change, so the data did. For three weeks the page showed one product, so `getByText("Delete")` matched one button. Then someone added products, and the page showed 10 rows, each with a "Delete" button. Playwright is strict: a click on a locator that matches many elements fails.
-
-The test was always weak. It worked only because the page was small. The page is not wrong: ten rows with the same word is normal. The lesson is that a text which repeats is not a safe way to find one thing. The fix is an id that names the row, such as `products-delete-12`. You will see why next.
-
-## The rule
-
-Every interactive element has a `data-testid` with this shape:
+The shop uses this format for ids on its interactive elements:
 
 ```text
 <feature>-<element>
 ```
 
-The **feature** is the page or area. The **element** is what the thing is. Here are real ids from the shop:
+`feature` names the page or area; `element` names the control. Words are lowercase and separated by hyphens. These are real ids from the shop:
 
 - `login-email`, `login-password`, `login-submit`
 - `products-search`, `products-status-filter`, `products-new`
 - `product-name`, `product-sku`, `product-save`
 - `orders-status-filter`
 
-All words are lowercase, with a hyphen between them. You can read the id and know where the element is.
+Counts and error messages also have ids because tests check them.
 
-> **Note:** "Interactive" means you click it, type in it or choose from it. Elements you only read, such as a count or an error message, also get ids in this shop, because tests check them.
-
-### An experiment: how many elements match?
-
-A rule is easy to say. Test it with a question. Here are seven ids from the shop. Before you run anything, guess how many each pattern matches.
-
-```ts
-const ids = [
-  "products-row-12",
-  "products-name-12",
-  "products-delete-12",
-  "products-search",
-  "products-count",
-  "product-name",
-  "orders-row-1003",
-]
-
-for (const pattern of [/^products-row-/, /^products-/, /row/]) {
-  console.log(String(pattern), "matches", ids.filter((id) => pattern.test(id)).length)
-}
-```
-
-The result is:
+If a table shows ten products, `page.getByText("Delete")` finds ten buttons. When you try to click, Playwright requires a single match and fails:
 
 ```text
-/^products-row-/ matches 1
-/^products-/ matches 5
-/row/ matches 2
+Error: strict mode violation: getByText('Delete') resolved to 10 elements
 ```
 
-The first pattern is exact. The second is too wide: it picks up names, buttons and counts. The third is too loose: it also catches the orders. A naming rule makes a good pattern possible. A sloppy rule would make it impossible.
+To select a product's button, the test needs to identify the record.
 
 ## Row ids include the record id
 
-A table has many rows. They all look the same, so the id must say which row. The record id goes at the end.
-
-Here is the real code from `apps/practice-shop/app/(dashboard)/products/page.tsx`:
+In `apps/practice-shop/app/(dashboard)/products/page.tsx`, each row and its name cell include the product id:
 
 ```tsx
 <TableRow key={product.id} data-testid={`products-row-${product.id}`}>
   <TableCell data-testid={`products-name-${product.id}`}>
 ```
 
-For the product with id 12, the ids are `products-row-12` and `products-name-12`. The delete button is the same:
+For the product with id 12, the ids are `products-row-12` and `products-name-12`. The delete button follows the same rule:
 
 ```tsx
 <Button
@@ -118,23 +61,23 @@ For the product with id 12, the ids are `products-row-12` and `products-name-12`
 </Button>
 ```
 
-This button has the id `products-delete-12` for product 12. In a test you build the id from the id you know:
+In the test, build the button id from the product id:
 
 ```ts
 await page.getByTestId(`products-delete-${product.id}`).click()
 ```
 
-### Why not use the position?
+### A position can point to another product
 
-A beginner may build row ids from the position in the list. Look at this idea and find what is wrong before you read on:
+An id built from a position depends on the list order:
 
 ```tsx
 <TableRow data-testid={`products-row-${index}`}>
 ```
 
-The shop sorts newest first. When a test adds a product, every row moves down by one. The id `products-row-0` now points to a different product. A test that clicks `products-delete-0` may delete the wrong row, and no error tells you.
+The shop sorts newest first. Adding a product at the start changes the positions of the existing rows. A test that clicks `products-delete-0` can delete another product without Playwright detecting the mistake.
 
-This small program shows the same effect:
+This program shows the change:
 
 ```ts
 type Product = { id: number; name: string }
@@ -169,131 +112,19 @@ after:  products-row-0 is now New Mouse
 after:  products-row-12 is still Desk Lamp
 ```
 
-The record id is stable. Product 12 is `products-row-12` today and tomorrow. Use something that belongs to the record, never to its place on the screen.
+`products-row-0` now identifies the new product. `products-row-12` keeps identifying the lamp because it is built from the record id.
 
-## One shared dialog, one shared id
+## Select groups by prefix
 
-Some elements exist only once on the page at a time. The confirm dialog is one of them. The shop uses one dialog for every delete, also on the product detail page. Its buttons always have the same ids: `confirm-delete-button` and `confirm-delete-cancel`.
-
-Watch what happens to the row when you cancel, and when you confirm.
-
-![Delete opens a dialog. Cancel keeps the row; confirm removes it and shows a message.](/clips/shop-delete-dialog.webm)
-
-You can see this in `apps/practice-shop/components/confirm-delete-dialog.tsx`. A comment at the top explains it. The dialog is built on the shadcn `AlertDialog`. It is drawn at the end of the page, outside the table, with the role `alertdialog`.
-
-So the delete flow has two steps with two kinds of ids. The first click uses a row id. The second click uses the shared id.
-
-Think about this: the dialog is outside the table row. If you write `page.getByTestId("products-row-12").getByTestId("confirm-delete-button")`, how many elements do you expect to find? Zero. The row does not contain the dialog. Always search for the shared dialog from `page`, not from a row.
-
-## When an id is missing
-
-Sometimes you need an element that has no test id. Do not use a fragile selector, such as a CSS class or the position of an element.
-
-You have two options.
-
-1. **Ask the developer.** Say which element, which page and which name you suggest, such as `products-export`.
-2. **Add it yourself.** It is one attribute in the JSX. For example, the new-product link looks like this:
-
-```tsx
-<Button asChild>
-  <Link href="/products/new" data-testid="products-new">
-    New product
-  </Link>
-</Button>
-```
-
-Look closely. `Button asChild` means the button style is given to the `Link` inside. So the real element is an `<a>` tag, and the test id sits on that `<a>`. The same is true for the Edit link in each row: it is a link, not a `<button>`. A test that looks for `getByRole("button", { name: "Edit" })` finds nothing. Test ids hide this difference, and that is useful. But it is a reminder that you must know what you click.
-
-Adding `data-testid` does not change how the page works or looks. If you are not sure you may change the file, ask first.
-
-## Test ids versus roles and labels
-
-Playwright has other ways to find elements. `getByRole` finds an element by its meaning, such as a button. `getByLabel` finds a form field by its visible label. `getByText` finds it by the words on screen.
-
-Many teams prefer roles and labels, because they also check that the page is accessible. This team chose test ids. The rule in `apps/practice-shop/e2e/README.md` says:
-
-```text
-Select with `page.getByTestId(...)`. No CSS, no XPath, no text selectors for things you click.
-```
-
-The reasons are practical.
-
-- Text changes. A button called "Delete" may become "Remove". Every test that uses the text would break.
-- Text can appear twice. In the products table, every row has a "Delete" button.
-- An id is a contract. A developer who sees `data-testid` knows a test depends on it.
-
-The cost is that developers must add the ids. That is why the rule applies to every element.
-
-Since the shop now uses real labels, `page.getByLabel("Search")` also finds the search box. In the code the label sits next to the input, joined with the `htmlFor` attribute. This works because `<Label htmlFor="products-search">` and the input have matching ids. Both ways are valid. Which is better? That depends on what you want the test to prove, and you will think about it in the questions.
-
-### Test what the user sees, not how the code is built
-
-Role and label locators say what a person sees: "a button called Sign in". A test id says how the developers marked the code. When a role locator fails, it often points to a real problem for the user: the label is missing. A test id never fails for that reason. Use test ids for what has no good name, such as a row in a table, and use roles and labels where the page has real names.
-
-## Go deeper
-
-### Why `getByTestId` is only an attribute search
-
-`getByTestId` is not magic. It looks for an element whose `data-testid` attribute has that value. These two lines do the same work:
-
-```ts
-await page.getByTestId("products-search").fill("mouse")
-await page.locator('[data-testid="products-search"]').fill("mouse")
-```
-
-The second line is a CSS attribute selector. The first is shorter and easier to read. The name `data-testid` is only a default. If your team already uses another name, such as `data-qa`, one line in the config changes it, and the app does not change:
-
-```ts
-use: { testIdAttribute: "data-qa" },
-```
-
-Attributes that start with `data-` are reserved by HTML for your own information. The browser ignores them. That is why they are safe for tests.
-
-### How the rule helps in real work
-
-A consistent name allows group selection. The Page Object uses this line:
+In `apps/practice-shop/e2e/lib/pages/products.page.ts`, this line selects product rows:
 
 ```ts
 this.rows = page.getByTestId(/^products-row-/)
 ```
 
-The `/^products-row-/` part is a **regular expression**: a pattern that matches text. It means "starts with `products-row-`". It matches the 10 rows, and it does not match `products-name-5`, because the feature and element differ. A sloppy naming rule would make this impossible.
+The regular expression `/^products-row-/` looks for ids that start with `products-row-`. The prefix selects rows without including their buttons or order rows.
 
-This is also DRY at work. The id string is written once in the app and once in the Page Object. The specs do not repeat it.
-
-### A limit of test ids
-
-A test id says nothing about the user. A button can have `data-testid="products-new"`, and still have no readable name for a screen reader. The test passes. A real user with a screen reader cannot use it. Test ids make tests steady. They do not prove the page is accessible.
-
-## Practice
-
-1. Open `apps/practice-shop/app/(dashboard)/products/page.tsx`.
-2. Find every `data-testid` in the file. Write down three that include a record id.
-3. Open `apps/practice-shop/e2e/lib/pages/products.page.ts`. Find where `products-search` is used.
-4. Start the shop with `pnpm shop:dev`. Open http://localhost:5190 and sign in as `admin@qa-shop.test` with the password `Admin123!`.
-5. Open the products page. In your browser, right-click a Delete button and choose **Inspect**.
-6. Find the `data-testid` attribute on the button. Check that the number matches the product.
-7. Do the same for the search box on the page. Then inspect an Edit link: is it a `<button>` or an `<a>`?
-
-## Challenge
-
-Write a test that audits the test ids of one page. It reads every id on the page and checks that each one follows the rule.
-
-Create the file `apps/practice-shop/e2e/challenges/testid-audit.spec.ts`. Choose your world: audit the products page (`/products`) or the orders page (`/orders`).
-
-It is done when:
-
-- The first test opens your page, waits until the table is visible, and then collects all `data-testid` values on the page.
-- The rule is a function `isGoodTestId(id: string): boolean` that you write. It accepts lowercase words joined by hyphens, with an optional number at the end.
-- If an id breaks the rule, the failure message lists the bad ids. A message that says only "expected true" does not count.
-- A second test needs no browser. It calls your function with at least three good ids and four bad ones, such as `Products-New`, `products_new`, `new` and `products-row-`, so you see that the rule can fail.
-- You ran the spec and read the result. If one id of the real page breaks your rule, write in a comment what you decided: is the rule too strict, or is the id wrong?
-
-You will need something this lesson did not teach: how to read an attribute from many elements at once, and how to write a pattern that accepts a number only at the end. Search for: `playwright locator evaluateAll`, `playwright locator all getAttribute`, `regex lowercase letters hyphen digits`.
-
-## Think it through
-
-1. Look at these seven ids and these three patterns. How many ids does each pattern match?
+Compare three patterns against the same ids:
 
 ```ts
 const ids = [
@@ -305,16 +136,112 @@ const ids = [
   "product-name",
   "orders-row-1003",
 ]
-// patterns: /^products-row-/   /^products-/   /row/
+
+for (const pattern of [/^products-row-/, /^products-/, /row/]) {
+  console.log(String(pattern), "matches", ids.filter((id) => pattern.test(id)).length)
+}
 ```
 
-<details><summary>Answer</summary>
+The result is:
 
-The first matches 1 (`products-row-12`). The second matches 5: every id that starts with `products-`, which is the row, name, delete button, search box and count. The third matches 2: `products-row-12` and `orders-row-1003`, because it looks for the word anywhere. The prefix must be specific to select only the group you want, and the `^` keeps a pattern from matching the middle of other ids.
+```text
+/^products-row-/ matches 1
+/^products-/ matches 5
+/row/ matches 2
+```
 
-</details>
+The first pattern is exact. The second is too wide: it picks up names, buttons and counts. The third also includes order rows.
 
-2. A developer builds row ids from the position in the list. This test always passes, but another test in the suite sometimes fails after it. Find the bug.
+## One shared dialog, one shared id
+
+The shop reuses the confirmation dialog on the list and product detail pages. Its buttons have the ids `confirm-delete-button` and `confirm-delete-cancel`.
+
+![Delete opens a dialog. Cancel keeps the row; confirm removes it and shows a message.](/clips/shop-delete-dialog.webm)
+
+The component is in `apps/practice-shop/components/confirm-delete-dialog.tsx`. It uses the shadcn `AlertDialog`, with the role `alertdialog`, outside the table in the DOM.
+
+Clicking a row's button opens the dialog; clicking the shared button confirms deletion. The search `page.getByTestId("products-row-12").getByTestId("confirm-delete-button")` finds zero elements because it searches inside the row. Find the dialog button from `page`.
+
+## When an id is missing
+
+Ask the developer to add the attribute, specifying the element, page and suggested name, such as `products-export`. You can also add it yourself if you have permission to change the file.
+
+The new-product link shows where to put it:
+
+```tsx
+<Button asChild>
+  <Link href="/products/new" data-testid="products-new">
+    New product
+  </Link>
+</Button>
+```
+
+`Button asChild` applies the style to the `Link` it contains. The DOM element is an `<a>`, and the test id is on that link. The same applies to Edit in each row: `getByRole("button", { name: "Edit" })` does not find that link.
+
+Adding `data-testid` does not change how the page works or looks.
+
+## Test ids, roles and labels
+
+Many teams prefer roles and labels, because they also check that the page is accessible. This team chose test ids. The rule in `apps/practice-shop/e2e/README.md` says:
+
+```text
+Select with `page.getByTestId(...)`. No CSS, no XPath, no text selectors for things you click.
+```
+
+The team uses ids as a contract between development and QA: the name stays the same when text or styling changes. Developers must add and maintain these attributes.
+
+In the shop, `page.getByLabel("Search")` also finds the search box. The label `<Label htmlFor="products-search">` points to the field whose `id` attribute has the same value. This association is separate from the `data-testid` attribute.
+
+## Go deeper
+
+### The attribute Playwright searches
+
+These two lines select the same field:
+
+```ts
+await page.getByTestId("products-search").fill("mouse")
+await page.locator('[data-testid="products-search"]').fill("mouse")
+```
+
+The second uses a CSS attribute selector. `getByTestId` uses `data-testid` by default. If the app already uses `data-qa`, this option tells Playwright to search that attribute:
+
+```ts
+use: { testIdAttribute: "data-qa" },
+```
+
+Attributes that start with `data-` are reserved by HTML for your own information. The browser ignores them. That is why they are safe for tests.
+
+### What a test id checks
+
+A button can have `data-testid="products-new"` and still lack an accessible name. Finding it by its test id does not check that name.
+
+Use test ids for what has no good name, such as a row in a table, and use roles and labels where the page has real names.
+
+## Practice
+
+1. Open `apps/practice-shop/app/(dashboard)/products/page.tsx`. Write down three `data-testid` values that include a record id.
+2. Open `apps/practice-shop/e2e/lib/pages/products.page.ts`. Find where `products-search` is used.
+3. Start the shop with `pnpm shop:dev`. Open http://localhost:5190 and sign in as `admin@qa-shop.test` with the password `Admin123!`.
+4. Open the products page. Right-click a Delete button and choose **Inspect**.
+5. Find the button's `data-testid` attribute. Check that the number matches the product.
+6. Inspect the search box and check its test id. Then inspect an Edit link and check whether its tag is `<button>` or `<a>`.
+
+## Challenge
+
+Create `apps/practice-shop/e2e/challenges/testid-audit.spec.ts` to audit test ids on the products page (`/products`) or the orders page (`/orders`).
+
+It is done when:
+
+- The first test waits for the table to be visible and collects all `data-testid` values on the page. If any break the rule, the failure message lists the bad ids.
+- Your function `isGoodTestId(id: string): boolean` accepts lowercase words joined by hyphens, with an optional number at the end.
+- A second test, without a browser, checks at least three good ids and four bad ones, such as `Products-New`, `products_new`, `new` and `products-row-`.
+- You ran the spec and read the result. If a real id breaks your rule, a comment states whether the rule is too strict or the id is wrong.
+
+You will need to read an attribute from many elements at once and write a pattern that accepts a number only at the end. Search for: `playwright locator evaluateAll`, `playwright locator all getAttribute`, `regex lowercase letters hyphen digits`.
+
+## Think it through
+
+1. A developer builds ids from list positions. After a product is added at the start, this test passes even though it no longer deletes the lamp. Where is the bug, and which check hides it?
 
 ```ts
 test("deleting the lamp shows a message", async ({ page }) => {
@@ -327,65 +254,25 @@ test("deleting the lamp shows a message", async ({ page }) => {
 
 <details><summary>Answer</summary>
 
-The id uses the position, and the shop sorts newest first. The test was written when the lamp was in row 0. When another test has just added a product, row 0 is that new product, so the test deletes the wrong one. The only check is that a message appears, so it passes anyway. The product that another test needs is gone, and that test fails later with no clear link. Use ids built from the record id, create the lamp inside the test so you know its id, and check that the right row is gone.
+`products-delete-0` selects the new product, which now occupies the first position. The assertion only checks that a message appears. Create the lamp inside the test so you know its id, use it in the locator and check that its row disappears.
 
 </details>
 
-3. Both lines find the search box on the products page. Which is better here, and what would make you choose the other?
-
-```ts
-await page.getByTestId("products-search").fill("mouse")
-await page.getByLabel("Search").fill("mouse")
-```
+2. The Delete button now says "Eliminar" and keeps its test id. Which of these locators still find it: `getByText("Delete")`, `getByRole("button", { name: "Delete" })`, `getByTestId("products-delete-12")`?
 
 <details><summary>Answer</summary>
 
-The test id line is steady: it does not change when the label text changes, and the team rule asks for it. The label line proves something else: a real person sees a field called "Search", and a screen reader can name it. If the label were missing, the second line would fail, and that is a real accessibility bug. A team that cares about accessibility may use the label version, or use both: test ids for the steps, and one test that checks the labels exist. The choice depends on what you want the test to prove.
+Only `getByTestId("products-delete-12")`. The other two look for the word "Delete", which changed. The test id would also miss a missing translation or accessible name.
 
 </details>
 
-4. The shop is translated to Spanish and the Delete button now says "Eliminar". Which of these locators still work: `getByText("Delete")`, `getByRole("button", { name: "Delete" })`, `getByTestId("products-delete-12")`? What does your answer say about the team rule?
+3. A search returns no products. How many elements does `page.getByTestId(/^products-row-/)` match, and what happens when you call `.first().click()` on that locator?
 
 <details><summary>Answer</summary>
 
-Only the test id still works. The text and the role name both use the word "Delete", and the word changed. This is the reason the team chose test ids for things they click. The price is that a test id would not notice that the translation is missing, or that a button has no name at all. If the product has several languages, you may add a few role-based tests on purpose, to check that the names are correct.
+It matches zero elements. Playwright keeps searching for a first match until the timeout expires. To check this state, use `toHaveCount(0)` on the rows and check that `products-empty` is visible.
 
 </details>
-
-5. Explain to a new teammate, in three sentences and without the word "selector", why the delete button of product 12 has the id `products-delete-12` and not just `delete`.
-
-<details><summary>Answer</summary>
-
-A good answer says: the table shows ten rows, and each has its own delete button. If all had the id `delete`, a test could not say which one it wants, and Playwright would stop with a strict mode error. The number at the end is the record id, so the id points at one product, and it does not change when the list order changes.
-
-</details>
-
-6. The user searches for a word that matches no product. What does `page.getByTestId(/^products-row-/)` match? What happens if the test then calls `.first().click()` on it? Which element shows the user that the list is empty?
-
-<details><summary>Answer</summary>
-
-It matches zero elements. A click on `.first()` of an empty match waits for an element that never comes, and the test ends with a timeout error, not a clear message. The page has the id `products-empty` for the empty-list message. A good test for this case asserts that the rows count is 0 with `toHaveCount(0)` and that `products-empty` is visible. It never clicks a row that may not exist.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What are `data-*` attributes in HTML, and what are they meant for?**
-   - Search for: `html data-* attributes custom data`
-   - Try it: open the shop in your browser, press F12 and open the Console. Run `document.querySelector('[data-testid="products-search"]').dataset`. Read what comes back, then try `.dataset.testid`.
-   - A good answer explains: how to write one, how JavaScript can read it, and why the browser ignores it for display.
-
-2. **What does the Playwright documentation recommend for finding elements, and why?**
-   - Search for: `playwright locators best practices getByRole`
-   - Try it: choose three elements on the login page. Write the locator for each in the order the documentation prefers. Check each one in the Playwright inspector or in a short spec.
-   - A good answer explains: the order of preference for locators, and the reason user-facing locators are preferred.
-
-3. **Why are CSS-class and XPath selectors called brittle in test automation?**
-   - Search for: `brittle selectors XPath CSS test automation`
-   - Try it: in the browser DevTools, right-click the Delete button of the first row, choose Copy, and copy the CSS selector and the XPath. Compare them with `products-delete-12`. Write which part of each would break if a developer changed the layout.
-   - A good answer explains: what changes in a page that breaks such selectors, and what a stable alternative is.
 
 ## Next step
 

@@ -1,39 +1,22 @@
 ---
 title: The config file
-summary: Read playwright.config.ts line by line, predict how it behaves on your machine and in CI, and change it safely.
-duration: 90 min
+duration: 60 min
 ---
-
-## Start with a puzzle
-
-A teammate is tired of retries on her laptop. She reads the config:
-
-```ts
-retries: process.env.CI ? 2 : 0,
-```
-
-She thinks: "I will switch CI off." In PowerShell she runs `$env:CI="false"` and then `pnpm e2e`.
-
-She expects zero retries and no check for `test.only`. A failing test is still run three times in total, and a forgotten `test.only` stops the run.
-
-Why does the value `"false"` not switch anything off? What would you change in her command to get what she wants?
-
-Write down your guess before you read on.
 
 ## Goal
 
-- Predict how the config behaves on your machine and in CI.
-- Explain what each setting protects you from.
-- Choose where a setting belongs: in the config, in the command or in the test.
-- Run the tests on another port, and explain why you would do it.
+Read the project configuration to understand how Playwright runs the tests. Use its settings to change the port and run the same tests under different conditions.
 
-## What the config file is
+- Read the execution, reporting and browser settings.
+- Distinguish local behavior from behavior in CI.
+- Configure site startup and avoid port conflicts.
+- Run the tests with another configuration.
 
-The file `playwright.config.ts` is in the root of the project. Playwright reads it each time you run `pnpm e2e`. It says where the tests are, how to run them and how to report them.
+## Read the config file
 
-You do not write it often. But you must be able to read it, because it explains a lot of what you see when tests run. Open the file and follow this lesson.
+Playwright's test runner reads `playwright.config.ts` each time you run `pnpm e2e`. The file is in the project root and defines where to find the tests, how to run them and how to show the results.
 
-Reading documentation is a skill. When you meet a new setting, open the Playwright page about test options. Scan for three things: the signature (the type of the value), the example, and the notes about edge cases. You do not need to read the whole page.
+Open the file. It is TypeScript: Playwright loads it and reads what it exports. That lets it calculate settings from environment variables.
 
 ## The port and the address
 
@@ -42,11 +25,9 @@ const PORT = process.env.QAA_E2E_PORT ?? "5180"
 const BASE_URL = `http://localhost:${PORT}`
 ```
 
-`process.env` holds **environment variables**. These are named values that the terminal passes to a program. `QAA_E2E_PORT` is one we made up for this project.
+Node.js exposes **environment variables** through `process.env`: named values it receives from the process that starts it. `QAA_E2E_PORT` is a variable defined for this project.
 
-The `??` sign means: use the value on the left, and if it does not exist, use the one on the right. So the port is `5180` unless you set `QAA_E2E_PORT`.
-
-`BASE_URL` joins the address. Backticks and `${PORT}` put the port inside the text.
+The `??` operator uses the value on the right when the value on the left is `null` or `undefined`. If you do not set `QAA_E2E_PORT`, the port is `5180`. `BASE_URL` uses that port to build the site's address.
 
 ## defineConfig
 
@@ -62,7 +43,7 @@ export default defineConfig({
 testDir: "./e2e",
 ```
 
-The folder where Playwright looks for specs. Every `.spec.ts` file inside `e2e`, also in sub-folders, is a spec. This is why the exercise files run with `pnpm e2e` too.
+The runner looks for specs in `e2e` and its subfolders. That is why exercise files with the `.spec.ts` extension also run with `pnpm e2e`.
 
 ## fullyParallel
 
@@ -70,7 +51,7 @@ The folder where Playwright looks for specs. Every `.spec.ts` file inside `e2e`,
 fullyParallel: true,
 ```
 
-Playwright runs tests at the same time, in several **workers**. A worker is one process that runs tests. With `true`, even tests in the same file run in parallel. This is fast. It only works because tests are isolated, as you saw in the last lesson.
+With this setting, the runner can run even tests from the same file in parallel. Workers run the tests in separate processes; tests must not depend on another test finishing first.
 
 ## forbidOnly and retries
 
@@ -79,11 +60,11 @@ forbidOnly: !!process.env.CI,
 retries: process.env.CI ? 2 : 0,
 ```
 
-`CI` is a variable that CI servers set. The `!!` turns a value into `true` or `false`. The `? :` sign is a short `if / else`. In CI, a forgotten `test.only` makes the run fail, and a failed test is run again, up to two times. On your machine you want to see the failure at once.
+CI servers set `CI` as an environment variable. `!!` converts its value to a boolean; `? :` chooses between two values based on the condition.
 
-### Experiment: what does the config really ask?
+When `CI` is set and nonempty, `forbidOnly` fails the run if it finds `test.only`, and `retries` allows up to two retries of a failed test. Without `CI`, the runner does not retry tests.
 
-Before you read the output, predict `retries` and `forbidOnly` for each value of `CI`: not set, `""` (empty text), `"0"`, `"false"`. Write four pairs. Then run this file with `node`.
+This example shows which values enable those settings:
 
 ```ts
 for (const value of [undefined, "", "0", "false"]) {
@@ -103,13 +84,11 @@ undefined 0 false
 "false" 2 true
 ```
 
-An environment variable is always text. The text `"0"` and the text `"false"` are not empty, so they count as `true`. Only a missing variable or an empty text counts as `false`. The check means "the variable exists", not "the variable says yes".
+Environment variable values are text. `"0"` and `"false"` count as true because they are not empty. A missing variable or an empty text counts as false. The check means "the variable exists", not "the variable says yes".
 
-> **Careful:** Retries can hide a flaky test: it fails, then passes, and the run is green. If the report says "flaky", fix the test.
+Running `$env:CI="false"` enables the CI settings. To remove the variable in PowerShell, use `Remove-Item Env:CI`. To disable only retries for one run, use `--retries=0` in the command.
 
-### Back to the puzzle
-
-Her command sets `CI` to the text `"false"`. That text is not empty, so `process.env.CI` counts as true. She gets two retries and `forbidOnly` on, which is the opposite of what she wanted. She must remove the variable (`Remove-Item Env:CI`) or set it to an empty text. Better: she does not touch `CI` at all. If she wants no retries for one run, she can use `--retries=0` in the command.
+> **Careful:** If a test fails and then passes on a retry, the report marks it as *flaky*. Review the failure even if the run ends without errors.
 
 ## reporter
 
@@ -119,7 +98,9 @@ reporter: process.env.CI
   : [["list"], ["html", { open: "never" }]],
 ```
 
-A **reporter** decides how results are shown. On your machine you get `list`, the list of tests you saw in the terminal, and an HTML report. In CI you get `github`, which adds messages to the GitHub run, and the HTML report. `open: "never"` means the report does not open by itself. You open it with `pnpm e2e:report`.
+**Reporters** show the results. Without `CI`, `list` shows the test list in the terminal; with `CI`, `github` adds messages to the GitHub run. Both options generate an HTML report.
+
+`open: "never"` prevents the report from opening automatically. Open it with `pnpm e2e:report`.
 
 ## use
 
@@ -137,6 +118,8 @@ use: {
 - `trace` records a trace only when a test is retried. Locally, add `--trace on`.
 - `screenshot` takes a picture only when a test fails.
 
+With `baseURL`, tests use relative paths and the start of the address is written once. A port change does not require editing each test.
+
 ## projects
 
 ```ts
@@ -148,9 +131,9 @@ projects: [
 ],
 ```
 
-A **project** is a set of settings to run the tests with. Here there is one project: the Chromium browser. `devices["Desktop Chrome"]` is a list of settings that copy a desktop Chrome: screen size and so on. The `...` copies those settings into the object. You see `[chromium]` in each line of the list report.
+A **project** is a set of settings to run the tests with. Here there is one named `chromium`, which uses the Chromium browser and the settings from `devices["Desktop Chrome"]`, such as the window size.
 
-You could add more projects, such as Firefox or a phone. Each project runs all the tests again.
+The name appears as `[chromium]` in the list report. If you add a project for Firefox or a phone, the runner runs the tests again with those settings.
 
 ## webServer
 
@@ -165,42 +148,36 @@ webServer: {
 
 `webServer` tells Playwright to start the app before the tests and stop it at the end. That is why you do not need `pnpm dev` first.
 
-- `command` is the command that starts the app.
+- `command` starts the app on the chosen port.
 - `url` is the address Playwright checks to know the app is ready.
-- `timeout` is how long to wait for the app. `60_000` is 60 seconds. The `_` only makes the number easier to read.
-- `reuseExistingServer` decides what happens if something already answers at the `url`. On your machine it is `true`: Playwright uses it. In CI it is `false`: Playwright stops with an error.
+- `timeout` limits the wait for the app to `60_000` milliseconds, or 60 seconds.
+- `reuseExistingServer` decides what happens if something already answers at the `url`. Without `CI`, Playwright reuses it; with `CI`, it stops with an error.
 
-> **Careful:** On your machine, with `reuseExistingServer`, Playwright tests whatever runs on that port. If another app uses port 5180, you test the wrong app and see no error about it. Use `QAA_E2E_PORT` to avoid this.
+> **Careful:** Playwright does not check that the site answering is the course site. If another app uses port 5180, the tests may run against that app. Use `QAA_E2E_PORT` to choose another port.
 
 ## Change the port
 
-In PowerShell, set the variable and run the tests in one line:
+In PowerShell, set the variable and run the tests:
 
 ```bash
 $env:QAA_E2E_PORT="5185"; pnpm e2e
 ```
 
-Playwright starts the site on port 5185 and uses `http://localhost:5185` as the base address. The variable stays set in this terminal window until you close it or remove it:
+Playwright uses `http://localhost:5185` as the base address and the address to check the server. The variable stays set in that terminal window until you close it or remove it:
 
 ```bash
 Remove-Item Env:QAA_E2E_PORT
 ```
 
-On macOS or Linux, write `QAA_E2E_PORT=5185 pnpm e2e`. There the variable lasts for that one command.
+On macOS or Linux, write `QAA_E2E_PORT=5185 pnpm e2e`. The variable lasts only for that command.
 
 > **Note:** Do not use 5190. The practice shop uses that port.
 
 ## Go deeper
 
-### Why the config can contain code
+### Fallback values with `??` and `||`
 
-`playwright.config.ts` is a normal TypeScript file. Playwright loads it and reads what it exports. This is why you can use `process.env`, `??` and `? :` inside it. The config is code that returns settings.
-
-This also makes the config a good place for DRY, "Don't Repeat Yourself". The `baseURL` is written once. If the config did not have it, each test would need the full address. When the port changes, you would edit every test. Now you edit one line, or set one variable.
-
-### A common wrong idea: "`??` and `||` are the same"
-
-The `??` sign replaces only a missing value. An empty text is kept:
+`??` keeps an empty text, while `||` replaces it:
 
 ```ts
 process.env.QAA_E2E_PORT = ""
@@ -208,7 +185,7 @@ console.log(`http://localhost:${process.env.QAA_E2E_PORT ?? "5180"}`)
 console.log(`http://localhost:${process.env.QAA_E2E_PORT || "5180"}`)
 ```
 
-This prints `http://localhost:` first, and `http://localhost:5180` second. The sign `||` also replaces an empty text. It replaces the number `0` too. For a setting where `0` is a real choice, this matters:
+It prints `http://localhost:` first and `http://localhost:5180` second. The number `0` is also falsy, so `||` replaces it:
 
 ```ts
 process.env.WORKERS = "0"
@@ -216,40 +193,38 @@ console.log(Number(process.env.WORKERS) || 4)
 console.log(Number(process.env.WORKERS) ?? 4)
 ```
 
-It prints `4` and then `0`. Here `||` throws away a value that the person typed on purpose. Choose the sign by asking: which values mean "nothing was given"?
+It prints `4` and then `0`. When choosing the operator, distinguish values that mean a setting is missing from values that are valid for that setting.
 
-### A trade-off: more workers is not always faster
+### The worker limit
 
-`fullyParallel` runs tests in several workers. By default, Playwright uses about half of the processor cores of the machine. But the app and the browsers also need the processor. On a small CI machine, too many workers make every test slower. Then timeouts appear, and tests look flaky when nothing is wrong with them.
+By default, Playwright uses roughly half the processor cores as the worker limit. The app and browsers also consume resources: too many workers can cause slowdowns and timeouts.
 
-When you debug a strange failure, run with one worker:
+To investigate a failure with one worker:
 
 ```bash
 pnpm e2e e2e/playground.spec.ts --workers=1
 ```
 
-If the failure disappears, the cause may be load or shared data. Then check isolation and the machine, not only the test.
+If the failure disappears, check the machine's load and shared data. The change alone does not identify the cause.
 
 ## Practice
 
-1. Open `playwright.config.ts`. Find each setting from this lesson.
-2. Write down: how many retries do you get on your machine? How many in CI?
-3. Run all tests on a different port:
+1. Open `playwright.config.ts` and find the settings from this lesson.
+2. Run all the tests on another port:
 
 ```bash
 $env:QAA_E2E_PORT="5185"; pnpm e2e
 ```
 
-4. The output does not print the port. If the tests pass, the site answered on port 5185.
-5. Remove the variable with `Remove-Item Env:QAA_E2E_PORT`. Run `pnpm e2e` again. Now the site uses port 5180.
+3. Review the results. Remove the variable with `Remove-Item Env:QAA_E2E_PORT` to return to the default port.
 
 There is no exercise file for this lesson.
 
 ## Challenge
 
-Build a second config for a different question, without changing `playwright.config.ts`. The question: "Do the Practice page tests also pass in a small window, and one at a time?"
+Create `playwright.challenge.config.ts` in the project root to run the Practice tests on desktop and on a small screen. Keep `playwright.config.ts` unchanged.
 
-Create the file `playwright.challenge.config.ts` in the root of the project. It must run only the tests in `e2e/playground.spec.ts`, in two projects. The first project is a desktop browser. The second is a small-screen project of your choice: a phone from the Playwright device list, or a window size you pick. It must use one worker and one retry, and it must start the site on port 5186, with the port written once in the file.
+Run only `e2e/playground.spec.ts` in two projects: one desktop project and another using a phone from the device list or a window size you choose. Use one worker and one retry. Start the site on port 5186 and write that number only once.
 
 It is done when:
 
@@ -258,19 +233,11 @@ It is done when:
 - `playwright.config.ts` is not changed, and the port number appears only once in your file.
 - `pnpm exec playwright test --config playwright.challenge.config.ts --project=<your second project name>` runs only 4 tests.
 
-You will need something this lesson did not teach: how to point Playwright to another config file, how to select only some spec files in a config, and how to set a window size. Search for: `playwright test --config option`, `playwright testMatch`, `playwright viewport emulation`.
+Search for: `playwright test --config option`, `playwright testMatch`, `playwright viewport emulation`.
 
 ## Think it through
 
-1. Predict `retries` and `forbidOnly` for each of these cases, and say why: `CI` is not set; `CI` is set to `""`; `CI` is set to `"0"`.
-
-<details><summary>Answer</summary>
-
-Not set: 0 retries and `forbidOnly` false, because the variable does not exist. Empty text: the same, because an empty text counts as false. The text `"0"`: 2 retries and `forbidOnly` true, because any text that is not empty counts as true, also when it looks like "no". The config tests whether the variable has a value, not what the value means.
-
-</details>
-
-2. This config runs without any error message at the start, but the run fails after about one minute. Find the bug.
+1. You set `QAA_E2E_PORT=5185` and run the tests with this configuration. The run fails after about a minute. Find the bug.
 
 ```ts
 const PORT = process.env.QAA_E2E_PORT ?? "5180"
@@ -285,62 +252,30 @@ export default defineConfig({
 })
 ```
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-The command has the port written as `5180`, but the `url` follows `QAA_E2E_PORT`. If you set `QAA_E2E_PORT=5185`, Playwright starts the site on 5180 and waits for a site on 5185. Nothing answers there, so after 60 seconds it stops with a timeout. The port is in two places and the places can disagree. The fix is to use `${PORT}` in the command too.
-
-</details>
-
-3. Two versions of one setting. Version A: `reuseExistingServer: true` always. Version B: `reuseExistingServer: !process.env.CI`. Which is better for this team, and what would make you choose the other?
-
-<details><summary>Answer</summary>
-
-Version B is better. On your machine, reusing a running site saves time, because you often have `pnpm dev` open already. In CI a site running on that port is not expected, so an error warns you that the environment is not clean. Version A would be fine if the CI machine always starts clean and nobody can leave a site running. The choice depends on how much you trust the environment.
+The command starts the site on `5180`, but `url` uses the port from `QAA_E2E_PORT`. Playwright waits for a response on 5185, where there is no server, and reaches the 60-second timeout. Use `${PORT}` in the command too.
 
 </details>
 
-4. The team adds two projects to the config: Firefox and a phone. What changes in the run, and what could break?
+2. In CI, a site already answers at the configured address. Compare `reuseExistingServer: true` with `reuseExistingServer: !process.env.CI`. What does Playwright do in each case?
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-Every test now runs three times, so the run is about three times longer, and the report shows names like `[firefox]` and `[phone]`. Tests that use `data-testid` and roles should still pass. Tests that depend on a screen size or on hover can fail on the phone, for example when a menu moves below the content on a small window. Each failure then tells you something about the app, not only about the test.
-
-</details>
-
-5. A new colleague asks why the tests use `page.goto("/#/practice")` and not the full address. Explain it in three sentences without using the words "DRY" or "variable".
-
-<details><summary>Answer</summary>
-
-Example: "The start of the address is written once, in the config file. If the port or the server changes, we edit one line and every test still works. The same tests can also run against another address." A good answer says where the address lives and what that makes easy.
+With `reuseExistingServer: true`, Playwright reuses that site. With `reuseExistingServer: !process.env.CI`, it stops with an error because `CI` has a nonempty value. That error helps detect an unexpected server in CI.
 
 </details>
 
-6. Another app already runs on port 5180 on your machine, and you run `pnpm e2e` without setting `QAA_E2E_PORT`. What happens, and how would you notice?
+3. Another app answers on port 5180 on your machine. You run `pnpm e2e` without setting `CI` or `QAA_E2E_PORT`. Which site do the tests check, and how would you detect it?
 
-<details><summary>Answer</summary>
+<details>
+<summary>Answer</summary>
 
-`reuseExistingServer` is true on your machine, and the other app answers at the `url`. So Playwright does not start the course site and runs the tests against the other app. You would not see a message about it. You would see failures such as elements that cannot be found. The first clue is that nearly every test fails at once, and the screenshot shows a page you do not know.
+Playwright reuses the other app because `reuseExistingServer` is true. You may see failures from elements that cannot be found and screenshots of a page other than the course site.
 
 </details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What is an environment variable, and how do you set one in PowerShell and in a Unix shell?**
-   - Search for: `environment variables powershell $env bash export`
-   - Try it: In PowerShell, run `$env:MY_NAME="Rex"; node -e "console.log(process.env.MY_NAME)"`. Open a second terminal window and run only the `node` part. Compare the results.
-   - A good answer explains: what an environment variable is, how long it lasts in each shell, and why programs read settings from them.
-
-2. **What is the difference between `??` and `||` in JavaScript?**
-   - Search for: `nullish coalescing vs logical or javascript`
-   - Try it: In a scratch file, test both signs with `0`, `""`, `false`, `null` and `undefined` on the left. Run it with `node` and write the results in a small table.
-   - A good answer explains: which values each sign replaces, with examples for `0`, an empty text and `undefined`.
-
-3. **What is continuous integration, and why do teams run automated tests on every pull request?**
-   - Search for: `continuous integration automated tests pull request`
-   - Try it: Open the file `.github/workflows/e2e.yml` in this project. Find the step that runs the tests, and list two things that are different there from your laptop.
-   - A good answer explains: what CI does, why tests run there with different settings from a laptop, and what a team gains from it.
 
 ## Next step
 

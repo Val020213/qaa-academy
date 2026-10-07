@@ -39,7 +39,18 @@ Se llama "de extremo a extremo" porque atraviesa todas las capas a la vez: inter
 
 ## ¿Qué es Playwright?
 
-**Playwright** es una herramienta gratuita de Microsoft que controla un navegador como Chrome desde código. Abre páginas, hace clic, escribe y lee lo que aparece en pantalla. Playwright también existe para Python, Java y .NET. En este curso lo usas con **TypeScript**, que es su versión más completa y la que verás en el módulo 1.
+**Playwright** es una herramienta gratuita de Microsoft que controla un navegador como Chrome desde código. Abre páginas, hace clic, escribe y lee lo que aparece en pantalla. Playwright también existe para Python, Java y .NET. En este curso lo usas con TypeScript, que es su versión más completa.
+
+## Herramientas del curso
+
+| Herramienta | Uso en el curso | Sitio oficial |
+| --- | --- | --- |
+| ![](/icons/typescript.svg) TypeScript | Escribir los programas y los tests | [typescriptlang.org](https://www.typescriptlang.org) |
+| ![](/icons/nodejs.svg) Node.js | Ejecutar los programas y los tests | [nodejs.org](https://nodejs.org) |
+| ![](/icons/playwright.svg) Playwright | Automatizar los tests en el navegador | [playwright.dev](https://playwright.dev) |
+| ![](/icons/vscode.svg) VS Code | Escribir y revisar el código | [code.visualstudio.com](https://code.visualstudio.com) |
+| ![](/icons/git.svg) Git | Guardar los cambios del código | [git-scm.com](https://git-scm.com) |
+| ![](/icons/pnpm.svg) pnpm | Instalar las librerías del proyecto | [pnpm.io](https://pnpm.io) |
 
 ## El orden de este curso
 
