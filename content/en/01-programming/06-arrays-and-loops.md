@@ -1,40 +1,20 @@
 ---
 title: Arrays and loops
-summary: Keep many values in a list, repeat an action for each item with a for...of loop, and learn to find the bug in a loop that gives a wrong answer without an error.
-duration: 80 min
+duration: 60 min
 ---
-
-## Start with a puzzle
-
-A running club writes down three lap times, in seconds. The coach wants the best lap. The best lap is the smallest number. Here is the code.
-
-```ts
-const laps = [62, 58, 61];
-let best = 0;
-
-for (const lap of laps) {
-  if (lap < best) {
-    best = lap;
-  }
-}
-
-console.log(best);
-```
-
-What does it print? Is it 58? Is it 62? Something else? The program has no error message. It runs to the end.
-
-Write down your guess before you read on.
 
 ## Goal
 
-- Predict what a loop does to a variable in each round.
+In this lesson you keep many values in a list and repeat an action for each one with a loop. You also learn to find the bug in a loop that gives a wrong answer without showing any error.
+
 - Read an item by its index, and say what happens when the index does not exist.
+- Predict what a loop does to a variable in each round.
 - Choose a good start value for a counter, a sum, a smallest value and a biggest value.
 - Find a bug in a loop by shrinking the problem and changing one thing at a time.
 
 ## Arrays
 
-An **array** is a list of values in order. You write it with square brackets. The values are separated by commas.
+An **array** is a list of values in order. You write it with square brackets, and the values are separated by commas.
 
 ```ts
 const dogs = ["Rex", "Mimi", "Luna"];
@@ -47,7 +27,7 @@ This prints:
 [ 'Rex', 'Mimi', 'Luna' ]
 ```
 
-Each value in the array is an **item**. Node shows text with single quotes here. It is the same text.
+Each value in the array is an **item**. Node shows text with single quotes; it is the same text.
 
 An array can hold numbers too:
 
@@ -55,13 +35,11 @@ An array can hold numbers too:
 const laps = [62, 58, 61];
 ```
 
-Keep one type in one array. A list of text, or a list of numbers.
+Keep one type in each array: a list of text, or a list of numbers.
 
 ## Index
 
 The **index** is the position of an item. Counting starts at 0, not at 1.
-
-Before you run this, guess: what do the two lines print?
 
 ```ts
 const dogs = ["Rex", "Mimi", "Luna"];
@@ -76,20 +54,24 @@ Rex
 Luna
 ```
 
-The first item is index 0. The second is index 1. The third is index 2.
+The first item is index 0, the second is index 1 and the third is index 2. In a list of 3 items, the last index is 2.
 
-> **Careful:** The first item is `[0]`, not `[1]`. In a list of 3 items, the last index is 2.
+Counting starts at 0 because of how a list is stored in memory. Its items sit in slots of the same size, one next to the other. The variable `dogs` does not contain the items: it contains a **pointer**, which is the memory address where the first slot starts. To reach an item, the address is calculated as address = start + index × slot size. So the index is how many slots to skip from the start, and for the first item there are none to skip.
 
-Now guess again. What does this print?
+![An array in memory: the variable holds the address of the first slot, and the index says how many slots to skip.](/images/zero-index.en.svg)
+
+The addresses in the drawing are examples. Languages such as C work exactly this way, and that is where the convention of starting at 0 comes from. The JavaScript engine stores normal lists the same way, although it never shows you the addresses.
+
+If you ask for an index that does not exist, there is no error:
 
 ```ts
 console.log(dogs[3]);
 console.log(dogs[-1]);
 ```
 
-It prints `undefined` two times. No error. The program does not tell you that the index is wrong. It gives you "no value" and goes on. This is why a wrong index is dangerous: the mistake shows up later, far from where it began.
+It prints `undefined` twice. The program does not tell you the index is wrong; it gives you "no value" and goes on. This is why a wrong index is dangerous: the mistake shows up later, far from where it began.
 
-In this project, the type checker is strict. It treats `dogs[0]` as "a string or `undefined`". You can print it. To use it as a string, you must check first, with an `if`.
+In this project, the type checker is strict. It treats `dogs[0]` as "a string or `undefined`". You can print it, but to use it as a string you must check it first with an `if`.
 
 ```ts
 const first = dogs[0];
@@ -125,7 +107,7 @@ Luna
 Luna
 ```
 
-The last index is always `length - 1`. The `at` function is a shorter way to say the same thing: `at(-1)` means "the last item", `at(-2)` means "the one before it".
+The last index is always `length - 1`. The `at` function is a shorter way to say the same thing: `at(-1)` is the last item and `at(-2)` is the one before it.
 
 ## Adding items with push
 
@@ -144,13 +126,11 @@ This prints:
 [ 'Blue', 'Sunday', 'Echo' ]
 ```
 
-You may ask: the array is a `const`, so why can it change? A `const` stops you from giving the name a new array. It does not stop you from changing the items inside.
+The array is a `const` and still changes: a `const` stops you from giving the name a new array, but not from changing the items inside.
 
 ## Loops
 
-A **loop** repeats code. Use a loop when you need to do the same thing for each item.
-
-The `for...of` loop takes one item at a time.
+A **loop** repeats code. Use it when you need to do the same thing for each item. The `for...of` loop takes one item at a time.
 
 ```ts
 const dogs = ["Rex", "Mimi", "Luna"];
@@ -168,13 +148,37 @@ Walking Mimi
 Walking Luna
 ```
 
-Read it like this: for each `dog` in `dogs`, run the code in the brackets. In the first round, `dog` is `"Rex"`. In the second round it is `"Mimi"`. In the third it is `"Luna"`.
+Read it like this: for each `dog` in `dogs`, run the code in the braces. In the first round `dog` is `"Rex"`, in the second it is `"Mimi"` and in the third it is `"Luna"`. You choose the name `dog`; use one that says what a single item is.
 
-You choose the name `dog`. Use a name that says what one item is.
+### The for loop with an index
 
-### What does a loop do to a list that grows?
+There is an older way to write a loop, where you keep the index yourself. Three parts go between the parentheses, separated by `;`:
 
-Here is an experiment. The loop adds a new item while it runs. What do you expect it to print?
+```ts
+const dogs = ["Rex", "Mimi", "Luna"];
+
+for (let i = 0; i < dogs.length; i++) {
+  console.log(`${i}: Walking ${dogs[i]}`);
+}
+```
+
+- `let i = 0` runs once, before the loop starts: it creates the counter at the first index.
+- `i < dogs.length` is the condition. It is evaluated before every turn, and the loop ends when it is false.
+- `i++` runs at the end of every turn. It is a short way to write `i = i + 1`.
+
+This prints:
+
+```text
+0: Walking Rex
+1: Walking Mimi
+2: Walking Luna
+```
+
+Use `for...of` when you only need each item, because there is no counter to get wrong. Use the loop with an index when you need the position, as here to number the lines. The typical mistake with this form is to write `i <= dogs.length`: the loop makes one turn too many and `dogs[3]` is `undefined`.
+
+### A loop over a list that grows
+
+Here the loop adds a new item while it runs:
 
 ```ts
 const queue = ["a", "b"];
@@ -187,26 +191,11 @@ for (const item of queue) {
 }
 ```
 
-It prints `a`, `b` and `c`. The loop does not take a photo of the list at the start. It looks at the list again in every round, so it also visits the new item. If you push in every round, the loop never ends. Do not change a list while you loop over it, unless you know exactly why.
-
-## Plan the loop in plain words first
-
-Before you write a loop, write the steps in plain words. This is called **pseudocode**. It is not real code. It is a plan that you can read.
-
-Task: count the rainy days in a week.
-
-```text
-start with a count of 0
-for each day in the week
-  if the day is "rain", add 1 to the count
-show the count
-```
-
-Now the code is easy to write, because every line of the plan becomes one line of code. Breaking a problem into small steps like this is called **decomposition**.
+It prints `a`, `b` and `c`. The loop does not take a photo of the list at the start: it looks at the list again in every round, so it also visits the new item. If you push in every round, the loop never ends. Do not change a list while you loop over it, unless you know exactly why.
 
 ## Counting in a loop
 
-Use a `let` variable as a counter. Change it inside the loop.
+Use a `let` variable as a counter and change it inside the loop.
 
 ```ts
 const weather = ["rain", "sun", "rain", "rain", "cloud"];
@@ -227,7 +216,7 @@ This prints:
 Rainy days: 3
 ```
 
-Notice that `rainyDays` starts at 0 before the loop. It is a `let` because it changes.
+`rainyDays` starts at 0 before the loop, and it is a `let` because it changes.
 
 ## Summing in a loop
 
@@ -250,19 +239,30 @@ This prints:
 7.7
 ```
 
-Why start at 0? Because adding 0 changes nothing. The start value must be the one that does no harm. For a sum, it is 0.
+You start at 0 because adding 0 changes nothing. The start value must be one that does no harm to the result.
 
 ## The start value is a decision
 
-Look at the puzzle again. For a counter and a sum, 0 is a good start. Is it good for the smallest value too?
+For a counter and a sum, 0 is a good start. For a smallest value it is not. A running club writes down three lap times, in seconds, and wants the best lap, which is the smallest number:
 
-Think about it with a rule: the start value must lose against every real item. For "the smallest", the start must be bigger than every lap. For "the biggest", it must be smaller than every item. Zero is not bigger than a lap time.
+```ts
+const laps = [62, 58, 61];
+let best = 0;
 
-### Back to the puzzle
+for (const lap of laps) {
+  if (lap < best) {
+    best = lap;
+  }
+}
 
-The program prints `0`. The variable `best` starts at 0. No lap is smaller than 0, so the `if` is never true, and `best` stays 0. The program has no error. It only gives a wrong answer.
+console.log(best);
+```
 
-You can find this kind of bug like a scientist. This is **debugging by experiment**: make one guess, run one small test, change one thing at a time. First, shrink the failing case. Does a list with one lap, `[62]`, also print 0? Yes. So the list is not the problem. Then guess: "the start value is the problem". Change only that line:
+It prints `0`, with no error message. `best` starts at 0, no lap is smaller than 0, so the `if` is never true and `best` stays 0. The program does not fail; it only gives a wrong answer.
+
+The rule is that the start value must lose against every real item. For "the smallest", the start must be bigger than every lap. For "the biggest", it must be smaller than every item.
+
+To find a bug like this, shrink the failing case and change one thing at a time. With a list of one lap, `[62]`, the program also prints 0, so the list is not the problem. Then change only the line with the start value:
 
 ```ts
 const laps = [62, 58, 61];
@@ -277,7 +277,7 @@ for (const lap of laps) {
 console.log(best);
 ```
 
-This prints `58`. `Infinity` is a number bigger than every other number. Another good start is the first item of the list. Both work. Which one is better when the list is empty? You will think about that in the questions.
+This prints `58`. `Infinity` is a number bigger than every other number. Another good start is the first item of the list.
 
 ## Check a list with includes
 
@@ -310,17 +310,13 @@ This prints:
 Add Echo to the party playlist
 ```
 
-What does `likedSongs.includes("echo")` give? Try it. Capital letters count, so the answer is `false`.
+Capital letters count: `likedSongs.includes("echo")` gives `false`.
 
 ## Go deeper
 
-### Why counting starts at 0
+### Two names, one list
 
-The index is the distance from the start of the list. The first item is 0 steps from the start. The second is 1 step away. That is why the last index is `length - 1`. Many programming languages work this way.
-
-### A common wrong idea: "two names are two lists"
-
-In lesson 02, copying a variable made two separate values. With arrays it is different. An array is one object in memory. A name points to it. When you write `const b = a`, both names point to the same list.
+When you copy a variable that holds a number or text, you get two separate values. With arrays it is different: an array is one object in memory and the name points to it. When you write `const b = a`, both names point to the same list.
 
 ```ts
 const a = ["x"];
@@ -335,7 +331,9 @@ This prints:
 [ 'x', 'y' ]
 ```
 
-You changed `b`, but `a` changed too. It is one list with two names. To make a real copy, use `slice()`.
+You changed `b`, but `a` changed too. To make a real copy, use `slice()`.
+
+![Two names that point to the same list.](/images/shared-array.en.svg)
 
 ```ts
 const c = a.slice();
@@ -350,36 +348,6 @@ This prints:
 ```
 
 Now `c` is a separate list.
-
-### How it shows up in real QA automation work
-
-This is the one link to testing in this lesson. You often test the same rule with many inputs. A password must have at least 8 characters. Put the inputs in an array and write the check once.
-
-```ts
-const passwords = ["", "123", "abcdefgh"];
-
-for (const password of passwords) {
-  if (password.length < 8) {
-    console.log(`Rejected: "${password}"`);
-  } else {
-    console.log(`Accepted: "${password}"`);
-  }
-}
-```
-
-This prints:
-
-```text
-Rejected: ""
-Rejected: "123"
-Accepted: "abcdefgh"
-```
-
-One body, many inputs. This is DRY, "Don't Repeat Yourself", and the name for this style is data-driven testing. You will study DRY at the end of this module. In Module 4 you will see it in real tests.
-
-### A trade-off
-
-Notice that the message prints the input. When a case fails, you must know which input it was. Also remember that a failure stops a plain loop at the first bad item. The items after it are not checked. Real test tools can run each input as its own test, so one failure does not hide the others.
 
 ## Practice
 
@@ -398,7 +366,7 @@ Solve the exercises. Make every line say `OK`.
 
 ## Challenge
 
-Choose your own world: lap times, daily temperatures, quiz scores, the price of one coffee in ten shops, the age of every animal in a shelter. Write a function `report(values)` that takes a list of numbers and prints one line with the smallest value, the biggest value and the average. Use a loop. Do not use `Math.min` or `Math.max`.
+Choose your own world, for example lap times or the price of one coffee in ten shops. Write a function `report(values)` that takes a list of numbers and prints one line with the smallest value, the biggest value and the average. Use a loop. Do not use `Math.min` or `Math.max`.
 
 Create the file `exercises/challenges/arrays-and-loops.ts`. Run it with `node exercises/challenges/arrays-and-loops.ts`.
 
@@ -408,7 +376,6 @@ It is done when:
 - It also works when the smallest number is negative, for example `[-5, -2, -9]`.
 - For an empty list it prints a clear message such as `No data`, and not `Infinity` or `NaN`.
 - The average is shown with one digit after the decimal point.
-- `pnpm typecheck` shows no error for your file.
 
 You will need something this lesson did not teach: how to show a number with a fixed count of digits after the decimal point. Search for `javascript toFixed`.
 
@@ -430,7 +397,7 @@ console.log(total);
 <details>
 <summary>Answer</summary>
 
-It prints `20`. The line `total = score` replaces the total in every round. It does not add. In round one the total is 10. In round two it becomes 20, and the loop ends. To sum, you write `total = total + score`. The first version is a very common slip because the two lines look almost the same.
+It prints `20`. The line `total = score` replaces the total in every round; it does not add. In round one the total is 10, and in round two it becomes 20. To sum, you write `total = total + score`. It is a very common slip because the two lines look almost the same.
 
 </details>
 
@@ -452,25 +419,11 @@ console.log(rainy);
 <details>
 <summary>Answer</summary>
 
-The line `rainy = 0;` is inside the loop. It resets the counter in every round. The last day is `sun`, so the counter ends at 0. Move the start value, `let rainy = 0;`, before the loop only, and delete the reset. A good way to find this: print `rainy` at the end of each round and watch it fall back to 0.
+The line `rainy = 0;` is inside the loop and resets the counter in every round. The last day is `sun`, so the counter ends at 0. Keep the start value, `let rainy = 0;`, before the loop only, and delete the reset. A good way to find it is to print `rainy` at the end of each round and watch it fall back to 0.
 
 </details>
 
-3. Both lines give the last dog of a list. Which is better here, and what would make you choose the other?
-
-```ts
-const lastA = dogs[dogs.length - 1];
-const lastB = dogs.at(-1);
-```
-
-<details>
-<summary>Answer</summary>
-
-Version B is better when you read the code. `at(-1)` says "the last item" and has no `length - 1` that you can get wrong. Both give `undefined` for an empty list. You would choose version A if your code must run in a very old program that does not know `at`, or if your team already uses one style everywhere and you want the code to look the same. Reading speed matters more than saving a few letters.
-
-</details>
-
-4. What happens with this code when the list is empty? What would you want to happen instead?
+3. What happens with this code when the list is empty? What would you want to happen instead?
 
 ```ts
 const lapTimes: number[] = [];
@@ -486,46 +439,9 @@ console.log(total / lapTimes.length);
 <details>
 <summary>Answer</summary>
 
-It prints `NaN`, which means "not a number". The loop does nothing, so the total is 0. Then 0 divided by 0 is not a number. The program does not stop and gives no error. You want to check the length first with an `if`, and print a clear message such as "No laps yet". The edge case, an empty list, must be a decision that you make, not an accident.
+It prints `NaN`, which means "not a number". The loop does nothing, so the total is 0, and 0 divided by 0 is not a number. The program does not stop and gives no error. You want to check the length first with an `if` and print a clear message such as "No laps yet". An empty list is an edge case, and what happens with it must be a decision you make, not an accident.
 
 </details>
-
-5. Explain to a teammate, in three sentences and without using the word "zero", why the last index of a list is `length - 1`.
-
-<details>
-<summary>Answer</summary>
-
-A good answer could be: the index tells how many steps you walk from the first item. The first item needs no steps, so it is at index 0. A list of 3 items has its last item 2 steps from the start, so the last index is the length minus 1. If your answer said "the position" without "the steps from the start", it may feel right but does not explain the reason. Try a ruler: the first line is at the start, not at 1.
-
-</details>
-
-6. A teammate says: "Always make a copy of a list with `slice()` before you push to it." Is that always right?
-
-<details>
-<summary>Answer</summary>
-
-There is no single answer. A copy protects other names that point to the same list, so nobody gets a surprise. But a copy costs a little memory and time, and it can hide the fact that two parts of your program share data on purpose. If the list is only yours, inside one function, a copy adds noise. If you received the list from another part of the program, a copy is safer. It depends on who else uses the list.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **Why do most programming languages count from 0, and which languages count from 1?**
-   - Search for: `zero-based indexing why`
-   - Try it: in a file, make an array of five items. Print `items[0]`, `items[5]` and `items.at(-2)`. Write down which line you could not predict.
-   - A good answer explains: what an index means, the reason about distance from the start, and one language that starts at 1.
-
-2. **What is the difference between `for...of`, `for...in` and `forEach` in JavaScript?**
-   - Search for: `for of vs for in vs forEach javascript`
-   - Try it: loop over `["a", "b"]` with all three. Print what you get in each round. Then try to put `await` or `break` inside each one.
-   - A good answer explains: what each one gives you in each round, and which one to use for arrays.
-
-3. **Why can adding to a list inside a loop over the same list be dangerous?**
-   - Search for: `modify array while iterating javascript`
-   - Try it: change the `queue` experiment so that it pushes in every round. Add a line that stops it after 10 rounds, so your computer does not freeze.
-   - A good answer explains: what the loop sees in each round, and one safer way to build the new list.
 
 ## Next step
 

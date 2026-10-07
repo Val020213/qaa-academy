@@ -1,41 +1,20 @@
 ---
 title: Funciones
-summary: Escribe funciones con parámetros y valores de retorno, y aprende por qué las funciones pequeñas con nombre hacen el código fácil de leer.
-duration: 75 min
+duration: 60 min
 ---
-
-## Empieza con un acertijo
-
-Quieres el área total de dos jardines cuadrados. Escribes una función para el área de un cuadrado y la llamas dos veces.
-
-```ts
-function areaOfSquare(side: number) {
-  const area = side * side;
-  console.log(area);
-}
-
-const total = areaOfSquare(3) + areaOfSquare(4);
-console.log(total);
-```
-
-La terminal muestra tres líneas. Las dos primeras vienen de la función. ¿Qué esperas en la tercera línea, la de `total`?
-
-La respuesta no es 25. Piensa en qué recibe la variable `total` de cada llamada. ¿De verdad se devuelve un número, o solo se muestra algo?
-
-Escribe tu respuesta antes de seguir leyendo.
 
 ## Objetivo
 
-- Predecir qué devuelve una llamada a una función y qué solo imprime.
+En esta lección escribes funciones que reciben datos y devuelven un resultado, y aprendes a distinguir lo que una función devuelve de lo que solo imprime.
+
 - Escribir una función con parámetros y un valor de retorno.
-- Explicar la diferencia entre `console.log` y `return`.
+- Predecir qué devuelve una llamada a una función y qué solo imprime.
+- Usar parámetros con valor por defecto y funciones flecha.
 - Dividir un problema en funciones pequeñas que hacen un solo trabajo cada una.
 
-## Una función es una receta con nombre
+## Tu primera función
 
-Una **función** es un bloque de código con un nombre. Escribes los pasos una vez. Luego usas el nombre cada vez que necesitas los pasos.
-
-Piensa en una receta. La receta tiene un nombre y una lista de pasos. No copias los pasos cada vez. Dices "haz la receta".
+Una **función** es un bloque de código con nombre. Escribes los pasos una vez y los ejecutas con el nombre cuantas veces quieras.
 
 ```ts
 function barkTwice() {
@@ -62,7 +41,7 @@ Las líneas `barkTwice();` **llaman** a la función. Una llamada ejecuta los pas
 
 ## Parámetros
 
-Un **parámetro** es una entrada de una función. Es una variable que recibe su valor cuando llamas a la función.
+Un **parámetro** es una entrada de una función: una variable que recibe su valor cuando llamas a la función.
 
 ```ts
 function greet(name: string) {
@@ -80,13 +59,13 @@ Hello, Ana!
 Hello, Luis!
 ```
 
-El `: string` es una anotación de tipo. Dice que `name` debe ser texto. El valor que das en la llamada es un **argumento**. Aquí los argumentos son `"Ana"` y `"Luis"`.
+El `: string` dice que `name` es texto. El valor que das en la llamada es un **argumento**. Aquí los argumentos son `"Ana"` y `"Luis"`.
 
 Una función puede tener muchos parámetros. Sepáralos con comas.
 
 ## Valores de retorno
 
-Una función puede devolver un resultado. La palabra `return` hace esto. El resultado es el **valor de retorno**.
+Una función puede devolver un resultado con la palabra `return`. Ese resultado es el **valor de retorno**.
 
 ```ts
 function areaOfRectangle(width: number, height: number): number {
@@ -103,17 +82,27 @@ Esto imprime:
 20
 ```
 
-El `: number` después de los paréntesis es el tipo del valor de retorno. Dice: esta función devuelve un número.
+El `: number` después de los paréntesis es el tipo del valor de retorno: esta función devuelve un número.
 
-Cuando la computadora llega a `return`, la función termina. Cualquier línea después de `return` no se ejecuta.
+Cuando Node.js ejecuta `return`, la función termina. Las líneas que siguen no se ejecutan.
 
 > **Cuidado:** `console.log` muestra un valor en la terminal. `return` devuelve un valor al código que llamó a la función. No son lo mismo. Una función que solo imprime no tiene valor de retorno.
 
-### De vuelta al acertijo
+### Una función que solo imprime
 
-La función `areaOfSquare` calcula el área, pero solo la imprime. No tiene `return`. Entonces cada llamada devuelve `undefined`, que significa "nada".
+Esta función calcula el área de un cuadrado, pero solo la imprime. Se llama dos veces para sumar el área de dos jardines:
 
-La tercera línea suma `undefined + undefined`. El resultado no es un número con sentido. La terminal muestra:
+```ts
+function areaOfSquare(side: number) {
+  const area = side * side;
+  console.log(area);
+}
+
+const total = areaOfSquare(3) + areaOfSquare(4);
+console.log(total);
+```
+
+Como no tiene `return`, cada llamada devuelve `undefined`, que significa "nada". La tercera línea suma `undefined + undefined`, y la terminal muestra:
 
 ```text
 9
@@ -121,7 +110,7 @@ La tercera línea suma `undefined + undefined`. El resultado no es un número co
 NaN
 ```
 
-El `9` y el `16` los imprime `console.log` dentro de la función. El `NaN` es la suma de dos nadas. El verificador de tipos también lo detecta: VS Code subraya el `+` y dice que no puede sumar dos valores `void`.
+El `9` y el `16` los imprime `console.log` dentro de la función. El `NaN` es el resultado de sumar dos nadas. El verificador de tipos también lo detecta: VS Code subraya el `+` y dice que no puede sumar dos valores `void`.
 
 La solución es devolver el número e imprimir solo al final:
 
@@ -135,6 +124,26 @@ console.log(total);
 ```
 
 Esto imprime `25`. Una función que devuelve un valor se puede usar en cuentas, guardar, comparar y probar. Una función que solo imprime solo la puede leer una persona.
+
+Lo mismo pasa con cualquier función sin `return`:
+
+```ts
+function printGreeting() {
+  console.log("Hello");
+}
+
+const result = printGreeting();
+console.log(result);
+```
+
+Esto imprime:
+
+```text
+Hello
+undefined
+```
+
+La palabra `Hello` viene del `console.log` dentro de la función. La variable `result` no recibió nada. Si quieres un valor, debes devolverlo.
 
 ## Decisiones dentro de una función
 
@@ -159,9 +168,15 @@ puppy
 adult
 ```
 
-La primera llamada devuelve su valor en el `if`. La segunda llamada se salta el `if` y llega al último `return`.
+La primera llamada devuelve su valor en el `if`. La segunda se salta el `if` y llega al último `return`.
 
-¿Y si olvidas el último `return`? Mira esta función y decide qué da `isHungry("full")`:
+El `: string` después de los paréntesis es opcional. Si lo quitas, el verificador de tipos deduce el tipo de retorno a partir de los `return` de la función. Aquí deduce algo más preciso que `string`: `"puppy" | "adult"`, que se lee «el texto puppy o el texto adult», y ningún otro. Pasa el cursor sobre el nombre de la función en VS Code y verás su firma completa, sin tener que leer el cuerpo.
+
+![El editor muestra el tipo de retorno que dedujo el verificador: solo dos textos posibles.](/images/ts-inferred-return.png)
+
+Escribir el tipo sirve para lo contrario: declaras lo que la función debe devolver, y el verificador te avisa si algún `return` no lo cumple.
+
+Si olvidas ese último `return`, el caso en que el `if` es falso devuelve `undefined`:
 
 ```ts
 function isHungry(mood: string): boolean {
@@ -171,11 +186,11 @@ function isHungry(mood: string): boolean {
 }
 ```
 
-Da `undefined`. Cuando el `if` es falso, la función llega a su final sin `return`. El verificador de tipos también lo reporta: `Function lacks ending return statement and return type does not include 'undefined'`.
+`isHungry("full")` llega al final de la función sin `return`. El verificador de tipos también lo reporta: `Function lacks ending return statement and return type does not include 'undefined'`.
 
 ## Funciones flecha
 
-Hay una forma más corta de escribir una función. Se llama **función flecha** (*arrow function*). Usa el signo `=>`.
+Hay una forma más corta de escribir una función: la **función flecha** (*arrow function*), que usa el signo `=>`.
 
 ```ts
 const multiply = (a: number, b: number): number => {
@@ -191,7 +206,7 @@ Esto imprime:
 20
 ```
 
-Hace lo mismo que una función normal. Verás funciones flecha muy seguido en los tests de Playwright. Puedes usar cualquiera de los dos estilos. Sé consistente dentro de un archivo.
+Hace lo mismo que una función normal. Puedes usar cualquiera de los dos estilos; sé consistente dentro de un archivo.
 
 ## Parámetros con valor por defecto
 
@@ -213,7 +228,7 @@ Yesterday lasts 2 minutes
 Hey Jude lasts 3 minutes
 ```
 
-Un valor por defecto incluso puede usar un parámetro que viene antes. Adivina la salida antes de leerla:
+Un valor por defecto incluso puede usar un parámetro que viene antes:
 
 ```ts
 function total(price: number, tip: number = price / 10): number {
@@ -253,15 +268,15 @@ Esto imprime:
 110
 ```
 
-Puedes leer `totalWithTax` sin mirar dentro de `tax`. Las funciones pequeñas son fáciles de probar, fáciles de arreglar y fáciles de reutilizar.
+Puedes leer `totalWithTax` sin mirar dentro de `tax`. Las funciones pequeñas son fáciles de probar, de arreglar y de reutilizar.
 
-Un buen hábito antes de escribir una función grande es la **descomposición**: divide el problema en problemas más pequeños y dale un nombre a cada uno. Para hallar el costo de una fiesta de pizza, quizá necesites `slicesNeeded`, `pizzasNeeded` y `totalPrice`. Cada una es pequeña. Juntas resuelven un problema grande. La siguiente lección muestra cómo hacerlo paso a paso.
+Antes de escribir una función grande conviene aplicar la **descomposición**: divide el problema en problemas más pequeños y dale un nombre a cada uno. Para hallar el costo de una fiesta de pizza, quizá necesites `slicesNeeded`, `pizzasNeeded` y `totalPrice`. Cada una es pequeña, y juntas resuelven el problema completo.
 
 ## Profundiza
 
-### Por qué las variables dentro de una función se quedan dentro
+### Las variables de una función se quedan dentro
 
-Las variables creadas dentro de una función existen solo mientras la función se ejecuta. Esto se llama **alcance** (*scope*). La función tiene su propio espacio privado.
+Las variables creadas dentro de una función existen solo mientras la función se ejecuta. Esto se llama **alcance** (*scope*).
 
 ```ts
 function secretDemo() {
@@ -273,7 +288,7 @@ secretDemo();
 console.log(secret);
 ```
 
-La última línea falla con `ReferenceError: secret is not defined`. La variable vivió solo dentro de la función. Esto es bueno. Dos funciones pueden usar el mismo nombre sin chocar.
+La última línea falla con `ReferenceError: secret is not defined`. Gracias a esto, dos funciones pueden usar el mismo nombre sin chocar.
 
 Un parámetro también es una copia del valor. Cambiarlo no cambia la variable que pasaste.
 
@@ -295,53 +310,9 @@ Esto imprime:
 5
 ```
 
-### Una idea equivocada común: "toda función devuelve algo"
-
-Una función que no tiene `return` devuelve `undefined`. El acertijo del inicio de esta lección es este error.
-
-```ts
-function printGreeting() {
-  console.log("Hello");
-}
-
-const result = printGreeting();
-console.log(result);
-```
-
-Esto imprime:
-
-```text
-Hello
-undefined
-```
-
-La palabra `Hello` vino de `console.log` dentro de la función. La variable `result` no recibió nada. Si quieres un valor, debes devolverlo.
-
-### Cómo aparece en el trabajo real de automatización QA
-
-Cada test debe crear sus propios datos. Una función pequeña lo hace una sola vez para todos los tests.
-
-```ts
-function uniqueEmail(prefix: string): string {
-  return `${prefix}-${Date.now()}@example.com`;
-}
-
-console.log(uniqueEmail("ana"));
-```
-
-`Date.now()` es la hora actual en milisegundos. Las llamadas con el mismo prefijo en milisegundos distintos dan correos distintos. Dos llamadas en el mismo milisegundo pueden dar el mismo correo. La salida se ve así, con otro número en tu computadora:
-
-```text
-ana-1791219025604@example.com
-```
-
-Aquí los pasos se escriben una vez y se usan en muchos lugares. Esto es DRY, "Don't Repeat Yourself" (no te repitas). Lo estudiarás al final de este módulo.
-
-Un test con pasos claros, como `login()` y `addToCart()`, es fácil de leer para tu equipo.
-
 ### Una concesión
 
-Una función debe hacer el código más fácil de leer. `login()` es un buen nombre para tres pasos. Pero si escondes cada línea en una función, el lector debe abrir muchas funciones para entender una sola cosa. No crees una función para código que usas una sola vez y que ya es claro. Esto es **YAGNI**: no construyas para una necesidad que solo imaginas.
+Una función debe hacer el código más fácil de leer. `login()` es un buen nombre para tres pasos. Pero si escondes cada línea en una función, el lector tiene que abrir muchas funciones para entender una sola cosa. No crees una función para código que usas una sola vez y que ya es claro.
 
 ## Práctica
 
@@ -350,7 +321,7 @@ Una función debe hacer el código más fácil de leer. `login()` es un buen nom
 3. Escribe una función `dogSummary` con un parámetro `name` y un parámetro `age`. Devuelve `<name> is <age> years old`. Imprime un resultado.
 4. Agrega un valor por defecto para `age`. Llama a la función sin segundo argumento.
 5. Reescribe `double` como una función flecha.
-6. Escribe `areaOfSquare` del acertijo de las dos maneras: una que imprime y otra que devuelve. Suma las áreas de dos cuadrados con cada una. Mira cuál funciona.
+6. Escribe `areaOfSquare` de las dos maneras: una que imprime y otra que devuelve. Suma las áreas de dos cuadrados con cada una. Mira cuál funciona.
 7. Abre `exercises/01-programming/05-functions.ts` y ejecútalo:
 
 ```bash
@@ -361,7 +332,7 @@ Resuelve los ejercicios. Haz que todas las líneas digan `OK`.
 
 ## Reto
 
-Escribe una función que convierta una cantidad de minutos en un texto de reloj. Por ejemplo, 135 minutos se vuelven `2:15`. Elige tu propio tema: la duración de una canción, un vuelo, una película, un tiempo de cocción.
+Escribe una función que convierta una cantidad de minutos en un texto de reloj. Por ejemplo, 135 minutos se vuelven `2:15`. Elige tu propio tema: la duración de una canción, un vuelo o una película.
 
 Crea el archivo `exercises/challenges/functions.ts`. Llama `formatDuration` a la función principal.
 
@@ -389,93 +360,27 @@ console.log(f(1), f(1, 1));
 <details>
 <summary>Respuesta</summary>
 
-Imprime `3 2`. En la primera llamada no hay segundo argumento, así que `b` toma su valor por defecto, que es `a * 2`, y `a` es 1. Entonces `b` es 2 y la suma es 3. En la segunda llamada, `b` se da como 1, así que no se usa el valor por defecto y la suma es 2. Un valor por defecto puede leer los parámetros que vienen antes.
+Imprime `3 2`. En la primera llamada no hay segundo argumento, así que `b` toma su valor por defecto, que es `a * 2`, y `a` es 1. Entonces `b` es 2 y la suma es 3. En la segunda llamada, `b` se da como 1, así que no se usa el valor por defecto y la suma es 2.
 
 </details>
 
-2. Esta función debe devolver `true` para `"passed"`. ¿Qué da `isPassed("failed")`? Encuentra el problema.
-
-```ts
-function isPassed(status: string): boolean {
-  if (status === "passed") {
-    return true;
-  }
-}
-```
+2. La función `tax` de la lección siempre usa 10 %. Una regla nueva dice que los libros pagan 4 % y la comida paga 21 %. ¿Qué debe cambiar en `tax`?
 
 <details>
 <summary>Respuesta</summary>
 
-Da `undefined`. Cuando el `if` es falso, la función llega a su final sin un `return`. Una función sin `return` devuelve `undefined`. Agrega `return false;` después del `if`. El verificador de tipos también reporta este problema, porque la función prometió un *boolean*.
+El número 10 está escondido dentro de `tax`, así que la función no puede manejar otras tasas. Agrega un parámetro para la tasa, por ejemplo `tax(amount, rate)`, y cambia cada llamada. Puedes darle a la tasa un valor por defecto para que las llamadas viejas sigan funcionando.
 
 </details>
 
-3. Dos versiones de una función. Las dos funcionan. ¿Cuál es mejor y qué te haría elegir la otra?
-
-```ts
-function showArea(side: number): void {
-  console.log(side * side);
-}
-```
-
-```ts
-function area(side: number): number {
-  return side * side;
-}
-```
+3. Una función `average(total, count)` devuelve `total / count`. ¿Qué devuelve para `average(0, 0)` y para `average(5, 0)`? ¿Es un buen resultado?
 
 <details>
 <summary>Respuesta</summary>
 
-La segunda es mejor en la mayoría de los casos, porque quien llama decide qué hacer con el número: imprimirlo, sumarlo, compararlo o comprobarlo en un test. La primera decide por todos, y nadie puede reutilizar su resultado. Elegirías la primera cuando el único propósito es mostrar algo, como una línea de reporte al final de un programa. Un buen hábito es calcular en una función e imprimir en otra.
+Devuelve `NaN` para la primera e `Infinity` para la segunda. El programa no se detiene, así que un número equivocado puede viajar lejos antes de que alguien lo vea. Un mejor diseño decide qué significa el caso vacío: devolver 0, devolver un mensaje o detenerse con un error claro.
 
 </details>
-
-4. La función `tax` de la lección siempre usa 10 %. Una regla nueva dice que los libros pagan 4 % y la comida paga 21 %. ¿Qué debe cambiar y qué harías?
-
-<details>
-<summary>Respuesta</summary>
-
-El número 10 está escondido dentro de `tax`, así que la función no puede manejar otras tasas. Agrega un parámetro para la tasa, por ejemplo `tax(amount, rate)`, y cambia cada llamada. Puedes darle a la tasa un valor por defecto, para que las llamadas viejas sigan funcionando. Así cada tasa vive en el lugar que conoce el producto. Sin este cambio, copiarías la función tres veces y tendrías que arreglar tres lugares después.
-
-</details>
-
-5. Una función `average(total, count)` devuelve `total / count`. ¿Qué devuelve para `average(0, 0)` y para `average(5, 0)`? ¿Es un buen resultado?
-
-<details>
-<summary>Respuesta</summary>
-
-Devuelve `NaN` para la primera e `Infinity` para la segunda. El programa no se detiene, así que un número equivocado puede viajar lejos antes de que alguien lo vea. Un mejor diseño decide qué significa el caso vacío: devolver 0, devolver un mensaje o detenerse con un error claro. La decisión pertenece al requisito, porque un promedio de nada no tiene una única respuesta correcta.
-
-</details>
-
-6. Explica la diferencia entre `console.log` y `return` a un compañero, en tres oraciones. No uses las palabras "terminal" ni "mostrar".
-
-<details>
-<summary>Respuesta</summary>
-
-Una buena respuesta: "Un return entrega un valor a la línea que llamó a la función, como un mesero que te trae un plato. Un console.log escribe el valor para que lo lea una persona, y el código que llamó a la función no recibe nada. Si quieres usar el valor otra vez en el programa, necesitas return". El razonamiento: una función es una herramienta para otro código. La salida para un humano es un efecto secundario y no se puede usar en el siguiente cálculo.
-
-</details>
-
-## Investiga por tu cuenta
-
-Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
-
-1. **¿Qué es el alcance (*scope*) en JavaScript y cuál es la diferencia entre variables locales y globales?**
-   - Busca: `javascript scope local global function shadowing`
-   - Pruébalo: crea una `const size = 1;` fuera de una función y una `const size = 2;` distinta dentro de una función que la imprima. Llama a la función y luego imprime `size` afuera. Explica los dos resultados.
-   - Una buena respuesta explica: una definición de alcance, un ejemplo de cada tipo, y por qué demasiadas variables globales causan problemas.
-
-2. **¿Cuál es la diferencia entre una función flecha y una función normal?**
-   - Busca: `javascript arrow function vs function hoisting`
-   - Pruébalo: llama a una función antes de la línea donde la defines. Hazlo una vez con una `function` normal y otra con una función flecha en una `const`. Lee el segundo error.
-   - Una buena respuesta explica: la sintaxis más corta, qué significa *hoisting* (elevación), y al menos una diferencia real más.
-
-3. **¿Qué es una función pura y por qué es fácil de probar con tests unitarios?**
-   - Busca: `pure function javascript side effects testing`
-   - Pruébalo: escribe `double(n)` y `uniqueEmail(prefix)` de esta lección. Llama a cada una dos veces con la misma entrada y compara los dos resultados. ¿Cuál es pura?
-   - Una buena respuesta explica: las dos reglas de una función pura y por qué la misma entrada siempre da el mismo resultado que se puede comprobar.
 
 ## Siguiente paso
 

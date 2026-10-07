@@ -143,8 +143,8 @@ const SECTION_ICONS: Record<string, IconName> = {
   "Comprueba lo que sabes": "circle-help",
   "Research on your own": "search",
   "Investiga por tu cuenta": "search",
-  "Next step": "arrow-right",
-  "Siguiente paso": "arrow-right",
+  "Next step": "footprints",
+  "Siguiente paso": "footprints",
 }
 
 const CALLOUTS: Record<string, { kind: string; icon: IconName }> = {
@@ -166,7 +166,7 @@ const markdown = new Marked({
       if (depth !== 2) return `<h${depth}>${html}</h${depth}>\n`
       headingCount += 1
       const name = SECTION_ICONS[html.trim()]
-      const mark = name ? `<span class="section-icon">${iconHtml(name, 18)}</span>` : ""
+      const mark = name ? `<span class="section-icon">${iconHtml(name, 20)}</span>` : ""
       return `<h2 id="section-${headingCount}">${mark}${html}</h2>\n`
     },
     blockquote({ tokens }) {
@@ -192,7 +192,8 @@ const markdown = new Marked({
       if (/\.(webm|mp4)$/.test(href)) {
         return `<figure class="clip"><video controls muted loop playsinline preload="metadata" src="${href}" aria-label="${escapeHtml(text)}"></video><figcaption>${escapeHtml(text)}</figcaption></figure>`
       }
-      return `<img src="${href}" alt="${escapeHtml(text)}" loading="lazy">`
+      // Any other image is a screenshot, shown with its text as a caption.
+      return `<figure class="shot"><img src="${href}" alt="${escapeHtml(text)}" loading="lazy"><figcaption>${escapeHtml(text)}</figcaption></figure>`
     },
     link({ href, text }) {
       // External links open in a new tab.

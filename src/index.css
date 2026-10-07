@@ -219,16 +219,12 @@
   }
   .typeset-docs h3 { margin-block-start: calc(var(--typeset-flow) * 1.8); letter-spacing: -0.02em; }
 
+  /* No box around the icon: a boxed icon reads as a button. */
   .typeset-docs .section-icon {
     display: inline-grid;
     place-items: center;
     flex: none;
-    width: 32px;
-    height: 32px;
     color: var(--text-secondary);
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
   }
   .typeset-docs .section-icon svg { vertical-align: 0; }
 
@@ -335,6 +331,18 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
   }
+  /* Screenshots inside a lesson. */
+  .typeset-docs .shot { margin-block-start: var(--typeset-flow); margin-inline: 0; }
+  /* A small screenshot keeps its own size, so it is not blurred. */
+  .typeset-docs .shot img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .typeset-docs .shot figcaption,
   .typeset-docs .clip figcaption {
     margin-block-start: 8px;
     font-size: 14px;

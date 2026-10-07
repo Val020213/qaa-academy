@@ -1,26 +1,11 @@
 ---
 title: Trabajar con listas
-summary: Usa map, filter, find, some, every, sort y spread para hacerle preguntas a una lista, y aprende qué métodos cambian la lista original.
-duration: 70 min
+duration: 50 min
 ---
 
-## Empieza con un acertijo
-
-Un juego guarda los puntajes de tres jugadores. Los quieres del más bajo al más alto, así que llamas a `sort`. Luego imprimes la lista nueva y la lista vieja.
-
-```ts
-const scores = [9, 100, 25];
-const sorted = scores.sort();
-
-console.log(sorted);
-console.log(scores);
-```
-
-¿La primera línea es `[ 9, 25, 100 ]`? ¿La segunda línea sigue siendo `[ 9, 100, 25 ]`, porque hiciste una lista nueva? ¿O está pasando algo más raro? Decide qué imprime cada línea, y por qué.
-
-Escribe tu respuesta antes de seguir leyendo.
-
 ## Objetivo
+
+En esta lección le haces preguntas a una lista con los métodos de array: transformarla, filtrarla, buscar en ella y ordenarla, sin cambiar la lista original por accidente.
 
 - Elegir el método de lista correcto para una pregunta: cambiar cada elemento, quedarte con algunos, encontrar uno o responder sí o no.
 - Predecir qué métodos cambian la lista original y cuáles la dejan en paz.
@@ -49,15 +34,11 @@ const playlist: Song[] = [
 
 ## Funciones callback
 
-Los métodos de esta lección reciben una función como entrada. Esa función se llama **callback**. El método la llama para cada elemento de la lista.
-
-Escribes el callback como una función flecha. La lección «Funciones» mostró las funciones flecha: `(song) => ...`.
+Los métodos de esta lección reciben una función como entrada. Esa función se llama **callback**, y el método la ejecuta una vez por cada elemento de la lista. Se escribe como función flecha: `(song) => ...`.
 
 ## map: cambiar cada elemento
 
 `map` crea un array nuevo. Ejecuta tu callback sobre cada elemento y junta los resultados.
-
-¿Qué esperas de esta línea? ¿Qué tan largo es el array nuevo?
 
 ```ts
 const titles = playlist.map((song) => song.title);
@@ -70,7 +51,7 @@ El programa imprime:
 [ 'Blue', 'Rain Dance', 'Sunday', 'Echo' ]
 ```
 
-El array nuevo tiene la misma longitud que el viejo. El array viejo no cambia. Cada elemento puede convertirse en algo distinto, por ejemplo un número:
+El array nuevo tiene la misma longitud que el viejo, y el viejo no cambia. Cada elemento puede convertirse en algo distinto, por ejemplo un número:
 
 ```ts
 const minutes = playlist.map((song) => Math.round(song.seconds / 60));
@@ -112,7 +93,7 @@ El programa imprime:
 [ 'Blue', 'Sunday' ]
 ```
 
-Lee una cadena de arriba abajo como una oración: "de la lista de reproducción, quédate con las canciones de Mia, y luego toma sus títulos". Si puedes decir la cadena en una oración simple, es una buena cadena. El orden importa. ¿Qué pasa si escribes primero `map` y después `filter`? Pruébalo. Después de `map` los elementos son solo títulos, así que `song.artist` ya no existe.
+Una cadena se lee de arriba abajo como una oración: "de la lista de reproducción, quédate con las canciones de Mia, y luego toma sus títulos". El orden importa. Si escribes `map` primero y `filter` después, los elementos ya son solo títulos y `song.artist` no existe.
 
 ## find: obtener un elemento
 
@@ -133,9 +114,9 @@ Rain Dance
 undefined
 ```
 
-El tipo del resultado es `Song | undefined`. Debes manejar el caso de `undefined`. El `?.` en `found?.title` significa "lee `title` solo si `found` tiene un valor". Si no, el resultado es `undefined`.
+El tipo del resultado es `Song | undefined`, así que debes manejar el caso de `undefined`. El `?.` en `found?.title` significa "lee `title` solo si `found` tiene un valor". Si no, el resultado es `undefined`.
 
-Fíjate en que `find` da solo la primera coincidencia. Hay dos canciones de Mia. `find` para Mia da `Blue` y nunca muestra `Sunday`. Si necesitas todas las coincidencias, necesitas `filter`.
+`find` da solo la primera coincidencia. Hay dos canciones de Mia, y `find` para Mia da `Blue` y nunca muestra `Sunday`. Si necesitas todas las coincidencias, usa `filter`.
 
 ## some y every: sí o no
 
@@ -156,7 +137,7 @@ true
 false
 ```
 
-Ahora el caso límite. ¿Qué dan `some` y `every` para una lista sin canciones? Piénsalo antes de seguir leyendo. Para `some`, no hay ninguna canción que coincida, así que la respuesta es `false`. Para `every`, no hay ninguna canción que rompa la regla, así que la respuesta es `true`.
+Con una lista sin canciones, `some` da `false` porque no hay ninguna canción que coincida, y `every` da `true` porque no hay ninguna canción que rompa la regla.
 
 ```ts
 const empty: Song[] = [];
@@ -198,7 +179,19 @@ La lista original sigue teniendo 4 elementos. Creaste una lista nueva con 5 elem
 
 ## Ordenar
 
-Ahora vuelve al acertijo del inicio. Una lista de números necesita un callback pequeño que diga cómo comparar dos elementos. El callback recibe dos elementos, `a` y `b`. Devuelve un número negativo si `a` va primero, y un número positivo si `b` va primero.
+`sort` tiene dos trampas. Mira este código:
+
+```ts
+const scores = [9, 100, 25];
+const sorted = scores.sort();
+
+console.log(sorted);
+console.log(scores);
+```
+
+Imprime `[ 100, 25, 9 ]` dos veces. Primero, `sort` sin callback ordena los elementos como texto. Como texto, `"100"` va antes de `"25"`, porque el primer carácter `1` es menor que `2`, y `"25"` va antes de `"9"`. Segundo, `sort` cambia la lista original y devuelve esa misma lista. Entonces `sorted` y `scores` son una sola lista con dos nombres, como viste en la lección 06.
+
+Para ordenar números, `toSorted` recibe un callback que dice cómo comparar dos elementos. El callback recibe `a` y `b`, y devuelve un número negativo si `a` va primero, o un número positivo si `b` va primero.
 
 ```ts
 const scores = [9, 100, 25];
@@ -214,11 +207,7 @@ El programa imprime:
 [ 9, 100, 25 ]
 ```
 
-`toSorted` crea una lista nueva. La lista vieja queda como estaba.
-
-### De vuelta al acertijo
-
-El programa imprime `[ 100, 25, 9 ]` dos veces. Hay dos sorpresas. Primero, `sort` sin callback ordena los elementos como texto. Como texto, `"100"` va antes de `"25"`, porque el primer carácter `1` es menor que `2`, y `"25"` va antes de `"9"`. Segundo, `sort` cambia la lista original y devuelve esa misma lista. Entonces `sorted` y `scores` son una sola lista con dos nombres, como viste en la lección «Arrays y bucles». La forma segura es `toSorted` con un callback de comparación.
+`toSorted` crea una lista nueva y la vieja queda como estaba. `map`, `filter`, `find`, `some`, `every` y `toSorted` no cambian el original; `sort` y `push` sí. Cuando no estés seguro de un método, busca su documentación: dice qué devuelve y si cambia la lista.
 
 ## ¿map o for...of?
 
@@ -226,8 +215,6 @@ Los dos funcionan. Usa esta regla:
 
 - Usa `map`, `filter`, `find`, `some` y `every` cuando quieres un resultado: una lista nueva, un elemento o una respuesta sí/no.
 - Usa `for...of` cuando quieres hacer una acción por cada elemento, como imprimir o hacer clic.
-
-En Playwright muchas veces usas `for...of` con `await`. La lección «async y await» muestra por qué.
 
 ## Profundiza
 
@@ -253,37 +240,6 @@ El texto `(song: Song) => number` es el tipo de un callback. Dice: una función 
 [ 215, 180, 245, 120 ]
 ```
 
-### ¿Qué métodos cambian la lista?
-
-`map`, `filter`, `find`, `some`, `every` y `toSorted` no cambian el original. `sort` y `push` sí. Cuando no estés seguro, búscalo en la documentación del método. Te dice qué devuelve el método y si cambia la lista.
-
-### Cómo aparece en el trabajo real de automatización de QA
-
-Este es el único vínculo con las pruebas en esta lección. Imagina tres intentos de *login* con datos malos. Los pasos son los mismos, solo cambia la entrada. Puedes escribir los datos una vez, como un array de objetos, y recorrerlos con un bucle. Esto es *DRY* ("No te repitas"): un cuerpo de test, muchas entradas. Estudiarás la idea al final de este módulo. Las palabras `async` y `await` del código vienen en la siguiente lección. Léelas como pasos manuales.
-
-```ts
-import { expect, test } from "./lib/test";
-
-const badLogins = [
-  { name: "empty email", email: "", message: "Enter your email and password." },
-  { name: "spaces only", email: "   ", message: "Enter your email and password." },
-  { name: "unknown email", email: "ana@example.com", message: "Wrong email or password." },
-];
-
-for (const badLogin of badLogins) {
-  test(`shows an error for ${badLogin.name}`, async ({ page }) => {
-    await page.goto("/#/practice");
-    await page.getByTestId("login-email").fill(badLogin.email);
-    await page.getByTestId("login-password").fill("Playwright123");
-    await page.getByTestId("login-submit").click();
-
-    await expect(page.getByTestId("login-error")).toHaveText(badLogin.message);
-  });
-}
-```
-
-Cada test necesita su propio título, así que el título usa `name`. Si los casos necesitan pasos distintos, escribe tests separados. Un test debe seguir siendo fácil de leer.
-
 ## Práctica
 
 1. Crea el archivo `exercises/01-programming/lists-practice.ts`.
@@ -303,7 +259,7 @@ Haz que cada línea diga `OK`.
 
 ## Reto
 
-Elige tu propio mundo: una liga de fútbol, un libro de recetas, un refugio de mascotas, las ciudades de un viaje, un cuestionario con jugadores. Haz una lista de al menos ocho objetos. Cada objeto tiene una propiedad de texto que lo pone en un grupo (un equipo, un país, un tipo de comida) y una propiedad numérica (goles, minutos, precio, puntos).
+Elige tu propio mundo, por ejemplo una liga de fútbol o un libro de recetas. Haz una lista de al menos ocho objetos. Cada objeto tiene una propiedad de texto que lo pone en un grupo (un equipo, un tipo de comida) y una propiedad numérica (goles, minutos, precio, puntos).
 
 Escribe una función `report(list)` que imprima dos cosas: los tres elementos con el número más grande, el más alto primero, y cuántos elementos hay en cada grupo. Cuando la lista está vacía, imprime un mensaje claro y no falla.
 
@@ -315,11 +271,8 @@ Está terminado cuando:
 - Después de que `report` se ejecuta, la lista original sigue con el mismo orden de cuando la escribiste. Imprime su primer elemento para comprobarlo tú mismo.
 - `report` imprime un conteo por cada grupo, por ejemplo `Reds 3`, y cada grupo aparece una sola vez.
 - `report([])` imprime un mensaje claro como `No players`, y ningún error.
-- `pnpm typecheck` no muestra ningún error para tu archivo.
 
 Vas a necesitar algo que esta lección no enseñó: cómo tomar solo los primeros elementos de una lista, y cómo llevar un conteo por cada nombre de grupo cuando no conoces los nombres de antemano. Busca `javascript array slice` y `typescript Record string number count occurrences`.
-
-> **Consejo:** Puedes pedirle a un asistente de IA que te explique lo que falta. Luego ejecuta el código tú mismo, cambia una sola cosa a la vez y asegúrate de poder explicar cada línea con tus propias palabras. Nunca pegues código que no puedas explicar.
 
 ## Piénsalo bien
 
@@ -336,7 +289,7 @@ console.log(numbers, big);
 <details>
 <summary>Respuesta</summary>
 
-Imprime `[ 1, 2, 3, 4 ] [ 3, 4, 99 ]`. `filter` crea un array nuevo, así que `big` es una lista separada de `numbers`. Hacer push de 99 en `big` no toca a `numbers`. Si hubieras usado `const big = numbers` y luego hecho push, los dos nombres mostrarían el 99. La diferencia es que `filter` construye una lista nueva, mientras que una asignación simple solo agrega un nombre.
+Imprime `[ 1, 2, 3, 4 ] [ 3, 4, 99 ]`. `filter` crea un array nuevo, así que `big` es una lista separada de `numbers`. Hacer push de 99 en `big` no toca a `numbers`. Si hubieras usado `const big = numbers` y luego hecho push, los dos nombres mostrarían el 99, porque una asignación simple solo agrega un nombre a la misma lista.
 
 </details>
 
@@ -354,25 +307,11 @@ console.log(withTax);
 <details>
 <summary>Respuesta</summary>
 
-Imprime `[ undefined, undefined ]`. El callback tiene llaves, así que necesita la palabra `return`. Sin ella, el callback calcula `price * 1.2` y tira el resultado. Una función sin `return` da `undefined`. Escribe `(price) => price * 1.2` o agrega `return`. TypeScript puede ayudar: si le das al resultado un tipo como `number[]`, muestra un error, porque el callback no devuelve nada.
+Imprime `[ undefined, undefined ]`. El callback tiene llaves, así que necesita la palabra `return`. Sin ella, el callback calcula `price * 1.2` y tira el resultado. Escribe `(price) => price * 1.2` o agrega `return`. TypeScript puede ayudar: si le das al resultado un tipo como `number[]`, muestra un error, porque el callback no devuelve nada.
 
 </details>
 
-3. Dos personas revisan "¿hay alguna canción que le guste al usuario?". ¿Qué versión es mejor, y qué te haría elegir la otra?
-
-```ts
-const versionA = playlist.filter((song) => song.liked).length > 0;
-const versionB = playlist.some((song) => song.liked);
-```
-
-<details>
-<summary>Respuesta</summary>
-
-La versión B es mejor aquí. `some` dice exactamente lo que quieres saber: ¿hay al menos una coincidencia? Puede detenerse en la primera coincidencia, y no construye una lista nueva. La versión A funciona, pero construye una lista solo para contarla, y el lector debe pensar qué significa. Elegirías A cuando también necesitas las canciones que le gustan al usuario, o el conteo, para la siguiente línea. Entonces un solo `filter` hace dos trabajos.
-
-</details>
-
-4. Una regla dice: "una lista de reproducción está lista cuando cada canción dura menos de 5 minutos". Llega un requisito nuevo: los usuarios ahora pueden crear listas sin canciones todavía. ¿Qué se rompe?
+3. Una regla dice: "una lista de reproducción está lista cuando cada canción dura menos de 5 minutos". Llega un requisito nuevo: los usuarios ahora pueden crear listas sin canciones todavía. ¿Qué se rompe?
 
 ```ts
 const isReady = playlist.every((song) => song.seconds < 300);
@@ -381,54 +320,9 @@ const isReady = playlist.every((song) => song.seconds < 300);
 <details>
 <summary>Respuesta</summary>
 
-Una lista vacía da `true`, así que está "lista". Para `every`, ningún elemento rompe la regla, así que la regla se cumple. Probablemente no es lo que quiere el negocio: nadie quiere publicar una lista vacía. Debes agregar una regla: `playlist.length > 0 && playlist.every(...)`. La lección es que una regla escrita para una lista con elementos debe revisarse otra vez para la lista vacía.
+Una lista vacía da `true`, así que está "lista". Para `every`, ningún elemento rompe la regla, así que la regla se cumple. Probablemente no es lo que quiere el negocio: nadie quiere publicar una lista vacía. Debes agregar una regla: `playlist.length > 0 && playlist.every(...)`.
 
 </details>
-
-5. Explícale a un compañero qué es un callback, en tres oraciones y sin usar la palabra "función".
-
-<details>
-<summary>Respuesta</summary>
-
-Una buena respuesta podría ser: un callback es un pedacito de código que le entregas a otra persona. Ella lo ejecuta cuando lo necesita, por ejemplo una vez por cada elemento de una lista. Tú no lo llamas directamente. Una tarjeta de receta es una buena imagen: le das la tarjeta a un ayudante, y el ayudante la sigue para cada plato. Una respuesta que solo diga "una función dentro de una función" repite la palabra y no explica quién lo ejecuta ni cuándo.
-
-</details>
-
-6. Necesitas los títulos de las tres canciones más largas que le gustan al usuario. ¿Es mejor una cadena larga, o unos pocos pasos con nombre? No hay una única respuesta correcta.
-
-```ts
-const result = playlist
-  .filter((song) => song.liked)
-  .toSorted((a, b) => b.seconds - a.seconds)
-  .slice(0, 3)
-  .map((song) => song.title);
-```
-
-<details>
-<summary>Respuesta</summary>
-
-Una cadena se lee como una sola oración y no hay nombres que inventar, así que es buena cuando cada paso es corto y obvio. Los pasos con nombre, como `likedSongs` y `longestThree`, te dan lugares para imprimir y mirar, y son más fáciles de depurar cuando un resultado está mal. Una cadena larga esconde los resultados intermedios. La elección depende de quién lee el código y de cuántas veces esperas depurarlo. Una buena regla: si necesitas un comentario para explicar un paso, dale a ese paso su propio nombre.
-
-</details>
-
-## Investiga por tu cuenta
-
-Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
-
-1. **¿Qué hace `reduce`, y cuándo es más fácil de leer un bucle simple?**
-   - Busca: `javascript array reduce explained`
-   - Pruébalo: escribe el total de los `seconds` de la lista de reproducción dos veces, una con `reduce` y otra con `for...of`. Dáselas a un amigo y pregúntale cuál entiende primero.
-   - Una buena respuesta explica: qué recibe el callback, el papel del valor inicial y un caso donde un bucle `for...of` es más claro.
-
-2. **¿Cómo se lee una página de documentación de un método de array? Elige `flatMap`, `at` o `findLast`.**
-   - Busca: `MDN Array flatMap`
-   - Pruébalo: recorre la página en este orden: primero la firma de arriba, luego el primer ejemplo, luego la sección sobre casos límite y valores devueltos. Escribe una prueba tuya con un array vacío.
-   - Una buena respuesta explica: qué devuelve el método, qué recibe el callback y un caso límite que menciona la página.
-
-3. **¿Por qué funcionan reglas de orden como `a - b`, y qué pasa cuando un callback de comparación no es consistente?**
-   - Busca: `javascript sort compare function a - b`
-   - Pruébalo: ordena `["b", "a", "C"]` con `sort` por defecto, y luego con `localeCompare`. Después ordena 5 títulos de canciones por longitud con un callback que escribas tú.
-   - Una buena respuesta explica: qué significa el signo del número devuelto, por qué las mayúsculas se ordenan primero por defecto y cómo ordenar texto en un orden humano.
 
 ## Siguiente paso
 

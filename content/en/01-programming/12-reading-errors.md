@@ -1,60 +1,35 @@
 ---
 title: Reading errors
-summary: Read type errors and stack traces, find where the real mistake is, and fix the most common errors.
-duration: 75 min
+duration: 50 min
 ---
-
-## Start with a puzzle
-
-A dog shelter keeps a list of dogs. Each dog may have an owner. This program prints the owner of every dog.
-
-```ts
-type Dog = { name: string; owner?: { name: string } };
-
-function ownerName(dog: Dog): string {
-  return (dog.owner as { name: string }).name;
-}
-
-const dogs: Dog[] = [{ name: "Rex", owner: { name: "Ana" } }, { name: "Mimi" }];
-
-for (const dog of dogs) {
-  console.log(ownerName(dog));
-}
-```
-
-The program prints `Ana`. Then it crashes, and the message points to line 4, inside `ownerName`.
-
-Is line 4 wrong? If not, where is the mistake?
-
-Write down your guess before you read on.
 
 ## Goal
 
-- Tell a type error from a runtime error from a logic bug.
+In this lesson you learn to read a TypeScript error message and a stack trace, and to decide whether the line that crashed is the line that holds the mistake.
+
+- Tell a type error, a runtime error and a logic bug apart.
 - Read the parts of a TypeScript error message and of a stack trace.
+- Recognize the most common beginner errors and their usual fix.
 - Decide whether the line that crashed is the line that holds the mistake.
-- Choose between failing loudly and hiding a problem.
 
-## Two kinds of errors
+## Three kinds of errors
 
-Errors are normal. Every programmer sees them every day. An error message tells you what is wrong. You must learn to read it.
-
-There are two kinds of errors:
+In the first lesson you saw that an error can be found before the program runs or while it runs. In TypeScript those two cases have names of their own:
 
 - A **type error** is found before the program runs. TypeScript checks your code and finds a mismatch. You see it as a red underline in VS Code, or when you run `pnpm typecheck`.
 - A **runtime error** happens while the program runs. The program stops at the failing line.
 
-A third kind is a **logic bug**. The program runs without error but gives a wrong answer. No message helps you here. You must compare the result with what you expect. The next lesson is about this kind.
+A third kind is a **logic bug**. The program runs without error but gives a wrong answer. No message helps you here: you must compare the result with what you expect. The next lesson is about this kind.
 
 ## Anatomy of a TypeScript error
 
-Here is a mistake in the world of a school:
+This code has a type error:
 
 ```ts
 const count: number = "five";
 ```
 
-Before you read on, guess which words the message will use. TypeScript reports:
+TypeScript reports:
 
 ```text
 exercises/01-programming/demo.ts:1:7 - error TS2322: Type 'string' is not assignable to type 'number'.
@@ -102,18 +77,6 @@ Read it in parts:
 
 Start with the first `at` line that is in your own file. It gives the line and column where the crash happened.
 
-## A debugging routine
-
-Use these five steps, in this order.
-
-1. **Read** the full message slowly. Find the file, the line and the message.
-2. **Reproduce** the problem. Make it fail again, the same way, every time.
-3. **Make it smaller.** Remove code until you have the smallest example that still fails.
-4. **Print values.** Use `console.log` to see what the variables really hold. Compare with what you expected.
-5. **Search.** Copy the error message and search for it. Remove your own names from the text first.
-
-Most bugs are found at step 4. The value is not what you thought it was. Lesson 12b teaches this routine as a method with guesses and experiments.
-
 ## The most common beginner errors
 
 ### 1. Type 'string' is not assignable to type 'number'
@@ -152,7 +115,7 @@ You forgot `await`. Add it. See lesson 10.
 
 ## Where is the mistake?
 
-Look at this program again. The crash is on one line, but is the mistake on that line?
+The line the message points to is where the program broke, and it is not always the line that holds the mistake. Look at this program:
 
 ```ts
 type Dog = { id: number; name: string };
@@ -170,7 +133,7 @@ function printName(id: number): void {
 printName(2);
 ```
 
-Guess which line Node blames. Then read the real output, with the long folder names shortened:
+The real output, with the long folder names shortened:
 
 ```text
 TypeError: Cannot read properties of undefined (reading 'name')
@@ -179,23 +142,33 @@ TypeError: Cannot read properties of undefined (reading 'name')
     at Object.<anonymous> (demo.ts:13:1)
 ```
 
-Node blames line 6. Line 6 is fine. The mistake is that nobody has a dog with id 2, and line 13 asked for it. The text `as Dog` told TypeScript to trust you, so it hid the `undefined`.
+Node points to line 6, and line 6 is fine. The mistake is that nobody has a dog with id 2, and line 13 asked for it. The text `as Dog` told TypeScript to trust you, so it hid the `undefined`.
 
-### Back to the puzzle
-
-The crash is on line 4, but line 4 is not the mistake. Mimi has no owner. The code says `as { name: string }`, which tells TypeScript "trust me, the owner is there". The data and the code disagree, and the `as` hid it. A good fix decides what should happen for a dog with no owner: print "no owner", or report a clear message.
+The `at` lines tell you how to get from the crash back to the source. Node keeps a list of the functions that are running, the **call stack**, and prints it when a crash happens. Read it from top to bottom: `getName` crashed, it was called by `printName` on line 10, and that was called by the main file on line 13. The bad value came from further down the list. At each line, ask: what did I expect here, and what did I get?
 
 ## Go deeper
 
-### Why a stack trace is a list
-
-Functions call other functions. Node keeps a list of the functions that are running now. This list is the **call stack**. When a crash happens, Node prints the list. That is the stack trace.
-
-Read it from top to bottom. `getName` crashed. It was called by `printName`, line 10. That was called by the main file, line 13. The bad value came from the bottom of the list. Read down the stack to find who passed it. Then ask: what did I expect here, and what did I get?
-
 ### Loud failure or quiet failure
 
-A program can fail loudly, with a crash and a message. Or it can fail quietly and print something wrong. Loud is usually better, because you see it. Compare the crash with this "fix" for Mimi:
+A program can fail loudly, with a crash and a message. Or it can fail quietly and print something wrong. Loud is usually better, because you see it. This dog shelter keeps an optional owner for each dog:
+
+```ts
+type Dog = { name: string; owner?: { name: string } };
+
+function ownerName(dog: Dog): string {
+  return (dog.owner as { name: string }).name;
+}
+
+const dogs: Dog[] = [{ name: "Rex", owner: { name: "Ana" } }, { name: "Mimi" }];
+
+for (const dog of dogs) {
+  console.log(ownerName(dog));
+}
+```
+
+It prints `Ana` and then crashes on line 4, but line 4 is not the mistake. Mimi has no owner, and `as { name: string }` told TypeScript "trust me, the owner is there". The data and the code disagree, and the `as` hid it. A good fix decides what should happen for a dog with no owner: print "no owner", or report a clear message.
+
+Compare the crash with this "fix" for Mimi:
 
 ```ts
 console.log(`${dog.name} belongs to ${dog.owner?.name}`);
@@ -203,9 +176,9 @@ console.log(`${dog.name} belongs to ${dog.owner?.name}`);
 
 The `?.` means "if the owner is missing, give `undefined`". The program prints `Mimi belongs to undefined` and does not crash. The error is gone, but the mistake is still there.
 
-### How it shows up in QA automation work
+### An empty `catch` hides the error
 
-An error is a message from the code. You must not hide it. This is a common mistake:
+An error is a message from the code, and you must not hide it. This is a common mistake:
 
 ```ts
 async function checkWelcome(): Promise<void> {
@@ -226,10 +199,6 @@ main();
 
 It prints `test passed`, although the check failed. The empty `catch` swallowed the error. A test like this can never fail. Use `catch` only when you can do something useful. If you only want to log, write `throw error` at the end of the `catch` block to pass the error on.
 
-Playwright errors are written to help. When a check cannot find an element, the failure names the locator it used and says that the element was not found. Read that text before you change anything.
-
-> **Tip:** You may paste an error message into an AI assistant and ask what it means. Then check the answer against the file and line in the message. Never keep a fix that you cannot explain.
-
 ## Practice
 
 1. Create the file `exercises/01-programming/errors-practice.ts`.
@@ -247,7 +216,7 @@ node exercises/01-programming/12-reading-errors.ts
 
 ## Challenge
 
-Build a program in a world you choose, such as recipes, a zoo or a football league. It must crash with a stack trace, and the line that crashes must not be the line that holds the mistake. Then write a second version that does not crash and tells the user in one clear sentence what is wrong with the data.
+Build a program in a world you choose, such as recipes or a football league. It must crash with a stack trace, and the line that crashes must not be the line that holds the mistake. Then write a second version that does not crash and tells the user in one clear sentence what is wrong with the data.
 
 Create the file `exercises/challenges/12-reading-errors.ts` for the crashing version and `exercises/challenges/12-clear-error.ts` for the clear version.
 
@@ -258,7 +227,7 @@ It is done when:
 - Running `node exercises/challenges/12-clear-error.ts` prints one sentence with the name of the thing that is wrong, for example `Recipe "Salad" has no oven`, and no stack trace.
 - Right after the second program, the exit code is 1. In PowerShell, run `$LASTEXITCODE` to see it.
 
-You will need something this lesson did not teach: a way to tell the computer that your program failed, even though you caught the error. Search for: `node process.exitCode`.
+You will need something this lesson did not teach: a way to tell Node.js that your program failed, even though you caught the error. Search for: `node process.exitCode`.
 
 ## Think it through
 
@@ -275,56 +244,7 @@ It prints `NaN false`. `Number("5cm")` cannot make a number from that text, but 
 
 </details>
 
-2. This program runs and prints a good message. Find the bug.
-
-```ts
-async function checkOven(): Promise<void> {
-  throw new Error("Oven is cold");
-}
-
-async function main(): Promise<void> {
-  try {
-    await checkOven();
-  } catch {
-    // ignore
-  }
-  console.log("Dinner is ready");
-}
-
-main();
-```
-
-<details><summary>Answer</summary>
-
-The empty `catch` swallows the error, so the program says "Dinner is ready" even though the oven is cold. Nothing tells you that something went wrong. Either remove the `try` and `catch`, or in `catch` do something useful and pass the error on with `throw error`. A program that hides failures cannot be trusted.
-
-</details>
-
-3. A function must find a dog by its id. Version A uses `find(...) as Dog`. Version B checks the result and throws `new Error("Dog 2 not found")` when it is `undefined`. Both work when the dog exists. Which is better here, and when would you choose A?
-
-<details><summary>Answer</summary>
-
-Version B is better because the error names the real problem at the place where it starts. With version A the crash comes later, in another line, with a message about `undefined`. Version A is acceptable only when you know the value cannot be missing, for example you just created it a line above. The choice depends on who controls the data. Data from a file, a user or a server can always be missing.
-
-</details>
-
-4. A colleague "fixes" the crash for Mimi with `dog.owner?.name`. The program now runs to the end. What changed, and what is the risk?
-
-<details><summary>Answer</summary>
-
-The crash is gone, and the program prints `Mimi belongs to undefined`. The data problem is still there, but now it is quiet. If this text goes to a report or a customer, nobody notices until later. The risk is that a loud, easy failure became a silent, hard one. A better fix decides what should happen for a missing owner, for example a clear text like "no owner".
-
-</details>
-
-5. Explain to a teammate what a stack trace tells you, in three sentences, without using the word "stack".
-
-<details><summary>Answer</summary>
-
-A good answer says three things. It is a list of the functions that were running when the crash happened. The first lines show where the crash was, and the lines after show who called it, one by one. The mistake is often further down the list than the first line.
-
-</details>
-
-6. A list of dogs is empty, and the code does `dogs[0].name`. What happens at run time? What does strict TypeScript say before you run?
+2. A list of dogs is empty, and the code does `dogs[0].name`. What happens at run time? What does strict TypeScript say before you run?
 
 <details><summary>Answer</summary>
 
@@ -332,24 +252,13 @@ At run time, `dogs[0]` is `undefined`, so the program stops with "Cannot read pr
 
 </details>
 
-## Research on your own
+3. A function must find a dog by its id. Version A uses `find(...) as Dog`. Version B checks the result and throws `new Error("Dog 2 not found")` when it is `undefined`. Both work when the dog exists. Which is better here, and when would you choose A?
 
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
+<details><summary>Answer</summary>
 
-1. **What is the call stack in JavaScript, and how does it relate to a stack trace?**
-   - Search for: `javascript call stack explained`
-   - Try it: write a function that calls itself with no end, for example `function f() { f(); } f();`, and run it. Read the message and the first lines.
-   - A good answer explains: what is added and removed from the stack when functions run, and what a stack overflow is.
+Version B is better because the error names the real problem at the place where it starts. With version A the crash comes later, in another line, with a message about `undefined`. Version A is acceptable only when you know the value cannot be missing, for example you just created it a line above. Data from a file, a user or a server can always be missing.
 
-2. **What are the common JavaScript error types, such as `TypeError`, `ReferenceError` and `SyntaxError`?**
-   - Search for: `MDN javascript error types TypeError ReferenceError`
-   - Try it: write three tiny programs that each cause a different error type. Run them and write down the first line of each message.
-   - A good answer explains: what causes each type and one short code example for each.
-
-3. **How does the Playwright Trace Viewer help a tester find why a test failed?**
-   - Search for: `playwright trace viewer`
-   - Try it: read the Playwright documentation page for the trace viewer. Write the command that opens a saved trace file, and list three things the viewer shows for each step.
-   - A good answer explains: what a trace records, what you can see in it, and how it helps more than only reading the error text.
+</details>
 
 ## Next step
 

@@ -75,17 +75,17 @@ apps/
    ```text
    ---
    title: Short title
-   summary: One sentence that sums up the lesson.
+   summary: One sentence that sums up the lesson. Optional.
    duration: 20 min
    ---
    ```
 
-2. Use these sections, in this order: `## Start with a puzzle`, `## Goal`, the explanation sections (with a `### Back to the puzzle`), `## Go deeper`, `## Practice`, `## Challenge`, `## Think it through`, `## Research on your own` and `## Next step`.
+2. Use these sections, in this order: `## Goal`, the explanation sections, `## Go deeper`, `## Practice`, `## Think it through`, `## Research on your own` and `## Next step`. Leave out the two question sections when the learner does not yet know enough for them, as in the welcome lesson. Two more sections are optional, for lessons where they fit: `## Start with a puzzle` before the goal (with a `### Back to the puzzle` in the explanation), and `## Challenge` after the practice. A lesson can also open with a short story, or go straight into the subject.
 3. If the lesson was in the `planned` list of its module in `src/modules.ts`, remove it from that list.
 
 The order inside a module comes from the number at the start of the file name.
 
-To show a screen recording in a lesson, put the file in `public/clips/` and write `![What the clip shows](/clips/name.webm)` on its own line.
+To show a screen recording in a lesson, put the file in `public/clips/` and write `![What the clip shows](/clips/name.webm)` on its own line. A screenshot works the same way: put it in `public/images/` and write `![What it shows](/images/name.png)`.
 
 ## Languages
 

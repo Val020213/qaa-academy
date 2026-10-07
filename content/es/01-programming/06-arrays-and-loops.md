@@ -1,40 +1,20 @@
 ---
 title: Arrays y bucles
-summary: Guarda muchos valores en una lista, repite una acción para cada elemento con un bucle for...of, y aprende a encontrar el bug en un bucle que da una respuesta incorrecta sin ningún error.
-duration: 80 min
+duration: 60 min
 ---
-
-## Empieza con un acertijo
-
-Un club de corredores anota tres tiempos de vuelta, en segundos. El entrenador quiere la mejor vuelta. La mejor vuelta es el número más pequeño. Este es el código.
-
-```ts
-const laps = [62, 58, 61];
-let best = 0;
-
-for (const lap of laps) {
-  if (lap < best) {
-    best = lap;
-  }
-}
-
-console.log(best);
-```
-
-¿Qué imprime? ¿Es 58? ¿Es 62? ¿Otra cosa? El programa no muestra ningún mensaje de error. Se ejecuta hasta el final.
-
-Escribe tu respuesta antes de seguir leyendo.
 
 ## Objetivo
 
-- Predecir qué le hace un bucle a una variable en cada vuelta.
+En esta lección guardas muchos valores en una lista y repites una acción para cada uno con un bucle. También aprendes a encontrar el bug en un bucle que da una respuesta incorrecta sin mostrar ningún error.
+
 - Leer un elemento por su índice, y decir qué pasa cuando el índice no existe.
+- Predecir qué le hace un bucle a una variable en cada vuelta.
 - Elegir un buen valor inicial para un contador, una suma, un valor mínimo y un valor máximo.
 - Encontrar un bug en un bucle reduciendo el problema y cambiando una sola cosa a la vez.
 
 ## Arrays
 
-Un *array* (arreglo, una lista de valores) es una lista de valores en orden. Se escribe con corchetes. Los valores se separan con comas.
+Un **array** (arreglo) es una lista de valores en orden. Se escribe con corchetes, y los valores se separan con comas.
 
 ```ts
 const dogs = ["Rex", "Mimi", "Luna"];
@@ -47,7 +27,7 @@ Esto imprime:
 [ 'Rex', 'Mimi', 'Luna' ]
 ```
 
-Cada valor del array es un **elemento**. Node muestra el texto con comillas simples aquí. Es el mismo texto.
+Cada valor del array es un **elemento**. Node muestra los textos con comillas simples; es el mismo texto.
 
 Un array también puede guardar números:
 
@@ -55,13 +35,11 @@ Un array también puede guardar números:
 const laps = [62, 58, 61];
 ```
 
-Usa un solo tipo en cada array. Una lista de textos, o una lista de números.
+Usa un solo tipo en cada array: una lista de textos, o una lista de números.
 
 ## Índice
 
 El **índice** es la posición de un elemento. La cuenta empieza en 0, no en 1.
-
-Antes de ejecutar esto, adivina: ¿qué imprimen las dos líneas?
 
 ```ts
 const dogs = ["Rex", "Mimi", "Luna"];
@@ -76,20 +54,24 @@ Rex
 Luna
 ```
 
-El primer elemento es el índice 0. El segundo es el índice 1. El tercero es el índice 2.
+El primer elemento es el índice 0, el segundo es el índice 1 y el tercero es el índice 2. En una lista de 3 elementos, el último índice es 2.
 
-> **Cuidado:** El primer elemento es `[0]`, no `[1]`. En una lista de 3 elementos, el último índice es 2.
+La cuenta empieza en 0 por la forma en que una lista se guarda en memoria. Sus elementos ocupan casillas del mismo tamaño, una al lado de la otra. La variable `dogs` no contiene los elementos: contiene un **puntero**, que es la dirección de memoria donde empieza la primera casilla. Para llegar a un elemento se calcula dirección = inicio + índice × tamaño de la casilla. El índice es entonces cuántas casillas hay que saltar desde el inicio, y para el primer elemento no hay que saltar ninguna.
 
-Ahora adivina otra vez. ¿Qué imprime esto?
+![Un array en memoria: la variable guarda la dirección de la primera casilla, y el índice dice cuántas casillas saltar.](/images/zero-index.es.svg)
+
+Las direcciones del dibujo son de ejemplo. Lenguajes como C trabajan exactamente así, y de ahí viene la convención de empezar en 0. El motor de JavaScript guarda las listas normales de la misma forma, aunque nunca te muestra las direcciones.
+
+Si pides un índice que no existe, no hay error:
 
 ```ts
 console.log(dogs[3]);
 console.log(dogs[-1]);
 ```
 
-Imprime `undefined` dos veces. Sin error. El programa no te dice que el índice está mal. Te da "ningún valor" y sigue. Por eso un índice incorrecto es peligroso: el error aparece más tarde, lejos de donde empezó.
+Imprime `undefined` dos veces. El programa no te avisa que el índice está mal; te da "ningún valor" y sigue. Por eso un índice incorrecto es peligroso: el error aparece más tarde, lejos de donde empezó.
 
-En este proyecto, el verificador de tipos es estricto. Trata `dogs[0]` como "un string o `undefined`". Puedes imprimirlo. Para usarlo como string, primero debes comprobarlo con un `if`.
+En este proyecto, el verificador de tipos es estricto. Trata `dogs[0]` como "un string o `undefined`". Puedes imprimirlo, pero para usarlo como string primero debes comprobarlo con un `if`.
 
 ```ts
 const first = dogs[0];
@@ -125,7 +107,7 @@ Luna
 Luna
 ```
 
-El último índice siempre es `length - 1`. La función `at` es una forma más corta de decir lo mismo: `at(-1)` significa "el último elemento", `at(-2)` significa "el anterior".
+El último índice siempre es `length - 1`. La función `at` es una forma más corta de decir lo mismo: `at(-1)` es el último elemento y `at(-2)` es el anterior.
 
 ## Agregar elementos con push
 
@@ -144,13 +126,11 @@ Esto imprime:
 [ 'Blue', 'Sunday', 'Echo' ]
 ```
 
-Quizá te preguntes: el array es una `const`, entonces ¿por qué puede cambiar? Una `const` te impide darle al nombre un array nuevo. No te impide cambiar los elementos de adentro.
+El array es una `const` y aun así cambia: una `const` te impide darle al nombre un array nuevo, pero no te impide cambiar los elementos de adentro.
 
 ## Bucles
 
-Un **bucle** repite código. Usa un bucle cuando necesites hacer lo mismo con cada elemento.
-
-El bucle `for...of` toma un elemento a la vez.
+Un **bucle** repite código. Úsalo cuando necesites hacer lo mismo con cada elemento. El bucle `for...of` toma un elemento a la vez.
 
 ```ts
 const dogs = ["Rex", "Mimi", "Luna"];
@@ -168,13 +148,37 @@ Walking Mimi
 Walking Luna
 ```
 
-Léelo así: para cada `dog` en `dogs`, ejecuta el código entre llaves. En la primera vuelta, `dog` es `"Rex"`. En la segunda vuelta es `"Mimi"`. En la tercera es `"Luna"`.
+Léelo así: para cada `dog` en `dogs`, ejecuta el código entre llaves. En la primera vuelta `dog` es `"Rex"`, en la segunda es `"Mimi"` y en la tercera es `"Luna"`. Tú eliges el nombre `dog`; usa uno que diga qué es un elemento.
 
-Tú eliges el nombre `dog`. Usa un nombre que diga qué es un elemento.
+### El bucle for con índice
 
-### ¿Qué hace un bucle con una lista que crece?
+Hay una forma más antigua de escribir un bucle, en la que tú llevas el índice. Entre los paréntesis van tres partes separadas por `;`:
 
-Aquí hay un experimento. El bucle agrega un elemento nuevo mientras se ejecuta. ¿Qué esperas que imprima?
+```ts
+const dogs = ["Rex", "Mimi", "Luna"];
+
+for (let i = 0; i < dogs.length; i++) {
+  console.log(`${i}: Walking ${dogs[i]}`);
+}
+```
+
+- `let i = 0` se ejecuta una vez, antes de empezar: crea el contador en el primer índice.
+- `i < dogs.length` es la condición. Se evalúa antes de cada vuelta, y el bucle termina cuando es falsa.
+- `i++` se ejecuta al final de cada vuelta. Es una forma corta de escribir `i = i + 1`.
+
+Esto imprime:
+
+```text
+0: Walking Rex
+1: Walking Mimi
+2: Walking Luna
+```
+
+Usa `for...of` cuando solo necesitas cada elemento, porque no hay contador que puedas escribir mal. Usa el bucle con índice cuando necesitas la posición, como aquí para numerar las líneas. El error típico de esta forma es escribir `i <= dogs.length`: el bucle da una vuelta de más y `dogs[3]` es `undefined`.
+
+### Un bucle sobre una lista que crece
+
+Aquí el bucle agrega un elemento nuevo mientras se ejecuta:
 
 ```ts
 const queue = ["a", "b"];
@@ -187,26 +191,11 @@ for (const item of queue) {
 }
 ```
 
-Imprime `a`, `b` y `c`. El bucle no toma una foto de la lista al inicio. Mira la lista otra vez en cada vuelta, así que también visita el elemento nuevo. Si haces push en cada vuelta, el bucle nunca termina. No cambies una lista mientras la recorres con un bucle, salvo que sepas exactamente por qué.
-
-## Planea el bucle primero en palabras simples
-
-Antes de escribir un bucle, escribe los pasos en palabras simples. Esto se llama **pseudocódigo**. No es código real. Es un plan que puedes leer.
-
-Tarea: contar los días de lluvia de una semana.
-
-```text
-start with a count of 0
-for each day in the week
-  if the day is "rain", add 1 to the count
-show the count
-```
-
-Ahora el código es fácil de escribir, porque cada línea del plan se convierte en una línea de código. Dividir un problema en pasos pequeños así se llama **descomposición**.
+Imprime `a`, `b` y `c`. El bucle no toma una foto de la lista al inicio: la mira otra vez en cada vuelta, así que también visita el elemento nuevo. Si haces push en cada vuelta, el bucle nunca termina. No cambies una lista mientras la recorres, salvo que sepas exactamente por qué.
 
 ## Contar en un bucle
 
-Usa una variable `let` como contador. Cámbiala dentro del bucle.
+Usa una variable `let` como contador y cámbiala dentro del bucle.
 
 ```ts
 const weather = ["rain", "sun", "rain", "rain", "cloud"];
@@ -227,7 +216,7 @@ Esto imprime:
 Rainy days: 3
 ```
 
-Fíjate en que `rainyDays` empieza en 0 antes del bucle. Es un `let` porque cambia.
+`rainyDays` empieza en 0 antes del bucle, y es un `let` porque cambia.
 
 ## Sumar en un bucle
 
@@ -250,19 +239,30 @@ Esto imprime:
 7.7
 ```
 
-¿Por qué empezar en 0? Porque sumar 0 no cambia nada. El valor inicial debe ser el que no hace daño. Para una suma, es 0.
+Se empieza en 0 porque sumar 0 no cambia nada. El valor inicial debe ser uno que no haga daño al resultado.
 
 ## El valor inicial es una decisión
 
-Mira el acertijo otra vez. Para un contador y una suma, 0 es un buen inicio. ¿Es bueno también para el valor mínimo?
+Para un contador y una suma, 0 es un buen inicio. Para un valor mínimo no lo es. Un club de corredores anota tres tiempos de vuelta, en segundos, y quiere la mejor vuelta, que es el número más pequeño:
 
-Piénsalo con una regla: el valor inicial debe perder contra todos los elementos reales. Para "el mínimo", el inicio debe ser mayor que todas las vueltas. Para "el máximo", debe ser menor que todos los elementos. Cero no es mayor que un tiempo de vuelta.
+```ts
+const laps = [62, 58, 61];
+let best = 0;
 
-### De vuelta al acertijo
+for (const lap of laps) {
+  if (lap < best) {
+    best = lap;
+  }
+}
 
-El programa imprime `0`. La variable `best` empieza en 0. Ninguna vuelta es menor que 0, así que el `if` nunca es verdadero, y `best` se queda en 0. El programa no tiene error. Solo da una respuesta incorrecta.
+console.log(best);
+```
 
-Puedes encontrar este tipo de bug como un científico. Esto es **depurar con experimentos**: haz una hipótesis, ejecuta una prueba pequeña, cambia una sola cosa a la vez. Primero, reduce el caso que falla. ¿Una lista con una sola vuelta, `[62]`, también imprime 0? Sí. Entonces la lista no es el problema. Después supón: "el valor inicial es el problema". Cambia solo esa línea:
+Imprime `0`, sin ningún mensaje de error. `best` empieza en 0, ninguna vuelta es menor que 0, así que el `if` nunca es verdadero y `best` se queda en 0. El programa no falla: solo da una respuesta incorrecta.
+
+La regla es que el valor inicial debe perder contra todos los elementos reales. Para "el mínimo", el inicio debe ser mayor que todas las vueltas. Para "el máximo", debe ser menor que todos los elementos.
+
+Para encontrar un bug así, reduce el caso que falla y cambia una sola cosa a la vez. Con una lista de una sola vuelta, `[62]`, el programa también imprime 0, así que la lista no es el problema. Entonces cambia solo la línea del valor inicial:
 
 ```ts
 const laps = [62, 58, 61];
@@ -277,7 +277,7 @@ for (const lap of laps) {
 console.log(best);
 ```
 
-Esto imprime `58`. `Infinity` es un número mayor que cualquier otro número. Otro buen inicio es el primer elemento de la lista. Los dos funcionan. ¿Cuál es mejor cuando la lista está vacía? Lo pensarás en las preguntas.
+Esto imprime `58`. `Infinity` es un número mayor que cualquier otro. Otro buen inicio es el primer elemento de la lista.
 
 ## Revisar una lista con includes
 
@@ -310,17 +310,13 @@ Esto imprime:
 Add Echo to the party playlist
 ```
 
-¿Qué da `likedSongs.includes("echo")`? Pruébalo. Las mayúsculas cuentan, así que la respuesta es `false`.
+Las mayúsculas cuentan: `likedSongs.includes("echo")` da `false`.
 
 ## Profundiza
 
-### Por qué la cuenta empieza en 0
+### Dos nombres, una sola lista
 
-El índice es la distancia desde el inicio de la lista. El primer elemento está a 0 pasos del inicio. El segundo está a 1 paso. Por eso el último índice es `length - 1`. Muchos lenguajes de programación funcionan así.
-
-### Una idea equivocada común: "dos nombres son dos listas"
-
-En la lección «Valores y variables», copiar una variable creaba dos valores separados. Con los arrays es distinto. Un array es un solo objeto en la memoria. Un nombre apunta a él. Cuando escribes `const b = a`, los dos nombres apuntan a la misma lista.
+Al copiar una variable que guarda un número o un texto, obtienes dos valores separados. Con los arrays es distinto: un array es un solo objeto en la memoria y el nombre apunta a él. Cuando escribes `const b = a`, los dos nombres apuntan a la misma lista.
 
 ```ts
 const a = ["x"];
@@ -335,7 +331,9 @@ Esto imprime:
 [ 'x', 'y' ]
 ```
 
-Cambiaste `b`, pero `a` también cambió. Es una sola lista con dos nombres. Para hacer una copia real, usa `slice()`.
+Cambiaste `b`, pero `a` también cambió. Para hacer una copia real, usa `slice()`.
+
+![Dos nombres que apuntan a la misma lista.](/images/shared-array.es.svg)
 
 ```ts
 const c = a.slice();
@@ -350,36 +348,6 @@ Esto imprime:
 ```
 
 Ahora `c` es una lista separada.
-
-### Cómo aparece en el trabajo real de automatización de QA
-
-Este es el único vínculo con las pruebas en esta lección. Muchas veces pruebas la misma regla con muchas entradas. Una contraseña debe tener al menos 8 caracteres. Pon las entradas en un array y escribe la comprobación una sola vez.
-
-```ts
-const passwords = ["", "123", "abcdefgh"];
-
-for (const password of passwords) {
-  if (password.length < 8) {
-    console.log(`Rejected: "${password}"`);
-  } else {
-    console.log(`Accepted: "${password}"`);
-  }
-}
-```
-
-Esto imprime:
-
-```text
-Rejected: ""
-Rejected: "123"
-Accepted: "abcdefgh"
-```
-
-Un solo cuerpo, muchas entradas. Esto es *DRY* ("No te repitas"), y el nombre de este estilo es pruebas dirigidas por datos. Estudiarás DRY al final de este módulo. En el Módulo 4 lo verás en tests reales.
-
-### Un compromiso
-
-Fíjate en que el mensaje imprime la entrada. Cuando un caso falla, debes saber qué entrada fue. Recuerda también que una falla detiene un bucle simple en el primer elemento malo. Los elementos que siguen no se revisan. Las herramientas de test reales pueden ejecutar cada entrada como su propio test, así que una falla no esconde a las demás.
 
 ## Práctica
 
@@ -398,7 +366,7 @@ Resuelve los ejercicios. Haz que cada línea diga `OK`.
 
 ## Reto
 
-Elige tu propio mundo: tiempos de vuelta, temperaturas diarias, puntajes de un cuestionario, el precio de un café en diez tiendas, la edad de cada animal de un refugio. Escribe una función `report(values)` que reciba una lista de números e imprima una línea con el valor mínimo, el valor máximo y el promedio. Usa un bucle. No uses `Math.min` ni `Math.max`.
+Elige tu propio mundo, por ejemplo tiempos de vuelta o el precio de un café en diez tiendas. Escribe una función `report(values)` que reciba una lista de números e imprima una línea con el valor mínimo, el valor máximo y el promedio. Usa un bucle. No uses `Math.min` ni `Math.max`.
 
 Crea el archivo `exercises/challenges/arrays-and-loops.ts`. Ejecútalo con `node exercises/challenges/arrays-and-loops.ts`.
 
@@ -408,7 +376,6 @@ Está terminado cuando:
 - También funciona cuando el número más pequeño es negativo, por ejemplo `[-5, -2, -9]`.
 - Para una lista vacía imprime un mensaje claro como `No data`, y no `Infinity` ni `NaN`.
 - El promedio se muestra con un dígito después del punto decimal.
-- `pnpm typecheck` no muestra ningún error para tu archivo.
 
 Vas a necesitar algo que esta lección no enseñó: cómo mostrar un número con una cantidad fija de dígitos después del punto decimal. Busca `javascript toFixed`.
 
@@ -430,7 +397,7 @@ console.log(total);
 <details>
 <summary>Respuesta</summary>
 
-Imprime `20`. La línea `total = score` reemplaza el total en cada vuelta. No suma. En la primera vuelta el total es 10. En la segunda pasa a ser 20, y el bucle termina. Para sumar, escribes `total = total + score`. La primera versión es un descuido muy común porque las dos líneas se ven casi iguales.
+Imprime `20`. La línea `total = score` reemplaza el total en cada vuelta; no suma. En la primera vuelta el total es 10 y en la segunda pasa a ser 20. Para sumar, escribes `total = total + score`. Es un descuido muy común porque las dos líneas se ven casi iguales.
 
 </details>
 
@@ -452,25 +419,11 @@ console.log(rainy);
 <details>
 <summary>Respuesta</summary>
 
-La línea `rainy = 0;` está dentro del bucle. Reinicia el contador en cada vuelta. El último día es `sun`, así que el contador termina en 0. Deja el valor inicial, `let rainy = 0;`, solo antes del bucle, y borra el reinicio. Una buena forma de encontrarlo: imprime `rainy` al final de cada vuelta y mira cómo vuelve a 0.
+La línea `rainy = 0;` está dentro del bucle y reinicia el contador en cada vuelta. El último día es `sun`, así que el contador termina en 0. Deja el valor inicial, `let rainy = 0;`, solo antes del bucle, y borra el reinicio. Una buena forma de encontrarlo es imprimir `rainy` al final de cada vuelta y ver cómo vuelve a 0.
 
 </details>
 
-3. Las dos líneas dan el último perro de una lista. ¿Cuál es mejor aquí, y qué te haría elegir la otra?
-
-```ts
-const lastA = dogs[dogs.length - 1];
-const lastB = dogs.at(-1);
-```
-
-<details>
-<summary>Respuesta</summary>
-
-La versión B es mejor para leer el código. `at(-1)` dice "el último elemento" y no tiene un `length - 1` que puedas equivocar. Las dos dan `undefined` con una lista vacía. Elegirías la versión A si tu código debe correr en un programa muy viejo que no conoce `at`, o si tu equipo ya usa un solo estilo en todo y quieres que el código se vea igual. La velocidad de lectura importa más que ahorrar unas letras.
-
-</details>
-
-4. ¿Qué pasa con este código cuando la lista está vacía? ¿Qué querrías que pasara en su lugar?
+3. ¿Qué pasa con este código cuando la lista está vacía? ¿Qué querrías que pasara en su lugar?
 
 ```ts
 const lapTimes: number[] = [];
@@ -486,46 +439,9 @@ console.log(total / lapTimes.length);
 <details>
 <summary>Respuesta</summary>
 
-Imprime `NaN`, que significa "no es un número". El bucle no hace nada, así que el total es 0. Luego 0 dividido entre 0 no es un número. El programa no se detiene y no da error. Lo que quieres es comprobar primero la longitud con un `if`, e imprimir un mensaje claro como "No laps yet". El caso límite, una lista vacía, debe ser una decisión tuya, no un accidente.
+Imprime `NaN`, que significa "no es un número". El bucle no hace nada, así que el total es 0, y 0 dividido entre 0 no es un número. El programa no se detiene y no da error. Lo que quieres es comprobar primero la longitud con un `if` e imprimir un mensaje claro como "No laps yet". Una lista vacía es un caso límite, y lo que pasa con ella debe ser una decisión tuya, no un accidente.
 
 </details>
-
-5. Explícale a un compañero, en tres oraciones y sin usar la palabra "cero", por qué el último índice de una lista es `length - 1`.
-
-<details>
-<summary>Respuesta</summary>
-
-Una buena respuesta podría ser: el índice dice cuántos pasos caminas desde el primer elemento. El primer elemento no necesita pasos, así que está en el índice 0. Una lista de 3 elementos tiene su último elemento a 2 pasos del inicio, así que el último índice es la longitud menos 1. Si tu respuesta dijo "la posición" sin "los pasos desde el inicio", puede sentirse correcta pero no explica la razón. Piensa en una regla: la primera línea está en el inicio, no en el 1.
-
-</details>
-
-6. Un compañero dice: "Siempre haz una copia de una lista con `slice()` antes de hacerle push". ¿Siempre es cierto?
-
-<details>
-<summary>Respuesta</summary>
-
-No hay una única respuesta. Una copia protege a los otros nombres que apuntan a la misma lista, así nadie se lleva una sorpresa. Pero una copia cuesta un poco de memoria y de tiempo, y puede esconder que dos partes de tu programa comparten datos a propósito. Si la lista es solo tuya, dentro de una función, una copia agrega ruido. Si recibiste la lista de otra parte del programa, una copia es más segura. Depende de quién más use la lista.
-
-</details>
-
-## Investiga por tu cuenta
-
-Estas preguntas no tienen respuesta aquí. Busca en internet, lee y escribe tu respuesta con tus propias palabras.
-
-1. **¿Por qué la mayoría de los lenguajes de programación cuentan desde 0, y cuáles cuentan desde 1?**
-   - Busca: `zero-based indexing why`
-   - Pruébalo: en un archivo, haz un array de cinco elementos. Imprime `items[0]`, `items[5]` e `items.at(-2)`. Anota cuál línea no pudiste predecir.
-   - Una buena respuesta explica: qué significa un índice, la razón de la distancia desde el inicio y un lenguaje que empieza en 1.
-
-2. **¿Cuál es la diferencia entre `for...of`, `for...in` y `forEach` en JavaScript?**
-   - Busca: `for of vs for in vs forEach javascript`
-   - Pruébalo: recorre `["a", "b"]` con los tres. Imprime lo que obtienes en cada vuelta. Luego intenta poner `await` o `break` dentro de cada uno.
-   - Una buena respuesta explica: qué te da cada uno en cada vuelta, y cuál usar para arrays.
-
-3. **¿Por qué puede ser peligroso agregar elementos a una lista dentro de un bucle sobre la misma lista?**
-   - Busca: `modify array while iterating javascript`
-   - Pruébalo: cambia el experimento de `queue` para que haga push en cada vuelta. Agrega una línea que lo detenga después de 10 vueltas, para que tu computadora no se congele.
-   - Una buena respuesta explica: qué ve el bucle en cada vuelta, y una forma más segura de construir la lista nueva.
 
 ## Siguiente paso
 

@@ -7,12 +7,12 @@
 import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
 import {
-  ArrowRight,
   BookOpen,
   Brain,
   CircleHelp,
   Code,
   FlaskConical,
+  Footprints,
   Globe,
   Info,
   Layers,
@@ -29,12 +29,12 @@ import {
 } from "lucide-react"
 
 export const icons = {
-  "arrow-right": ArrowRight,
   "book-open": BookOpen,
   brain: Brain,
   "circle-help": CircleHelp,
   code: Code,
   flask: FlaskConical,
+  footprints: Footprints,
   globe: Globe,
   info: Info,
   layers: Layers,

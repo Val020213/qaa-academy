@@ -1,35 +1,20 @@
 ---
 title: Debug like a scientist
-summary: Find bugs that give no error message, with one guess and one small experiment at a time.
-duration: 80 min
+duration: 60 min
 ---
-
-## Start with a puzzle
-
-Ana and Ben have the same bug. Their program prints a wrong average temperature. There is no error message.
-
-Ana changes five things at once: a loop limit, a comparison, a variable name, a rounding and a default value. Now the output is right. She is happy.
-
-Ben changes nothing. He adds one `console.log` and runs the program. Then he reads what it prints.
-
-A week later, new data arrives. Ana's program is wrong again. Ben's is not.
-
-Why did Ana's fix not last? What did Ben do that Ana did not?
-
-Write down your guess before you read on.
 
 ## Goal
 
+In this lesson you learn a method for finding bugs that give no error message: one hypothesis, one small experiment and one change at a time.
+
 - Describe a bug exactly: what you expected, and what happened.
 - Make a small failing example from a big one.
-- Make one guess that an experiment can prove wrong, and predict the result before you run it.
+- Make one hypothesis that an experiment can prove wrong, and predict the result before you run it.
 - Explain why the bug happened, and check that the fix did not break other cases.
 
 ## The hard kind of bug
 
-The hard kind is the **logic bug** from lesson 12. The program runs, prints a result, and the result is wrong. Nothing tells you where to look.
-
-Most beginners change something and run again, then change something else. This is guessing. After five changes you do not know which one mattered. A scientist makes one guess and tests only that guess.
+The hard kind is the **logic bug** from lesson 12: the program runs, prints a result, and the result is wrong. Nothing tells you where to look. Changing something, running again and then changing something else is guessing, because after five changes you do not know which one mattered. The method in this lesson tests one hypothesis at a time.
 
 ## The method
 
@@ -77,7 +62,7 @@ Winner: Mia with 9 points
 
 **Observe.** I expected Leo with 10. I got Mia with 9. The program is the same every time, so it is already reproducible. It is already small, so there is nothing to shrink.
 
-**First guess: the loop skips Leo.** The experiment: print each player inside the loop. If the guess is true, `Leo` is missing. I predict: no `Leo` line.
+**First hypothesis: the loop skips Leo.** The experiment: print each player inside the loop. If the hypothesis is true, `Leo` is missing. I predict: no `Leo` line.
 
 ```ts
   for (const row of table) {
@@ -92,9 +77,9 @@ row: Leo
 row: Zoe
 ```
 
-My prediction was wrong, so I cross the guess out. The loop visits Leo.
+My prediction was wrong, so I cross the hypothesis out. The loop visits Leo.
 
-**Second guess: the comparison says "no" for Leo's row.** The experiment: print both numbers and the comparison. I predict that for Leo it shows `true`, because 10 is more than 9.
+**Second hypothesis: the comparison says "no" for Leo's row.** The experiment: print both numbers and the comparison. I predict that for Leo it shows `true`, because 10 is more than 9.
 
 ```ts
     console.log(row.player, row.points, winner.points, row.points > winner.points);
@@ -148,40 +133,26 @@ It now prints `Winner: Leo with 10 points`.
 ## The trap list
 
 - **Fixing the symptom.** You make the output look right for this input, for example with `if (name === "Leo")`. The cause is still there.
-- **Changing two things at once.** If it works, you do not know which change did it. If it breaks, you do not know which one broke it.
 - **"It works now, I do not know why."** This is not a fix. The bug is hiding. Undo your change and see if it fails again. If it does not, you fixed nothing.
-
-> **Tip:** You may ask an AI assistant for guesses. It can give good ones. But a guess is not a fact. Only your experiment tells you which guess is true. Run the code, and be able to explain every line before you keep it.
-
-### Back to the puzzle
-
-Ana changed five things at once. The old data fit one of the changes, and the other four did nothing or did harm. She cannot tell which is which. Ben made one experiment and looked at real values. He found the cause, so his fix works for any data.
-
-## Go deeper
-
-### How it shows up in QA automation work
-
-A test that fails only sometimes is a bug with a hard step 2. First, make it fail every time. Playwright can repeat a test, for example with `pnpm e2e --repeat-each=10`. Then shrink: run one test, with one input, and look at the trace. Then follow the same method, one guess at a time.
 
 ## Practice
 
 1. Create the file `exercises/01-programming/debug-practice.ts` and copy the scoreboard program.
 2. Run it. Write the two lines "I expected" and "I got" in a comment.
-3. Try the first guess. Write your prediction in a comment before you run. Then run it.
-4. Do the same for the second guess. Cross out guesses that were wrong.
-5. Fix the bug with one change. Then test points `100` and `20`.
-6. Open `exercises/01-programming/12b-debug-like-a-scientist.ts`. It has five functions with one bug each. They all run, and each gives a wrong result for some inputs.
-7. Run the file with this command:
+3. Try the two hypotheses, one at a time. Write your prediction in a comment before you run each experiment, and cross out the hypotheses that were wrong.
+4. Fix the bug with one change. Then test points `100` and `20`.
+5. Open `exercises/01-programming/12b-debug-like-a-scientist.ts`. It has five functions with one bug each. They all run, and each gives a wrong result for some inputs.
+6. Run the file with this command:
 
 ```bash
 node exercises/01-programming/12b-debug-like-a-scientist.ts
 ```
 
-8. For each function, write one hypothesis and one prediction before you change code. Make every line say `OK`.
+7. For each function, write one hypothesis and one prediction before you change code. Make every line say `OK`.
 
 ## Challenge
 
-Write a small program from a world you choose: a recipe that scales for more people, a football table, a bank account, a temperature converter. Put one bug in it. The program must run, print a wrong result and show no error. Then write the investigation as comments in the file, in the order you did it.
+Write a small program from a world you choose, for example a recipe that scales for more people or a football table. Put one bug in it. The program must run, print a wrong result and show no error. Then write the investigation as comments in the file, in the order you did it.
 
 Create the file `exercises/challenges/12b-debug-like-a-scientist.ts`.
 
@@ -191,21 +162,12 @@ It is done when:
 - The comments have "Expected" and "Got", at least two hypotheses with a prediction for each, and one hypothesis that you crossed out.
 - A second copy of the program, `exercises/challenges/12b-fixed.ts`, prints the right result after exactly one change.
 - You stopped the program at least once with a `debugger` statement, using `node inspect`, and a comment names one value you saw there.
-- A comment says why the bug happened in two sentences, and which other input you used to check the fix.
 
 You will need something this lesson did not teach: a way to ask Node to stop and let you look at values while the program runs. Search for: `node inspect debugger vs code breakpoint`.
 
 ## Think it through
 
-1. A function should return the average of a list. It returns `NaN` for the list `[]` and the right value for every other list. A friend says: "just add `if (list.length === 0) return 0`". Is this fixing the cause or the symptom? What would you ask before you accept it?
-
-<details><summary>Answer</summary>
-
-It may be only a symptom fix. `NaN` comes from dividing 0 by 0, which is correct maths for "no values". The question is what the caller needs: should an empty list return 0, return nothing, or be an error? The answer depends on what the average is used for. An average of 0 can look like real data, and that can hide a problem. Ask the requirement first, then choose.
-
-</details>
-
-2. This code runs, and the answer is wrong. Find the bug.
+1. This code runs, and the answer is wrong. Find the bug.
 
 ```ts
 function lastThree(scores: number[]): number[] {
@@ -221,56 +183,21 @@ It prints `[ 8, 2, 9, 7 ]`, which is four scores, not three. The `slice(-4)` tak
 
 </details>
 
-3. Two ways to find a bug in a 60-line program. Version A: read all lines from the top until you see something wrong. Version B: print one value in the middle and halve the search. Both can work. Which is better here, and when would A win?
+2. A function should return the average of a list. It returns `NaN` for the list `[]` and the right value for every other list. A friend says: "just add `if (list.length === 0) return 0`". Is this fixing the cause or the symptom? What would you ask before you accept it?
 
 <details><summary>Answer</summary>
 
-Version B is better when the program is long, because each print removes half of the code. Version A is better when the program is short, or when you already have a strong guess about one place. The choice depends on how much code there is and how good your first guess is.
+It may be only a symptom fix. `NaN` comes from dividing 0 by 0, which is correct maths for "no values". What you should ask is what the caller needs: should an empty list return 0, return nothing, or be an error? An average of 0 can look like real data and hide a problem.
 
 </details>
 
-4. You change two things at once, and the bug disappears. A teammate says that is fine, since it works. What breaks in this way of working? How do you find out which change mattered?
+3. You change two things at once, and the bug disappears. A teammate says that is fine, since it works. What breaks in this way of working? How do you find out which change mattered?
 
 <details><summary>Answer</summary>
 
 You lose the cause. One change may be the real fix, and the other may be a new hidden bug. To find out, undo one change and run again. If the bug returns, that change was the fix. Then test each change on its own.
 
 </details>
-
-5. Explain to a teammate what a "hypothesis" is in debugging, in three sentences, without using the word "guess".
-
-<details><summary>Answer</summary>
-
-A good answer has these ideas. A hypothesis is a statement about the cause that can be shown false by one experiment. "The loop skips row 2" is one, and "the loop is broken" is not. You write down what you expect to see before the experiment, so a wrong hypothesis teaches you something.
-
-</details>
-
-6. A bug appears only when two people use the app at the same time. You cannot make it happen on your computer. Which step of the method is hard, and what do you do?
-
-<details><summary>Answer</summary>
-
-The hard step is "reproduce". Without it you cannot test a hypothesis. Write down what the logs say and what each user did, in order. Then build a small program that does the same two things close together. Until you can see the bug happen, do not ship a fix.
-
-</details>
-
-## Research on your own
-
-These questions have no answer here. Search the internet, read, and write your answer in your own words.
-
-1. **What is a "heisenbug", and why can adding a `console.log` make a bug disappear?**
-   - Search for: `heisenbug debugging timing`
-   - Try it: write two async functions that print in an order that depends on `setTimeout`. Add a `console.log` or a `wait` in one of them and see if the order changes.
-   - A good answer explains: what changes when you observe the program, and one way to observe without changing the behaviour.
-
-2. **What does `git bisect` do, and how is it the same idea as halving the search area?**
-   - Search for: `git bisect tutorial`
-   - Try it: in a folder with `git init`, make 8 commits that each add one line to a file. Choose a "bad" line in the middle. Run `git bisect` and count the steps.
-   - A good answer explains: what "good" and "bad" mean for a commit, and why the number of steps is small even for many commits.
-
-3. **How do you write a minimal reproducible example, and why do maintainers ask for one?**
-   - Search for: `minimal reproducible example how to write`
-   - Try it: take the scoreboard program and delete lines until it is as short as possible and still prints the wrong winner. Count the lines.
-   - A good answer explains: what to remove, what must stay, and why a short example helps the person who reads it.
 
 ## Next step
 
