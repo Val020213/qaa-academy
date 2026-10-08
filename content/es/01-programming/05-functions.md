@@ -14,7 +14,7 @@ En esta lección escribes funciones que reciben datos y devuelven un resultado, 
 
 ## Tu primera función
 
-Una **función** es un bloque de código con nombre. Escribes los pasos una vez y los ejecutas con el nombre cuantas veces quieras.
+Una **función** agrupa pasos que ejecutas cuando la llamas. En este ejemplo tiene un nombre para llamarla cuantas veces quieras.
 
 ```ts
 function barkTwice() {
@@ -86,7 +86,7 @@ El `: number` después de los paréntesis es el tipo del valor de retorno: esta 
 
 Cuando Node.js ejecuta `return`, la función termina. Las líneas que siguen no se ejecutan.
 
-> **Cuidado:** `console.log` muestra un valor en la terminal. `return` devuelve un valor al código que llamó a la función. No son lo mismo. Una función que solo imprime no tiene valor de retorno.
+> **Cuidado:** `console.log` muestra un valor en la terminal. `return` devuelve un valor al código que llamó a la función. No son lo mismo. Una función que solo imprime y llega al final sin `return` devuelve `undefined`.
 
 ### Una función que solo imprime
 
@@ -102,7 +102,7 @@ const total = areaOfSquare(3) + areaOfSquare(4)
 console.log(total)
 ```
 
-Como no tiene `return`, cada llamada devuelve `undefined`, que significa "nada". La tercera línea suma `undefined + undefined`, y la terminal muestra:
+Como no tiene `return`, cada llamada devuelve `undefined`. La línea de `const total` suma `undefined + undefined`, y la terminal muestra:
 
 ```text
 9
@@ -110,7 +110,7 @@ Como no tiene `return`, cada llamada devuelve `undefined`, que significa "nada".
 NaN
 ```
 
-El `9` y el `16` los imprime `console.log` dentro de la función. El `NaN` es el resultado de sumar dos nadas. El verificador de tipos también lo detecta: VS Code subraya el `+` y dice que no puede sumar dos valores `void`.
+El `9` y el `16` los imprime `console.log` dentro de la función. Para la suma, JavaScript convierte cada `undefined` en `NaN`; el resultado también es `NaN`. El verificador de tipos marca la suma porque no puede aplicar `+` a dos valores `void`.
 
 La solución es devolver el número e imprimir solo al final:
 
@@ -123,9 +123,9 @@ const total = areaOfSquare(3) + areaOfSquare(4)
 console.log(total)
 ```
 
-Esto imprime `25`. Una función que devuelve un valor se puede usar en cuentas, guardar, comparar y probar. Una función que solo imprime solo la puede leer una persona.
+Esto imprime `25`. El número que devuelve la función se puede guardar, comparar o usar en cuentas. Imprimir el área no la devuelve al código que llamó a la función.
 
-Lo mismo pasa con cualquier función sin `return`:
+Una función como esta también devuelve `undefined` al llegar al final sin `return`:
 
 ```ts
 function printGreeting() {
@@ -143,7 +143,7 @@ Hello
 undefined
 ```
 
-La palabra `Hello` viene del `console.log` dentro de la función. La variable `result` no recibió nada. Si quieres un valor, debes devolverlo.
+La palabra `Hello` viene del `console.log` dentro de la función. La variable `result` recibió `undefined`. Para recibir el saludo como resultado de la llamada, la función debe devolverlo.
 
 ## Decisiones dentro de una función
 
@@ -206,11 +206,11 @@ Esto imprime:
 20
 ```
 
-Hace lo mismo que una función normal. Puedes usar cualquiera de los dos estilos; sé consistente dentro de un archivo.
+En este ejemplo, la función flecha calcula el mismo producto que una función declarada con `function`. Puedes usar cualquiera de los dos estilos; sé consistente dentro de un archivo.
 
 ## Parámetros con valor por defecto
 
-Un **parámetro con valor por defecto** tiene un valor que se usa cuando no das ningún argumento.
+Un **parámetro con valor por defecto** usa el valor declarado cuando omites el argumento o pasas `undefined`.
 
 ```ts
 function describeSong(title: string, minutes: number = 3): string {
@@ -276,7 +276,7 @@ Antes de escribir una función grande conviene aplicar la **descomposición**: d
 
 ### Las variables de una función se quedan dentro
 
-Las variables creadas dentro de una función existen solo mientras la función se ejecuta. Esto se llama **alcance** (*scope*).
+Las variables declaradas dentro de una función solo se pueden usar dentro de su alcance. El **alcance** (*scope*) es la parte del código donde un nombre está disponible.
 
 ```ts
 function secretDemo() {
@@ -290,7 +290,7 @@ console.log(secret)
 
 La última línea falla con `ReferenceError: secret is not defined`. Gracias a esto, dos funciones pueden usar el mismo nombre sin chocar.
 
-Un parámetro también es una copia del valor. Cambiarlo no cambia la variable que pasaste.
+Cada parámetro recibe el valor del argumento. Asignar otro valor al parámetro no reasigna la variable que pasaste.
 
 ```ts
 function addOne(n: number): number {
@@ -328,7 +328,7 @@ Una función debe hacer el código más fácil de leer. `login()` es un buen nom
 node exercises/01-programming/05-functions.ts
 ```
 
-Resuelve los ejercicios. Haz que todas las líneas digan `OK`.
+Resuelve los ejercicios. Haz que cada comprobación diga `OK`.
 
 ## Reto
 

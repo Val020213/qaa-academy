@@ -9,7 +9,7 @@ Mañana sale una versión y tienes que correr la regresión. Abres la hoja con 1
 
 Hacia el caso 90 ya haces clic casi sin mirar, y ahí es donde se escapa lo que no esperabas: el total que no suma el envío, el botón que quedó fuera de lugar. La regresión te toma dos días, y el equipo ya está planeando la siguiente versión.
 
-Una parte grande de esa hoja puede ejecutarla un programa en minutos, las veces que haga falta. Este curso te enseña a escribir ese programa.
+Muchas comprobaciones de esa hoja puede ejecutarlas un programa, las veces que haga falta. Este curso te enseña a escribir ese programa.
 
 ## Objetivo
 
@@ -20,7 +20,7 @@ Una parte grande de esa hoja puede ejecutarla un programa en minutos, las veces 
 
 ## ¿Qué es la automatización de pruebas?
 
-Automatizar pruebas es escribir código que ejecute tus casos por ti. Cada caso se convierte en un **test automatizado**: un archivo que abre la aplicación, hace los pasos, compara el resultado y dice si pasó o falló. Corre cuando tú quieras, o en cada cambio del equipo, sin que nadie lo mire.
+Automatizar pruebas es escribir código que ejecute tus casos por ti. Un caso se convierte en un **test automatizado**: código que abre la aplicación, hace los pasos, compara el resultado y dice si pasó o falló. Corre cuando tú quieras, o en cada cambio del equipo, sin que nadie lo mire.
 
 ## Ya tienes la parte difícil
 
@@ -35,11 +35,11 @@ Un **test end-to-end** (de extremo a extremo, test E2E) recorre un flujo complet
 3. Haz clic en "Log in".
 4. Comprueba que aparece el *dashboard*.
 
-Se llama "de extremo a extremo" porque atraviesa todas las capas a la vez: interfaz, servidor y base de datos. Si algo falla en cualquiera de ellas, el test falla, aunque no te dice en cuál.
+Se llama "de extremo a extremo" porque recorre el flujo desde la acción del usuario hasta su resultado. Puede pasar por la interfaz, el servidor y la base de datos. Detecta un fallo si impide un paso o cambia un resultado que el test comprueba.
 
 ## ¿Qué es Playwright?
 
-**Playwright** es una herramienta gratuita de Microsoft que controla un navegador como Chrome desde código. Abre páginas, hace clic, escribe y lee lo que aparece en pantalla. Playwright también existe para Python, Java y .NET. En este curso lo usas con TypeScript, que es su versión más completa.
+**Playwright** es una herramienta gratuita de Microsoft que controla un navegador como Chrome desde código. Abre páginas, hace clic, escribe y lee lo que aparece en pantalla. Playwright también existe para Python, Java y .NET. En este curso lo usas con TypeScript.
 
 ## Herramientas del curso
 
@@ -70,7 +70,7 @@ Muchos cursos empiezan por la herramienta. Este empieza por el lenguaje, porque 
 | 3 | Playwright básico | Escribir tus primeros tests reales en el navegador |
 | 4 | Buenas prácticas de QAA | Hacer tests estables, claros y fáciles de mantener |
 | 5 | Proyecto real | Probar una aplicación pequeña y completa |
-| 6 | Referencias | Enlaces y un glosario para después |
+| 6 | Referencias | Enlaces y repositorios para después |
 
 ## Cómo estudiar
 
@@ -104,7 +104,7 @@ Por eso escribir tus casos como pasos concretos, como en la Práctica, es la pri
 
 ### La automatización no reemplaza las pruebas manuales
 
-Un test automatizado solo repite una comprobación que ya conoces. No encuentra bugs nuevos: avisa cuando se rompe un comportamiento que antes funcionaba. Encontrar lo nuevo sigue necesitando a una persona que explore, dude y note lo que parece raro. Lo que conviene es combinar las dos cosas: exploración manual para descubrir y automatización para proteger lo descubierto.
+Un test automatizado repite las comprobaciones que programaste. Puede encontrar un bug que no habías visto, pero solo en lo que comprueba. Una persona también necesita explorar, cuestionar y notar lo que parece raro. Lo que conviene es combinar las dos cosas: exploración manual para descubrir y automatización para proteger lo descubierto.
 
 ## Práctica
 

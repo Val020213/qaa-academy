@@ -7,7 +7,7 @@ duration: 50 min
 
 In this lesson you group related values in an object, keep many objects in an array, and see why a function can change an object but not a number.
 
-- Read, change and add a property of an object, also in a nested object.
+- Read and change a property of an object, also in a nested object.
 - Keep many objects in an array and loop over them.
 - Predict when a function changes the value you gave it, and when it does not.
 - Decide when to change an object and when to make a new one.
@@ -66,7 +66,7 @@ The program prints:
 
 The second line is the area of the square: side times side. The object holds the data, and the code calculates new data from it.
 
-The property `size` does not exist on `square`. If you write `console.log(square.size)`, TypeScript shows a red underline before you run anything. If you ignore it and run the file, the program prints `undefined` and does not stop. A spelling mistake in a property name gives "no value", not an error.
+The property `size` does not exist on `square`. If you write `console.log(square.size)`, TypeScript shows a red underline before you run anything. If you ignore it and run the file, the program prints `undefined` and does not stop.
 
 ## Change a property
 
@@ -131,7 +131,7 @@ The program prints:
 5
 ```
 
-`rectangle.width` and `rectangle["width"]` mean the same. The dot form is easier to read. Use the bracket form only when the name is in a variable.
+`rectangle.width` and `rectangle["width"]` mean the same. The dot form is easier to read. Use brackets when the name is in a variable or cannot be written after a dot.
 
 ## A list of objects
 
@@ -163,11 +163,11 @@ Sunday by Mia
 Total: 640 seconds
 ```
 
-An array of objects is a very common way to organize data: each element is an object, and every object has the same properties.
+In this list, each element is an object with the same properties. Arrays also allow objects with different properties.
 
 ## Destructuring
 
-**Destructuring** takes properties out of an object and puts them in variables, in one line.
+**Destructuring** reads properties from an object and stores their values in variables.
 
 ```ts
 const song = { title: "Blue", artist: "Mia", seconds: 215 }
@@ -183,7 +183,7 @@ The program prints:
 Blue lasts 215 seconds
 ```
 
-The names inside `{ }` must match the property names. You can also use it in a function parameter:
+In this form, the names inside `{ }` match the property names. You can also use it in a function parameter:
 
 ```ts
 function describe({ title, artist }: { title: string, artist: string }): string {
@@ -219,9 +219,9 @@ console.log(age, dog.age)
 
 The program prints `3 4`. The number's age did not change, but the dog's did.
 
-A number is passed by value: the function receives its own copy of `3`, adds 1 to the copy, and the copy disappears. An object is different. A variable does not hold the object itself, it holds a link to it, and that link is called a **reference**. The function receives the same link, so `dog.age = ...` changes the one dog that both names point to.
+Arguments are passed by value. With a number, the parameter receives the value `3`, and assigning another number to it does not change the original variable. With an object, a **reference**, a link to the same object, is copied. That is why `dog.age = ...` changes the shared dog. Assigning another object to the parameter does not change the original variable.
 
-The same happens with an assignment. When you write `const same = original`, you copy the link, not the object, and two names point to one object. The three dots in `{ ...original }` make a new object with the same properties.
+The same happens with an assignment. When you write `const same = original`, you copy the link, not the object, and two names point to one object. In this example, `{ ...original }` makes a new object with the same properties.
 
 ```ts
 const original = { id: 1, status: "failed" }
@@ -266,13 +266,13 @@ The program prints:
 { name: 'Rex', age: 4 }
 ```
 
-The three dots `...dog` put all properties of `dog` into the new object. Then `age: dog.age + 1` replaces one of them. A function that returns a new value and changes nothing else is easier to trust: you can call it twice and nothing surprising happens.
+For this object, `...dog` copies its properties into the new object. Then `age: dog.age + 1` replaces one of them. A function that returns a new value and changes nothing else is easier to trust: you can call it twice and nothing surprising happens.
 
 ## Go deeper
 
 ### The shallow copy
 
-`{ ...rex }` copies each property as it is. If a property holds another object, the link is copied and that inner object is still shared.
+In this example, `{ ...rex }` copies the property values. If a property holds another object, the link is copied and that inner object is still shared.
 
 ```ts
 const rex = { name: "Rex", owner: { city: "Lima" } }
@@ -281,7 +281,7 @@ copyOfRex.owner.city = "Cusco"
 console.log(rex.owner.city)
 ```
 
-It prints `Cusco`. The copy has its own `name`, but its `owner` is the same object. To copy everything inside too, use `structuredClone(rex)`.
+It prints `Cusco`. The copy has its own `name`, but its `owner` is the same object. To copy the inner object in this example too, use `structuredClone(rex)`.
 
 ![The copy is a new object, but its owner is the same object as the original's.](/images/shallow-copy.en.svg)
 
@@ -312,7 +312,7 @@ It prints `false`, `true` and `true`. The checker at the bottom of every exercis
 node exercises/01-programming/07-objects.ts
 ```
 
-Make every line say `OK`.
+Make every check say `OK`.
 
 ## Challenge
 
@@ -362,7 +362,7 @@ console.log(`${song.title} lasts ${song.seconds} seconds`)
 <details>
 <summary>Answer</summary>
 
-TypeScript shows a red underline: the property `seconds` does not exist. If you ignore it and run the file, it prints `Blue lasts undefined seconds`. If the code then used the value in a sum, the result would be `NaN`. The rename must be done in every place.
+TypeScript shows a red underline: the property `seconds` does not exist. If you ignore it and run the file, it prints `Blue lasts undefined seconds`. If you then add a number to that `undefined`, the result is `NaN`. The rename must be done in every place.
 
 </details>
 

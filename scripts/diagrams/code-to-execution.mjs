@@ -11,8 +11,8 @@ const TEXT = {
     node: "Node.js",
     check: ["Type checker", ["VS Code, pnpm typecheck"]],
     apart: ["a separate tool:", "Node.js does not check types"],
-    syntax: ["a syntax error", "stops everything here"],
-    runtime: ["other errors", "appear here"],
+    syntax: ["a missing quote", "stops the file here"],
+    runtime: ["runtime errors", "appear here"],
   },
   es: {
     file: ["Tu archivo", ["hello.ts", "(texto)"]],
@@ -23,8 +23,8 @@ const TEXT = {
     node: "Node.js",
     check: ["Verificador de tipos", ["VS Code, pnpm typecheck"]],
     apart: ["una herramienta aparte:", "Node.js no verifica los tipos"],
-    syntax: ["un error de sintaxis", "detiene todo aquí"],
-    runtime: ["los demás errores", "aparecen aquí"],
+    syntax: ["una comilla sin cerrar", "detiene el archivo aquí"],
+    runtime: ["errores de ejecución", "aparecen aquí"],
   },
 }
 

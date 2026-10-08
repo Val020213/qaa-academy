@@ -13,7 +13,7 @@ El curso ejecuta casi todo desde la terminal: instalar el proyecto, arrancarlo y
 
 ## Abre la terminal en VS Code
 
-En VS Code, haz clic en Terminal > New Terminal. Se abre un panel en la parte de abajo con una línea que termina en `>`. Esa línea te muestra en qué carpeta estás, y a continuación escribes tu comando.
+En VS Code, haz clic en Terminal > New Terminal y elige PowerShell en el menú de la terminal. Se abre un panel en la parte de abajo con una línea que termina en `>`. Esa línea te muestra en qué carpeta estás, y a continuación escribes tu comando.
 
 ![La terminal se abre en la parte de abajo de VS Code. La captura es de VS Code en el navegador: en Windows la ruta se ve como C:\Users\you.](/images/vscode-terminal-panel.png)
 
@@ -27,7 +27,7 @@ Una terminal es una ventana donde escribes comandos, y PowerShell es el programa
 
 ## Rutas
 
-En Windows, una ruta empieza con una letra de unidad y usa barras invertidas:
+Esta ruta absoluta de Windows empieza con una letra de unidad y usa barras invertidas:
 
 ```text
 C:\Users\you\projects
@@ -35,7 +35,7 @@ C:\Users\you\projects
 
 En los comandos puedes escribir la misma ruta con barras normales: `C:/Users/you/projects`. PowerShell y Node aceptan las dos, y este curso usa barras normales en los comandos.
 
-Una **ruta absoluta** empieza en la unidad, como `C:/Users/you/projects`, y significa lo mismo desde cualquier carpeta. Una **ruta relativa** empieza desde la carpeta en la que estás, como `projects` o `../other`, así que da resultados distintos según dónde estés.
+Una **ruta absoluta** como `C:/Users/you/projects` empieza en la raíz de la unidad y significa lo mismo desde cualquier carpeta. Una **ruta relativa** empieza desde la carpeta en la que estás, como `projects` o `../other`, así que da resultados distintos según dónde estés.
 
 ![Una ruta absoluta empieza en la unidad; una relativa, en la carpeta donde estás.](/images/folder-paths.es.svg)
 
@@ -95,7 +95,7 @@ Path
 C:\Users\you
 ```
 
-> **Nota:** Las mayúsculas no importan en las rutas de PowerShell. `Projects` y `projects` son la misma carpeta.
+> **Nota:** En las carpetas habituales de Windows, las mayúsculas no importan. `Projects` y `projects` son la misma carpeta.
 
 Si el nombre de una carpeta tiene un espacio, ponlo entre comillas. Sin ellas, PowerShell lee dos palabras:
 
@@ -110,13 +110,13 @@ El `cd` falla con un error sobre un argumento de más, porque ve `my` y `pets` p
 cd "my pets"
 ```
 
-> **Cuidado:** Un comando como `rm` borra sin preguntar y sin pasar por la papelera de reciclaje. Lee cada comando antes de ejecutarlo, sobre todo si lo copiaste de una página web o te lo dio un asistente de IA.
+> **Cuidado:** Un comando como `rm` puede borrar archivos sin preguntar y sin pasar por la papelera de reciclaje. Lee cada comando antes de ejecutarlo, sobre todo si lo copiaste de una página web o te lo dio un asistente de IA.
 
 ## Lee la salida
 
-Lee siempre lo que imprime un comando. Si funciona, a menudo no imprime nada o imprime un resultado corto. Si falla, imprime un error en rojo.
+Lee siempre lo que imprime un comando. Si funciona, a menudo no imprime nada o imprime un resultado corto. Si falla, busca el mensaje de error.
 
-Aquí hay un error por una carpeta que no existe:
+Desde tu carpeta de usuario, este comando falla si la carpeta no existe:
 
 ```bash
 cd missing-folder
@@ -126,24 +126,24 @@ cd missing-folder
 cd : Cannot find path 'C:\Users\you\missing-folder' because it does not exist.
 ```
 
-El mensaje nombra la ruta que no encontró. O escribiste mal el nombre, o no estás en la carpeta que creías. El mismo comando da resultados distintos en carpetas distintas, y la mayoría de los errores de principiante vienen de ahí. Cuando el resultado sea raro, ejecuta `pwd` y `ls` antes de cambiar nada.
+El mensaje nombra la ruta que no encontró. O escribiste mal el nombre, o no estás en la carpeta que creías. El mismo comando da resultados distintos en carpetas distintas, porque una ruta relativa parte de la carpeta actual. Cuando el resultado sea raro, ejecuta `pwd` y `ls` antes de cambiar nada.
 
 ## Teclas que ahorran tiempo
 
-- **Tab** completa un nombre. Escribe `cd pro` y presiona Tab: PowerShell escribe `projects`. Úsala siempre, porque ahorra escritura y evita errores de tecleo.
+- **Tab** completa un nombre. Si `projects` está en la carpeta actual, escribe `cd pro` y presiona Tab para completar el nombre. Úsala siempre, porque ahorra escritura y evita errores de tecleo.
 - **Flecha arriba** trae de vuelta tu último comando. Presiónala otra vez para ir más atrás.
 - **Ctrl+C** detiene un comando que todavía se está ejecutando. La usarás para detener el sitio del curso.
 
 ## Abre una carpeta en VS Code
 
-El comando `code .` abre la carpeta actual en VS Code. El punto significa "esta carpeta".
+El comando `code .` abre la carpeta actual en VS Code. El punto significa "esta carpeta". Ejecuta este ejemplo desde tu carpeta de usuario:
 
 ```bash
 cd projects
 code .
 ```
 
-VS Code abre una ventana nueva que muestra la carpeta. Esta es la forma habitual de empezar a trabajar en un proyecto.
+VS Code muestra la carpeta; puede usar una ventana nueva o una existente. Esta es la forma habitual de empezar a trabajar en un proyecto.
 
 ## Práctica
 

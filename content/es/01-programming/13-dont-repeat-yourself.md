@@ -128,7 +128,7 @@ if (pet.age === "") {
 console.log(errors)
 ```
 
-Si el refugio agrega un cuarto campo, `color`, tienes que escribir otro bloque completo. En la versión siguiente los campos son datos:
+Si el refugio agrega un cuarto campo obligatorio, `color`, tienes que escribir otro bloque completo. En la versión siguiente los campos son datos:
 
 ```ts
 const pet: Record<string, string> = { name: "Rex", species: "", age: "" }
@@ -155,11 +155,11 @@ Las dos versiones imprimen el mismo resultado:
 [ 'Species is required', 'Age is required' ]
 ```
 
-Para un campo nuevo, agregas un objeto al array. El bucle no cambia.
+Para un campo obligatorio nuevo, agregas su valor a `pet` y un objeto al array. El bucle no cambia.
 
 ## Cuándo la repetición es la mejor opción
 
-Un trozo de código compartido ata a quienes lo usan: cuando lo cambias, cambian todos. Por eso la pregunta no es si dos trozos se ven iguales, sino si cambian por la misma razón.
+Un trozo de código compartido ata a quienes lo usan: todos usan la misma implementación. Por eso la pregunta no es si dos trozos se ven iguales, sino si cambian por la misma razón.
 
 ### Mismo texto, distinto conocimiento
 
@@ -194,7 +194,7 @@ Lo mismo pasa con un carrito que escribe `total * 1.2` y una factura que escribe
 
 ### La regla de tres
 
-La **regla de tres** dice cuándo quitar una repetición. La primera vez, escribe el código. La segunda vez, puedes copiarlo. La tercera vez ves el patrón y quitas la repetición. Con dos copias muchas veces todavía no sabes cuál es la diferencia real.
+La **regla de tres** es una guía: la primera vez escribes el código; la segunda puedes copiarlo; la tercera revisas si las copias representan la misma regla antes de unirlas. Con dos copias muchas veces todavía no sabes cuál es la diferencia real.
 
 ### Un atajo que hace daño
 
@@ -227,14 +227,14 @@ Este es el contrapeso de DRY: **KISS** (*keep it simple*, mantenlo simple) y **Y
 
 ## Práctica
 
-1. Abre `exercises/01-programming/13-dont-repeat-yourself.ts`. Reemplaza cada `// TODO` con código. Escribe cada regla una sola vez.
+1. Abre `exercises/01-programming/13-dont-repeat-yourself.ts`. Completa las funciones y la constante marcadas con `// TODO`, reemplazando sus valores provisionales. Escribe cada regla una sola vez.
 2. Ejecuta el archivo del ejercicio con este comando:
 
 ```bash
 node exercises/01-programming/13-dont-repeat-yourself.ts
 ```
 
-Haz que cada línea diga `OK`. Las comprobaciones solo ven el resultado, así que revisa tú mismo que cada regla tenga un solo hogar.
+Haz que cada comprobación diga `OK`. Las comprobaciones solo ven el resultado, así que revisa tú mismo que cada regla tenga un solo hogar.
 
 ## Reto
 
@@ -245,7 +245,7 @@ Crea el archivo `exercises/challenges/13-dont-repeat-yourself.ts`. No se da ning
 Está terminado cuando:
 
 - El archivo corre con `node exercises/challenges/13-dont-repeat-yourself.ts` e imprime al menos tres líneas.
-- Cada una de las tres reglas está escrita una sola vez, y cuando cambias una y ejecutas otra vez, cambia cada línea que la usa.
+- Cada una de las tres reglas está escrita una sola vez; al cambiarla, todas las partes que la usan siguen el nuevo valor.
 - Una de tus reglas es una tabla de precios o de nombres, y usas un bucle sobre ella.
 - Un lugar de tu código queda repetido a propósito, y un comentario de una frase dice por qué.
 
@@ -261,7 +261,7 @@ Las dos reglas se ven iguales pero cambian por razones distintas, así que son c
 
 </details>
 
-2. Encuentra el bug. Un compañero dice: "Bien, la tasa de impuesto tiene una constante". Pero una regla sigue copiada. ¿Cuál es el problema y qué revisarías antes de cambiarlo?
+2. Un compañero propone usar `TAX_RATE` también en `tip`, porque los dos valores son `0.2`. ¿Qué revisarías antes de cambiarlo?
 
 ```ts
 const TAX_RATE = 0.2
@@ -277,15 +277,15 @@ function tip(price: number): number {
 
 <details><summary>Respuesta</summary>
 
-El `0.2` de `tip` tiene el mismo texto pero puede ser una regla distinta. Si la propina es un 20 por ciento fijo que no tiene nada que ver con el impuesto, usar `TAX_RATE` ahí sería un bug esperando al próximo cambio de impuesto. Pregunta: si el impuesto pasa a 0.25, ¿la propina también debe cambiar? Si no, la propina necesita su propia constante, `TIP_RATE`. La constante del impuesto es correcta. El verdadero defecto es el `0.2` sin nombre, que esconde lo que significa.
+El `0.2` de `tip` tiene el mismo texto pero puede ser una regla distinta. Si la propina es un 20 por ciento fijo que no tiene nada que ver con el impuesto, usar `TAX_RATE` ahí sería un bug esperando al próximo cambio de impuesto. Pregunta: si el impuesto pasa a 0.25, ¿la propina también debe cambiar? Si no, la propina necesita su propia constante, `TIP_RATE`. La constante del impuesto es correcta. El código no demuestra que ambas tasas deban cambiar juntas. Nombrar la tasa de propina aclara que es una regla independiente.
 
 </details>
 
-3. El requisito del formulario del refugio cambia: los campos siguen siendo los mismos, pero la etiqueta de "Age" debe ser "Age in years" y `color` es opcional. En la versión con bucle, ¿qué es fácil de cambiar y qué se rompe?
+3. El refugio cambia la etiqueta de "Age" a "Age in years" y agrega `color` como campo opcional. En la versión con bucle, ¿qué cambias?
 
 <details><summary>Respuesta</summary>
 
-La etiqueta es fácil: editas un objeto del array. El campo opcional es más difícil, porque el bucle trata cada elemento como obligatorio. Puedes agregar un `required: boolean` a cada objeto y revisarlo en el bucle. Eso vuelve a ser una bandera, pero vive en los datos, no en la llamada a una función, así que sigue siendo legible.
+Editas la etiqueta del objeto de `age` en el array `required`. Agregas `color` a `pet`, pero no a `required`, porque es opcional. El bucle no cambia.
 
 </details>
 

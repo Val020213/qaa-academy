@@ -23,12 +23,12 @@ No vas a trabajar en ese repositorio sino en tu propia copia, llamada **fork**. 
 
 ![El botón Fork está arriba a la derecha, en la página del repositorio.](/images/github-fork.png)
 
-![En la página siguiente, Owner muestra tu usuario. Deja todo como está y haz clic en Create fork.](/images/github-create-fork.png)
+![En la página siguiente, elige tu usuario en Owner y haz clic en Create fork.](/images/github-create-fork.png)
 
 
 Ahora tienes tu propia copia en `https://github.com/<your-user>/qaa-academy`.
 
-En la terminal, ve a la carpeta donde guardas tus proyectos. Luego ejecuta `git clone` con la dirección de tu fork. Reemplaza `<your-user>` con tu nombre de usuario de GitHub:
+Desde tu carpeta de usuario, entra en la carpeta donde guardas tus proyectos. Luego ejecuta `git clone` con la dirección de tu fork. Reemplaza `<your-user>` con tu nombre de usuario de GitHub:
 
 ```bash
 cd projects
@@ -39,7 +39,7 @@ code .
 
 `git clone` descarga tu fork a la computadora, y `qaa` es el nombre de la carpeta nueva.
 
-En la ventana nueva de VS Code, abre una terminal con Terminal > New Terminal. Empieza dentro de la carpeta `qaa`.
+En VS Code, abre una terminal con Terminal > New Terminal. Empieza dentro de la carpeta `qaa`.
 
 ## Instala las dependencias
 
@@ -49,11 +49,11 @@ Un proyecto usa código escrito por otras personas. Esas piezas se llaman **depe
 pnpm install
 ```
 
-Tarda cerca de un minuto y crea una carpeta llamada `node_modules`. Tres piezas trabajan juntas:
+La instalación crea una carpeta llamada `node_modules`; el tiempo depende de la conexión. Tres piezas trabajan juntas:
 
 - `package.json` lista las dependencias del proyecto.
 - `pnpm-lock.yaml` registra la versión exacta de cada una, para que todos obtengan las mismas.
-- `node_modules/` guarda las copias descargadas. Nunca la edites y nunca se guarda en Git.
+- `node_modules/` guarda las copias descargadas. No la edites: este proyecto la excluye de Git.
 
 Si borras `node_modules`, `pnpm install` la vuelve a crear a partir de los otros dos archivos.
 
@@ -79,7 +79,7 @@ http://localhost:5180
 
 La terminal queda ocupada mientras el sitio corre. Para detenerlo, haz clic en la terminal y presiona **Ctrl+C**.
 
-El sitio siempre usa el puerto 5180. Si `pnpm dev` falla porque el puerto ya está en uso, lo más probable es que el sitio ya esté corriendo en otra terminal: detén esa con Ctrl+C o sigue usando el sitio que ya está abierto.
+El sitio usa el puerto 5180 por defecto. Si `pnpm dev` falla porque el puerto ya está en uso, comprueba qué programa lo ocupa. Si es este curso en otra terminal, detén esa con Ctrl+C o sigue usando el sitio abierto.
 
 ## Las carpetas
 
@@ -103,7 +103,7 @@ Un **script** es un comando con nombre guardado en `package.json`. Lo ejecutas c
 | --- | --- |
 | `pnpm dev` | Inicia el sitio del curso en http://localhost:5180 |
 | `pnpm build` | Revisa los tipos y construye la versión final del sitio |
-| `pnpm typecheck` | Revisa el código TypeScript en busca de errores |
+| `pnpm typecheck` | Revisa los tipos del código TypeScript del proyecto |
 | `pnpm e2e` | Ejecuta los tests de Playwright sin un navegador visible |
 | `pnpm e2e:ui` | Ejecuta los tests en una ventana donde puedes mirar cada paso |
 | `pnpm e2e:headed` | Ejecuta los tests con un navegador visible |
@@ -112,7 +112,7 @@ Un **script** es un comando con nombre guardado en `package.json`. Lo ejecutas c
 
 ## Ejecuta los tests una vez
 
-Playwright necesita su propio navegador. Descárgalo una vez con este comando:
+Estos tests usan el Chromium que instala Playwright. Descárgalo con este comando:
 
 ```bash
 pnpm exec playwright install chromium
@@ -124,17 +124,17 @@ Luego ejecuta los tests:
 pnpm e2e
 ```
 
-No necesitas iniciar el sitio primero, Playwright lo inicia por sí mismo, y si `pnpm dev` sigue corriendo en otra terminal no pasa nada. Tampoco necesitas entender todavía estos tests: este paso solo prueba que tu configuración funciona, y aprenderás cómo funcionan en el módulo 3.
+Con la configuración del curso, Playwright inicia el sitio si no está en ejecución. En tu máquina también puede usar el servidor que ya responde en esa dirección: comprueba que sea el del curso. Tampoco necesitas entender todavía estos tests: este paso solo prueba que tu configuración funciona, y aprenderás cómo funcionan en el módulo 3.
 
-Si todos pasan, la salida termina con una línea que tiene el número de tests y la palabra `passed`, y después el tiempo. Los números pueden ser distintos en tu computadora. Los tests marcados como `skipped` son ejercicios que completarás en el módulo 3.
+Si todos pasan, la salida incluye una línea que tiene el número de tests y la palabra `passed`, y después el tiempo. Los números pueden ser distintos en tu computadora. Los tests marcados como `skipped` son ejercicios que completarás en el módulo 3.
 
 ![El final de una ejecución sana de pnpm e2e.](/images/terminal-pnpm-e2e.png)
 
-Playwright descarga un navegador que coincide con su propia versión, para que los tests se comporten igual en todas las computadoras. Tu Chrome, en cambio, se actualiza solo.
+Cada versión de Playwright elige una versión de Chromium. Si actualizas Playwright, repite la instalación del navegador. Usar la misma versión reduce diferencias entre computadoras, pero no garantiza el mismo resultado en los tests.
 
 ## Práctica
 
-Abre `package.json` en VS Code y encuentra la sección `scripts`. Relaciona cada entrada con la tabla de la sección anterior. Después busca dentro de `content/` el archivo de esta lección.
+Abre `package.json` en VS Code y encuentra la sección `scripts`. Encuentra las entradas de los comandos de la tabla anterior. Después busca dentro de `content/` el archivo de esta lección.
 
 ## Piénsalo bien
 

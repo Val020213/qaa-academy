@@ -14,7 +14,7 @@ In this lesson you store text, numbers and true/false values in variables, and l
 
 ## Values
 
-A **value** is a piece of data your program works with. There are three basic kinds. You can try them with `console.log`.
+A **value** is a piece of data your program works with. Here you will use three kinds of value. You can try them with `console.log`.
 
 ```ts
 console.log("Rex")
@@ -82,9 +82,9 @@ This prints `25`.
 
 ## const and let
 
-There are two ways to make a variable.
+In this course we declare variables in two ways.
 
-`const` makes a variable that cannot change. Use it by default.
+`const` declares a variable that you cannot assign another value to. Use it by default.
 
 `let` makes a variable that can change. Use it only when the value must change.
 
@@ -114,7 +114,7 @@ This prints:
 
 Notice that you write `let` only once. To change the value later, write the name and `=`.
 
-Why not use `let` everywhere? Because `const` tells the reader the value never changes, and when they see `let` they know to watch for a change.
+Why not use `let` everywhere? Because `const` tells the reader the variable is not reassigned, and when they see `let` they know to watch for a change.
 
 > **Careful:** You may see `var` in old code on the internet. Never use `var`. It has confusing rules. Use `const` or `let`.
 
@@ -122,7 +122,7 @@ Why not use `let` everywhere? Because `const` tells the reader the value never c
 
 Choose a name that says what the value is for. A good name saves you from writing a comment: `const t = 5 * 7` says nothing, and `const cookingMinutes = servings * minutesPerServing` explains itself.
 
-Rules:
+This course's conventions:
 
 - Use English words.
 - Start with a lowercase letter.
@@ -187,9 +187,9 @@ It prints:
 0.30000000000000004
 ```
 
-This is not a bug in your program or in JavaScript. It is called a **floating point error**, and it appears in almost every programming language.
+This is not a bug in your program or in JavaScript. It is a **rounding error** from floating point representation.
 
-The cause is how numbers are stored. You write them in base 10, but JavaScript stores them in binary and in a fixed space: 64 bits per number, following the IEEE 754 standard. Base 10 has a similar case with 1/3, which is 0.3333… without end: if you can only write a fixed number of digits, you have to cut it. In binary, 0.1 is one of those fractions that never end. What gets stored is the closest possible number, 0.1000000000000000055…, and the same happens with 0.2. When you add them, the two small errors add up too, and the result no longer lands exactly on 0.3.
+The cause is limited precision. JavaScript's `number` type follows the IEEE 754 64-bit binary format. Base 10 has a similar case with 1/3: with a fixed number of digits, you have to round. In binary, 0.1 and 0.2 do not end either; they are represented by the closest available values. The sum is also rounded to a representable value, which is why it does not exactly match the value JavaScript uses for 0.3.
 
 Not every decimal has this problem. 0.5 and 0.25 are exact, because in binary they are 1/2 and 1/4. Whole numbers are exact too, up to 9,007,199,254,740,992 (2 to the power of 53).
 
@@ -203,7 +203,7 @@ const priceInCents = 1999
 console.log(priceInCents * 3)
 ```
 
-This prints `5997`. You divide by 100 only when you show the price to a person.
+This prints `5997`. In this example you divide by 100 only when you show the price to a person.
 
 ## Joining text
 
@@ -257,9 +257,9 @@ Rex is 21 in dog years
 
 ## Go deeper
 
-### A variable keeps its own copy of a value
+### Copying a number to another variable
 
-When you write `const saved = price`, JavaScript copies the value of `price` into `saved`. The two variables do not stay linked.
+In `const saved = price`, `price` is a number and JavaScript copies that value into `saved`. The two variables do not stay linked.
 
 ```ts
 let price = 10
@@ -302,7 +302,7 @@ The same goes for template literals. A normal string in quotes does not fill in 
 node exercises/01-programming/02-values-and-variables.ts
 ```
 
-At the start every line says `FAIL`. Solve the exercises one by one. Run the file after each one. Make every line say `OK`.
+At first, all five checks say `FAIL`. Solve the exercises one by one. Run the file after each one. Make each check say `OK`.
 
 ## Challenge
 
@@ -356,7 +356,7 @@ It prints `Hello, ${dogName}`. The text uses normal quotes, so the parser reads 
 <details>
 <summary>Answer</summary>
 
-Nothing breaks when you run it. The program gives the same output. What you lose is information: with `let` everywhere, the reader must check every variable for changes. You also lose a safety net. If you change a value by accident, `const` stops the program with an error, and `let` does not.
+If the program does not try to reassign a variable declared with `const`, its output stays the same. What you lose is information: with `let` everywhere, the reader must check every variable for changes. You also lose a safety net. If you reassign a variable by accident, `const` stops the program with an error, and `let` does not.
 
 </details>
 

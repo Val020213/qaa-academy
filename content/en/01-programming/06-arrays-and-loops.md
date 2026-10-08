@@ -27,7 +27,7 @@ This prints:
 [ 'Rex', 'Mimi', 'Luna' ]
 ```
 
-Each value in the array is an **item**. Node shows text with single quotes; it is the same text.
+Each value in the array is an **item**. In this output, Node.js shows strings with single quotes; it is the same text.
 
 An array can hold numbers too:
 
@@ -56,11 +56,11 @@ Luna
 
 The first item is index 0, the second is index 1 and the third is index 2. In a list of 3 items, the last index is 2.
 
-Counting starts at 0 because of how a list is stored in memory. Its items sit in slots of the same size, one next to the other. The variable `dogs` does not contain the items: it contains a **pointer**, which is the memory address where the first slot starts. To reach an item, the address is calculated as address = start + index × slot size. So the index is how many slots to skip from the start, and for the first item there are none to skip.
+Indices start at 0 by a convention that JavaScript inherited from languages such as C, and the reason is in memory. In C, an array is a block of slots of the same size, one next to the other, and the variable holds a **pointer**: the memory address of the first slot. To reach an item, the program calculates address = start + index × slot size. The index is how many slots to skip from the start, and for the first item there are none to skip.
 
-![An array in memory: the variable holds the address of the first slot, and the index says how many slots to skip.](/images/zero-index.en.svg)
+![An array in memory in a language like C: the variable holds the address of the first slot, and the index says how many slots to skip.](/images/zero-index.en.svg)
 
-The addresses in the drawing are examples. Languages such as C work exactly this way, and that is where the convention of starting at 0 comes from. The JavaScript engine stores normal lists the same way, although it never shows you the addresses.
+JavaScript keeps the convention but does not show you addresses: `dogs` holds a reference to the array, and the engine decides how to store it. V8, the engine inside Node.js, stores an array like this one much as the drawing shows, in a block of contiguous slots where each one holds the reference to a text. If the array has huge gaps, V8 switches to another structure, which is why a JavaScript index is not a memory address.
 
 If you ask for an index that does not exist, there is no error:
 
@@ -71,7 +71,7 @@ console.log(dogs[-1])
 
 It prints `undefined` twice. The program does not tell you the index is wrong; it gives you "no value" and goes on. This is why a wrong index is dangerous: the mistake shows up later, far from where it began.
 
-In this project, the type checker is strict. It treats `dogs[0]` as "a string or `undefined`". You can print it, but to use it as a string you must check it first with an `if`.
+In this project, `noUncheckedIndexedAccess` makes the type checker treat `dogs[0]` as "a string or `undefined`". Before using it as a string, you can check it with an `if`.
 
 ```ts
 const first = dogs[0]
@@ -86,11 +86,11 @@ This prints:
 REX
 ```
 
-`toUpperCase()` is a ready-made function of text. It changes the text to capital letters.
+`toUpperCase()` returns uppercase text; it does not change the original.
 
 ## Length
 
-The **length** of an array is the number of items.
+In an array with no empty positions like these, its **length** is the number of items.
 
 ```ts
 const dogs = ["Rex", "Mimi", "Luna"]
@@ -107,7 +107,7 @@ Luna
 Luna
 ```
 
-The last index is always `length - 1`. The `at` function is a shorter way to say the same thing: `at(-1)` is the last item and `at(-2)` is the one before it.
+In a nonempty array like this, the last index is `length - 1`. `at(-1)` returns the last item and `at(-2)` the one before it; if it does not exist, it returns `undefined`.
 
 ## Adding items with push
 
@@ -191,7 +191,7 @@ for (const item of queue) {
 }
 ```
 
-It prints `a`, `b` and `c`. The loop does not take a photo of the list at the start: it looks at the list again in every round, so it also visits the new item. If you push in every round, the loop never ends. Do not change a list while you loop over it, unless you know exactly why.
+It prints `a`, `b` and `c`. An array's iterator checks its current length before getting each item, so it also visits `"c"`. If you add an item on every round, it never reaches the end of the list: it continues until you stop it or an error occurs. Do not change a list while you loop over it, unless you know exactly why.
 
 ## Counting in a loop
 
@@ -260,7 +260,7 @@ console.log(best)
 
 It prints `0`, with no error message. `best` starts at 0, no lap is smaller than 0, so the `if` is never true and `best` stays 0. The program does not fail; it only gives a wrong answer.
 
-The rule is that the start value must lose against every real item. For "the smallest", the start must be bigger than every lap. For "the biggest", it must be smaller than every item.
+For the minimum, you can start with a value at least as large as every input; for the maximum, with one at least as small. You can also start with the first item of a nonempty list.
 
 To find a bug like this, shrink the failing case and change one thing at a time. With a list of one lap, `[62]`, the program also prints 0, so the list is not the problem. Then change only the line with the start value:
 
@@ -277,7 +277,7 @@ for (const lap of laps) {
 console.log(best)
 ```
 
-This prints `58`. `Infinity` is a number bigger than every other number. Another good start is the first item of the list.
+This prints `58`. `Infinity` is greater than every finite number. Another good start is the first item if the list is not empty.
 
 ## Check a list with includes
 
@@ -331,7 +331,7 @@ This prints:
 [ 'x', 'y' ]
 ```
 
-You changed `b`, but `a` changed too. To make a real copy, use `slice()`.
+You changed the list through `b`, and `a` refers to that same list. `slice()` creates another array containing the same items.
 
 ![Two names that point to the same list.](/images/shared-array.en.svg)
 
@@ -362,7 +362,7 @@ Now `c` is a separate list.
 node exercises/01-programming/06-arrays-and-loops.ts
 ```
 
-Solve the exercises. Make every line say `OK`.
+Solve the exercises. Make each check say `OK`.
 
 ## Challenge
 

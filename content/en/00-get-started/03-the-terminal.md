@@ -13,7 +13,7 @@ The course runs almost everything from the terminal: installing the project, sta
 
 ## Open the terminal in VS Code
 
-In VS Code, click Terminal > New Terminal. A panel opens at the bottom with a line that ends in `>`. That line shows which folder you are in, and you type your command after it.
+In VS Code, click Terminal > New Terminal and choose PowerShell from the terminal menu. A panel opens at the bottom with a line that ends in `>`. That line shows which folder you are in, and you type your command after it.
 
 ![The terminal opens at the bottom of VS Code. The screenshot is from VS Code in the browser: on Windows the path looks like C:\Users\you.](/images/vscode-terminal-panel.png)
 
@@ -27,7 +27,7 @@ A terminal is a window where you type commands, and PowerShell is the program th
 
 ## Paths
 
-On Windows, a path starts with a drive letter and uses backslashes:
+This absolute Windows path starts with a drive letter and uses backslashes:
 
 ```text
 C:\Users\you\projects
@@ -35,7 +35,7 @@ C:\Users\you\projects
 
 In commands you can write the same path with forward slashes: `C:/Users/you/projects`. PowerShell and Node accept both, and this course uses forward slashes in commands.
 
-An **absolute path** starts at the drive, such as `C:/Users/you/projects`, and means the same from any folder. A **relative path** starts from the folder you are in, such as `projects` or `../other`, so it gives different results depending on where you are.
+An **absolute path** such as `C:/Users/you/projects` starts at the root of the drive and means the same from any folder. A **relative path** starts from the folder you are in, such as `projects` or `../other`, so it gives different results depending on where you are.
 
 ![An absolute path starts at the drive; a relative one starts at the folder you are in.](/images/folder-paths.en.svg)
 
@@ -95,7 +95,7 @@ Path
 C:\Users\you
 ```
 
-> **Note:** Capital letters do not matter in PowerShell paths. `Projects` and `projects` are the same folder.
+> **Note:** In ordinary Windows folders, capital letters do not matter. `Projects` and `projects` are the same folder.
 
 If a folder name has a space, put it in quotes. Without them, PowerShell reads two words:
 
@@ -110,13 +110,13 @@ The `cd` fails with an error about an extra argument, because it sees `my` and `
 cd "my pets"
 ```
 
-> **Careful:** A command such as `rm` deletes without asking and without going through the recycle bin. Read each command before you run it, especially one you copied from a web page or got from an AI assistant.
+> **Careful:** A command such as `rm` can delete files without asking and without going through the recycle bin. Read each command before you run it, especially one you copied from a web page or got from an AI assistant.
 
 ## Read the output
 
-Always read what a command prints. If it works, it often prints nothing or a short result. If it fails, it prints an error in red.
+Always read what a command prints. If it works, it often prints nothing or a short result. If it fails, look for the error message.
 
-Here is an error for a folder that does not exist:
+From your user folder, this command fails if the folder does not exist:
 
 ```bash
 cd missing-folder
@@ -126,24 +126,24 @@ cd missing-folder
 cd : Cannot find path 'C:\Users\you\missing-folder' because it does not exist.
 ```
 
-The message names the path it could not find. Either you misspelled the name, or you are in a different folder than you thought. The same command gives different results in different folders, and most beginner errors come from that. When a result looks odd, run `pwd` and `ls` before you change anything.
+The message names the path it could not find. Either you misspelled the name, or you are in a different folder than you thought. The same command gives different results in different folders, because a relative path starts from the current folder. When a result looks odd, run `pwd` and `ls` before you change anything.
 
 ## Keys that save time
 
-- **Tab** completes a name. Type `cd pro` and press Tab: PowerShell writes `projects`. Use it all the time, because it saves typing and avoids typos.
+- **Tab** completes a name. If `projects` is in the current folder, type `cd pro` and press Tab to complete the name. Use it all the time, because it saves typing and avoids typos.
 - **Up arrow** brings back your last command. Press it again to go further back.
 - **Ctrl+C** stops a command that is still running. You will use it to stop the course site.
 
 ## Open a folder in VS Code
 
-The command `code .` opens the current folder in VS Code. The dot means "this folder".
+The command `code .` opens the current folder in VS Code. The dot means "this folder". Run this example from your user folder:
 
 ```bash
 cd projects
 code .
 ```
 
-VS Code opens a new window that shows the folder. This is the usual way to start work on a project.
+VS Code shows the folder; it can use a new or an existing window. This is the usual way to start work on a project.
 
 ## Practice
 

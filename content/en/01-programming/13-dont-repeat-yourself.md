@@ -128,7 +128,7 @@ if (pet.age === "") {
 console.log(errors)
 ```
 
-If the shelter adds a fourth field, `color`, you must write another whole block. In the next version the fields are data:
+If the shelter adds a fourth required field, `color`, you must write another whole block. In the next version the fields are data:
 
 ```ts
 const pet: Record<string, string> = { name: "Rex", species: "", age: "" }
@@ -155,11 +155,11 @@ Both versions print the same result:
 [ 'Species is required', 'Age is required' ]
 ```
 
-For a new field, you add one object to the array. The loop does not change.
+For a new required field, add its value to `pet` and one object to the array. The loop does not change.
 
 ## When repetition is the better choice
 
-A shared piece of code ties its users together: when you change it, every user changes. So the question is not whether two pieces look the same, but whether they change for the same reason.
+Shared code ties its users together: they all use the same implementation. So the question is not whether two pieces look the same, but whether they change for the same reason.
 
 ### Same text, different knowledge
 
@@ -194,7 +194,7 @@ The same happens with a cart that writes `total * 1.2` and an invoice that write
 
 ### The rule of three
 
-The **rule of three** tells you when to remove repetition. The first time, write the code. The second time, you may copy it. The third time, you see the pattern, and you remove the repetition. With two copies you often do not yet know what the real difference is.
+The **rule of three** is a guide: write the code the first time; you may copy it the second time; the third time, check whether the copies represent the same rule before combining them. With two copies you often do not yet know what the real difference is.
 
 ### A shortcut that hurts
 
@@ -227,14 +227,14 @@ This is the counterweight to DRY: **KISS** (keep it simple) and **YAGNI** (you a
 
 ## Practice
 
-1. Open `exercises/01-programming/13-dont-repeat-yourself.ts`. Replace each `// TODO` with code. Write each rule once.
+1. Open `exercises/01-programming/13-dont-repeat-yourself.ts`. Complete the functions and constant marked with `// TODO`, replacing their placeholder values. Write each rule once.
 2. Run the exercise file with this command:
 
 ```bash
 node exercises/01-programming/13-dont-repeat-yourself.ts
 ```
 
-Make every line say `OK`. The checks only see the result, so check yourself that each rule has one home.
+Make every check say `OK`. The checks only see the result, so check yourself that each rule has one home.
 
 ## Challenge
 
@@ -245,7 +245,7 @@ Create the file `exercises/challenges/13-dont-repeat-yourself.ts`. No solution i
 It is done when:
 
 - The file runs with `node exercises/challenges/13-dont-repeat-yourself.ts` and prints at least three lines.
-- Each of the three rules is written once, and when you change one and run the file again, every line that uses it changes.
+- Each of the three rules is written once; when you change it, every part that uses it follows the new value.
 - One of your rules is a table of prices or names, and you use a loop over it.
 - One place in your code stays repeated on purpose, and a comment of one sentence says why.
 
@@ -261,7 +261,7 @@ The two rules look the same but change for different reasons, so they are differ
 
 </details>
 
-2. Find the bug. A teammate says: "Good, the tax rate has a constant." But one rule is still copied. What is the problem, and what would you check before changing it?
+2. A teammate proposes using `TAX_RATE` in `tip` too, because both values are `0.2`. What would you check before changing it?
 
 ```ts
 const TAX_RATE = 0.2
@@ -277,15 +277,15 @@ function tip(price: number): number {
 
 <details><summary>Answer</summary>
 
-The `0.2` in `tip` has the same text but may be a different rule. If the tip is a fixed 20 percent that has nothing to do with tax, then using `TAX_RATE` there would be a bug waiting for the next tax change. Ask: if the tax becomes 0.25, should the tip change too? If no, the tip needs its own constant, `TIP_RATE`. The constant for tax is correct. The real fault is the unnamed `0.2`, which hides what it means.
+The `0.2` in `tip` has the same text but may be a different rule. If the tip is a fixed 20 percent that has nothing to do with tax, then using `TAX_RATE` there would be a bug waiting for the next tax change. Ask: if the tax becomes 0.25, should the tip change too? If no, the tip needs its own constant, `TIP_RATE`. The constant for tax is correct. The code does not show that both rates should change together. Naming the tip rate makes its independent rule clear.
 
 </details>
 
-3. The requirement of the pet shelter form changes: the fields stay the same, but the label of "Age" must be "Age in years" and `color` is optional. In the loop version, what is easy to change and what breaks?
+3. The shelter changes the label "Age" to "Age in years" and adds `color` as an optional field. What do you change in the loop version?
 
 <details><summary>Answer</summary>
 
-The label is easy: you edit one object in the array. The optional field is harder, because the loop treats every item as required. You can add a `required: boolean` to each object and check it in the loop. That is a flag again, but it lives in data, not in a function call, so it stays readable.
+Edit the label of the `age` object in the `required` array. Add `color` to `pet`, but not to `required`, because it is optional. The loop does not change.
 
 </details>
 

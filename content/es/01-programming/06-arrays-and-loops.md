@@ -27,7 +27,7 @@ Esto imprime:
 [ 'Rex', 'Mimi', 'Luna' ]
 ```
 
-Cada valor del array es un **elemento**. Node muestra los textos con comillas simples; es el mismo texto.
+Cada valor del array es un **elemento**. En esta salida, Node.js muestra los textos con comillas simples; es el mismo texto.
 
 Un array también puede guardar números:
 
@@ -56,11 +56,11 @@ Luna
 
 El primer elemento es el índice 0, el segundo es el índice 1 y el tercero es el índice 2. En una lista de 3 elementos, el último índice es 2.
 
-La cuenta empieza en 0 por la forma en que una lista se guarda en memoria. Sus elementos ocupan casillas del mismo tamaño, una al lado de la otra. La variable `dogs` no contiene los elementos: contiene un **puntero**, que es la dirección de memoria donde empieza la primera casilla. Para llegar a un elemento se calcula dirección = inicio + índice × tamaño de la casilla. El índice es entonces cuántas casillas hay que saltar desde el inicio, y para el primer elemento no hay que saltar ninguna.
+Los índices empiezan en 0 por una convención que JavaScript heredó de lenguajes como C, y la razón está en la memoria. En C, un array es un bloque de casillas del mismo tamaño, una al lado de la otra, y la variable guarda un **puntero**: la dirección de memoria de la primera casilla. Para llegar a un elemento, el programa calcula dirección = inicio + índice × tamaño de la casilla. El índice es cuántas casillas hay que saltar desde el inicio, y para el primer elemento no hay que saltar ninguna.
 
-![Un array en memoria: la variable guarda la dirección de la primera casilla, y el índice dice cuántas casillas saltar.](/images/zero-index.es.svg)
+![Un array en memoria en un lenguaje como C: la variable guarda la dirección de la primera casilla, y el índice dice cuántas casillas saltar.](/images/zero-index.es.svg)
 
-Las direcciones del dibujo son de ejemplo. Lenguajes como C trabajan exactamente así, y de ahí viene la convención de empezar en 0. El motor de JavaScript guarda las listas normales de la misma forma, aunque nunca te muestra las direcciones.
+JavaScript conserva la convención pero no te muestra direcciones: `dogs` guarda una referencia al array, y el motor decide cómo guardarlo. V8, el motor de Node.js, guarda un array como este de forma parecida al dibujo, en un bloque de casillas contiguas donde cada una tiene la referencia a un texto. Si el array tiene huecos enormes, V8 cambia a otra estructura, y por eso un índice de JavaScript no es una dirección de memoria.
 
 Si pides un índice que no existe, no hay error:
 
@@ -71,7 +71,7 @@ console.log(dogs[-1])
 
 Imprime `undefined` dos veces. El programa no te avisa que el índice está mal; te da "ningún valor" y sigue. Por eso un índice incorrecto es peligroso: el error aparece más tarde, lejos de donde empezó.
 
-En este proyecto, el verificador de tipos es estricto. Trata `dogs[0]` como "un string o `undefined`". Puedes imprimirlo, pero para usarlo como string primero debes comprobarlo con un `if`.
+En este proyecto, la opción `noUncheckedIndexedAccess` hace que el verificador trate `dogs[0]` como «un string o `undefined`». Antes de usarlo como string, puedes comprobarlo con un `if`.
 
 ```ts
 const first = dogs[0]
@@ -86,11 +86,11 @@ Esto imprime:
 REX
 ```
 
-`toUpperCase()` es una función lista para usar con los textos. Cambia el texto a mayúsculas.
+`toUpperCase()` devuelve un texto en mayúsculas; no cambia el original.
 
 ## Longitud
 
-La **longitud** (*length*) de un array es el número de elementos.
+En un array sin posiciones vacías como estos, la **longitud** (*length*) es el número de elementos.
 
 ```ts
 const dogs = ["Rex", "Mimi", "Luna"]
@@ -107,7 +107,7 @@ Luna
 Luna
 ```
 
-El último índice siempre es `length - 1`. La función `at` es una forma más corta de decir lo mismo: `at(-1)` es el último elemento y `at(-2)` es el anterior.
+En un array no vacío como este, el último índice es `length - 1`. `at(-1)` devuelve el último elemento y `at(-2)` el anterior; si no existe, devuelve `undefined`.
 
 ## Agregar elementos con push
 
@@ -191,7 +191,7 @@ for (const item of queue) {
 }
 ```
 
-Imprime `a`, `b` y `c`. El bucle no toma una foto de la lista al inicio: la mira otra vez en cada vuelta, así que también visita el elemento nuevo. Si haces push en cada vuelta, el bucle nunca termina. No cambies una lista mientras la recorres, salvo que sepas exactamente por qué.
+Imprime `a`, `b` y `c`. El iterador de un array comprueba la longitud actual antes de obtener cada elemento, así que también visita `"c"`. Si agregas un elemento en cada vuelta, nunca alcanza el final de la lista: continúa hasta que lo detengas o se produzca un error. No cambies una lista mientras la recorres, salvo que sepas exactamente por qué.
 
 ## Contar en un bucle
 
@@ -260,7 +260,7 @@ console.log(best)
 
 Imprime `0`, sin ningún mensaje de error. `best` empieza en 0, ninguna vuelta es menor que 0, así que el `if` nunca es verdadero y `best` se queda en 0. El programa no falla: solo da una respuesta incorrecta.
 
-La regla es que el valor inicial debe perder contra todos los elementos reales. Para "el mínimo", el inicio debe ser mayor que todas las vueltas. Para "el máximo", debe ser menor que todos los elementos.
+Para el mínimo, puedes empezar con un valor al menos tan grande como todos los datos; para el máximo, con uno al menos tan pequeño. También puedes empezar con el primer elemento de una lista no vacía.
 
 Para encontrar un bug así, reduce el caso que falla y cambia una sola cosa a la vez. Con una lista de una sola vuelta, `[62]`, el programa también imprime 0, así que la lista no es el problema. Entonces cambia solo la línea del valor inicial:
 
@@ -277,7 +277,7 @@ for (const lap of laps) {
 console.log(best)
 ```
 
-Esto imprime `58`. `Infinity` es un número mayor que cualquier otro. Otro buen inicio es el primer elemento de la lista.
+Esto imprime `58`. `Infinity` es mayor que cualquier número finito. Otro buen inicio es el primer elemento si la lista no está vacía.
 
 ## Revisar una lista con includes
 
@@ -331,7 +331,7 @@ Esto imprime:
 [ 'x', 'y' ]
 ```
 
-Cambiaste `b`, pero `a` también cambió. Para hacer una copia real, usa `slice()`.
+Cambiaste la lista a través de `b`, y `a` apunta a esa misma lista. `slice()` crea otro array con los mismos elementos.
 
 ![Dos nombres que apuntan a la misma lista.](/images/shared-array.es.svg)
 
@@ -362,7 +362,7 @@ Ahora `c` es una lista separada.
 node exercises/01-programming/06-arrays-and-loops.ts
 ```
 
-Resuelve los ejercicios. Haz que cada línea diga `OK`.
+Resuelve los ejercicios. Haz que cada comprobación diga `OK`.
 
 ## Reto
 

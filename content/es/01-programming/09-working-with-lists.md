@@ -14,7 +14,7 @@ En esta lección le haces preguntas a una lista con los métodos de array: trans
 
 ## Los datos
 
-Todos los ejemplos de esta lección usan una lista de reproducción de música. Cópiala al inicio de tu archivo de práctica.
+Los primeros ejemplos usan una lista de reproducción de música. Cópiala al inicio de tu archivo de práctica.
 
 ```ts
 type Song = {
@@ -34,11 +34,11 @@ const playlist: Song[] = [
 
 ## Funciones callback
 
-Los métodos de esta lección reciben una función como entrada. Esa función se llama **callback**, y el método la ejecuta una vez por cada elemento de la lista. Se escribe como función flecha: `(song) => ...`.
+Varios métodos de esta lección reciben una función como entrada. Esa función se llama **callback**. El método la llama al recorrer la lista; algunos se detienen en cuanto encuentran la respuesta. Aquí la escribimos como función flecha: `(song) => ...`.
 
 ## map: cambiar cada elemento
 
-`map` crea un array nuevo. Ejecuta tu callback sobre cada elemento y junta los resultados.
+`map` crea un array nuevo. Ejecuta tu callback sobre cada elemento presente y junta los resultados.
 
 ```ts
 const titles = playlist.map((song) => song.title)
@@ -51,7 +51,7 @@ El programa imprime:
 [ 'Blue', 'Rain Dance', 'Sunday', 'Echo' ]
 ```
 
-El array nuevo tiene la misma longitud que el viejo, y el viejo no cambia. Cada elemento puede convertirse en algo distinto, por ejemplo un número:
+El array nuevo tiene la longitud inicial del viejo. `map` no modifica el array original, aunque tu callback sí puede hacerlo. Cada elemento puede convertirse en algo distinto, por ejemplo un número:
 
 ```ts
 const minutes = playlist.map((song) => Math.round(song.seconds / 60))
@@ -68,7 +68,7 @@ Esto imprime:
 
 ## filter: quedarte con algunos elementos
 
-`filter` crea un array nuevo solo con los elementos para los que tu callback devuelve `true`.
+`filter` crea un array nuevo solo con los elementos para los que tu callback devuelve un valor que JavaScript considera verdadero.
 
 ```ts
 const liked = playlist.filter((song) => song.liked)
@@ -97,7 +97,7 @@ Una cadena se lee de arriba abajo como una oración: "de la lista de reproducci�
 
 ## find: obtener un elemento
 
-`find` devuelve el primer elemento para el que tu callback devuelve `true`. Si nada coincide, devuelve `undefined`.
+`find` devuelve el primer elemento para el que tu callback devuelve un valor que JavaScript considera verdadero. Si nada coincide, devuelve `undefined`.
 
 ```ts
 const found = playlist.find((song) => song.artist === "Tomas")
@@ -114,9 +114,9 @@ Rain Dance
 undefined
 ```
 
-El tipo del resultado es `Song | undefined`, así que debes manejar el caso de `undefined`. El `?.` en `found?.title` significa "lee `title` solo si `found` tiene un valor". Si no, el resultado es `undefined`.
+El tipo del resultado es `Song | undefined`, así que debes manejar el caso de `undefined`. El `?.` en `found?.title` lee `title` si `found` no es `null` ni `undefined`; en esos dos casos, el resultado es `undefined`.
 
-`find` da solo la primera coincidencia. Hay dos canciones de Mia, y `find` para Mia da `Blue` y nunca muestra `Sunday`. Si necesitas todas las coincidencias, usa `filter`.
+`find` da solo la primera coincidencia. Hay dos canciones de Mia, y `find` para Mia devuelve el objeto de `Blue`, no el de `Sunday`. Si necesitas todas las coincidencias, usa `filter`.
 
 ## some y every: sí o no
 
@@ -156,7 +156,7 @@ true
 
 ## Spread: copiar una lista
 
-Tres puntos `...` antes de un array significan **spread** (esparcir). Pone todos los elementos del array en un lugar nuevo.
+Dentro de un literal de array, `...playlist` usa **spread** para añadir los elementos de `playlist` al array nuevo.
 
 ```ts
 const extended: Song[] = [
@@ -175,7 +175,7 @@ El programa imprime:
 5
 ```
 
-La lista original sigue teniendo 4 elementos. Creaste una lista nueva con 5 elementos.
+La lista original sigue teniendo 4 elementos. Creaste una lista nueva con 5 elementos, pero las dos listas comparten los objetos de las primeras cuatro canciones. Cambiar una propiedad de uno de esos objetos se ve en ambas.
 
 ## Ordenar
 
@@ -191,7 +191,7 @@ console.log(scores)
 
 Imprime `[ 100, 25, 9 ]` dos veces. Primero, `sort` sin callback ordena los elementos como texto. Como texto, `"100"` va antes de `"25"`, porque el primer carácter `1` es menor que `2`, y `"25"` va antes de `"9"`. Segundo, `sort` cambia la lista original y devuelve esa misma lista. Entonces `sorted` y `scores` son una sola lista con dos nombres, como viste en la lección 06.
 
-Para ordenar números, `toSorted` recibe un callback que dice cómo comparar dos elementos. El callback recibe `a` y `b`, y devuelve un número negativo si `a` va primero, o un número positivo si `b` va primero.
+Para ordenar números, `toSorted` recibe un callback que dice cómo comparar dos elementos. El callback recibe `a` y `b`, y devuelve un número negativo si `a` va primero, o un número positivo si `b` va primero. Devuelve `0` si los considera iguales; esos elementos conservan su orden relativo.
 
 ```ts
 const scores = [9, 100, 25]
@@ -207,7 +207,7 @@ El programa imprime:
 [ 9, 100, 25 ]
 ```
 
-`toSorted` crea una lista nueva y la vieja queda como estaba. `map`, `filter`, `find`, `some`, `every` y `toSorted` no cambian el original; `sort` y `push` sí. Cuando no estés seguro de un método, busca su documentación: dice qué devuelve y si cambia la lista.
+`toSorted` crea una lista nueva. `map`, `filter`, `find`, `some`, `every` y `toSorted` no modifican por sí mismos el array original; tu callback sí puede modificarlo o cambiar sus objetos. `sort` y `push` modifican el array. Cuando no estés seguro de un método, busca su documentación: dice qué devuelve y si cambia la lista.
 
 ## ¿map o for...of?
 
@@ -220,7 +220,7 @@ Los dos funcionan. Usa esta regla:
 
 ### Lo que realmente hace map
 
-No hay magia en `map`. Es un bucle que alguien escribió por ti. Esta función hace el mismo trabajo con un bucle `for...of`:
+Puedes reproducir este uso de `map` con un bucle. Esta función obtiene las duraciones de nuestra lista con `for...of`:
 
 ```ts
 function myMap(items: Song[], callback: (song: Song) => number): number[] {
@@ -255,7 +255,7 @@ El texto `(song: Song) => number` es el tipo de un callback. Dice: una función 
 node exercises/01-programming/09-working-with-lists.ts
 ```
 
-Haz que cada línea diga `OK`.
+Haz que cada comprobación diga `OK`.
 
 ## Reto
 
@@ -268,7 +268,7 @@ Crea el archivo `exercises/challenges/working-with-lists.ts`. Ejecútalo con `no
 Está terminado cuando:
 
 - `report` imprime los tres primeros según la propiedad numérica, el más alto primero.
-- Después de que `report` se ejecuta, la lista original sigue con el mismo orden de cuando la escribiste. Imprime su primer elemento para comprobarlo tú mismo.
+- Después de que `report` se ejecuta, la lista original sigue con el mismo orden de cuando la escribiste. Imprime la lista completa para comprobarlo.
 - `report` imprime un conteo por cada grupo, por ejemplo `Reds 3`, y cada grupo aparece una sola vez.
 - `report([])` imprime un mensaje claro como `No players`, y ningún error.
 
@@ -320,7 +320,7 @@ const isReady = playlist.every((song) => song.seconds < 300)
 <details>
 <summary>Respuesta</summary>
 
-Una lista vacía da `true`, así que está "lista". Para `every`, ningún elemento rompe la regla, así que la regla se cumple. Probablemente no es lo que quiere el negocio: nadie quiere publicar una lista vacía. Debes agregar una regla: `playlist.length > 0 && playlist.every(...)`.
+Una lista vacía da `true`, así que está "lista". Para `every`, ningún elemento rompe la regla. Si el negocio exige al menos una canción para publicar, agrega la regla: `playlist.length > 0 && playlist.every(...)`.
 
 </details>
 

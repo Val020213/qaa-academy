@@ -30,6 +30,8 @@ true
 false
 ```
 
+The type checker can flag comparisons between different fixed strings, such as `"rain" === "sun"`, because it already knows they cannot match. Node.js runs them; in this example the comparison between different strings produces `false`.
+
 These are the comparison signs:
 
 | Sign  | Meaning                  |
@@ -41,7 +43,7 @@ These are the comparison signs:
 | `>=`  | is greater than or equal |
 | `<=`  | is less than or equal    |
 
-> **Careful:** `=` stores a value. `===` compares two values. Do not mix them up. Also, never use `==`. It has strange rules. Always use `===` and `!==`.
+> **Careful:** `=` stores a value. `===` compares two values. Do not mix them up. `==` can convert values before comparing them. Use `===` and `!==`, which compare without that conversion.
 
 If you mix the signs up, the program does not warn you:
 
@@ -61,9 +63,9 @@ stop
 red
 ```
 
-The light was green. The program says "stop", and now the light is red. The line `lightColor = "red"` did not ask a question. It stored `"red"`, and the stored text counts as true. There was no error message.
+The light was green. The program says "stop", and now the light is red. The line `lightColor = "red"` did not ask a question. The assignment stores `"red"` and also produces that text as its result. Since it is not empty, the condition treats it as true. There was no error message.
 
-Text is compared letter by letter, even when it looks like a number.
+JavaScript compares two strings from left to right by their UTF-16 codes, even when they look like numbers.
 
 ```ts
 console.log(10 > 9)
@@ -77,7 +79,7 @@ true
 false
 ```
 
-The text `"10"` starts with `1`, and `"9"` starts with `9`. The first letter decides, and `1` comes before `9`. Numbers are compared as numbers. Text is compared as text.
+The text `"10"` starts with `1`, and `"9"` starts with `9`. The first differing code decides, and `1` comes before `9`. Numbers are compared as numbers. Text is compared as text.
 
 Capital letters count too:
 
@@ -89,7 +91,7 @@ This prints `false`.
 
 ## if
 
-An **if** statement runs some code only when a condition is `true`. The code goes inside curly brackets `{ }`.
+An **if** statement runs code when JavaScript treats its condition's value as true. The code goes inside curly brackets `{ }`.
 
 ```ts
 const isRaining = true
@@ -111,7 +113,7 @@ If `isRaining` was `false`, the first message would not print. Only `Leave the h
 
 ## else
 
-Use **else** to run code when the condition is `false`.
+Use **else** when JavaScript treats the condition as false.
 
 ```ts
 const temperature = 28
@@ -183,11 +185,11 @@ if (points >= 90) {
 }
 ```
 
-Now it prints `gold medal`. The rule: in an `else if` chain, the most specific condition goes first.
+Now it prints `gold medal`. Here the ranges overlap: 95 satisfies all three conditions. Check the highest threshold first to award the right medal.
 
 ## Logical operators
 
-You can join conditions with three **logical operators**.
+You can join conditions with three **logical operators**. With boolean values:
 
 `&&` means AND. Both sides must be true.
 
@@ -253,7 +255,7 @@ You write the full comparison on both sides. `day === "Saturday" || "Sunday"` do
 
 ## Boundary values
 
-Most decision mistakes live at the edge of a rule, not in the middle. A rule "free shipping from 50" can be wrong at 49, 50 and 51, and nowhere else. A **boundary value** is a value at the edge of a rule. When you test a decision, choose values just below, on and just above each border.
+A free-shipping rule from 50 must exclude 49 and include 50 and 51. Confusing `>` with `>=` changes the result at 50. A **boundary value** is at a rule's edge; test just below, at and above it.
 
 ## Truthy and falsy
 
@@ -279,10 +281,10 @@ This prints `no age given`. The age is known, and it is 0. The number `0` is fal
 
 ### Why `&&` can protect you
 
-JavaScript evaluates `a && b` from left to right. If `a` is false, the answer is already false. So it does not evaluate `b`. This is called **short-circuit** evaluation.
+JavaScript evaluates `a && b` from left to right. If `a` is falsy, it returns that value without evaluating `b`. If `a` is truthy, it evaluates and returns `b`. This is called **short-circuit** evaluation.
 
 ```ts
-const userName: string | undefined = undefined
+let userName: string | undefined
 
 if (userName !== undefined && userName.length > 0) {
   console.log("has name")
@@ -297,11 +299,11 @@ This prints:
 no name
 ```
 
-`userName.length` (the number of characters in the text) would fail on `undefined`. It never runs, because the first part is false. The order of the two parts matters.
+Reading `userName.length` would fail if `userName` were `undefined`. It never runs, because the first part is false. The order of the two parts matters.
 
-### Why `day === "Saturday" || "Sunday"` is always true
+### Why `day === "Saturday" || "Sunday"` is always truthy
 
-`===` has higher precedence than `||`, so the parser builds the expression as `(day === "Saturday") || "Sunday"`: two expressions joined by `||`. The second one is just the text `"Sunday"`, and a text that is not empty is truthy, so the condition is always true.
+`===` has higher precedence than `||`, so the parser builds the expression as `(day === "Saturday") || "Sunday"`: two expressions joined by `||`. `||` returns the first value if it is truthy; otherwise it returns the second. Here it returns `true` when `day` is `"Saturday"`, or the text `"Sunday"` otherwise. Both are truthy, so the `if` always runs its block.
 
 ```ts
 const day = "Monday"
@@ -317,7 +319,7 @@ This prints `weekend`, even though the day is `Monday`.
 
 1. Create the file `exercises/01-programming/decisions.ts`.
 2. Make a `const` called `score` with a number. Write an `if` and `else` that print `pass` when the score is 50 or more, and `fail` otherwise.
-3. Change the score and run the file each time, with 49, 50 and 51. Check that the output changes.
+3. Change the score and run the file each time, with 49, 50 and 51. Check that 49 prints `fail`, and that 50 and 51 print `pass`.
 4. Add an `else if` for a third case: print `excellent` when the score is 90 or more. Put it before the `pass` case.
 5. Open `exercises/01-programming/04-making-decisions.ts` and run it:
 
@@ -325,7 +327,7 @@ This prints `weekend`, even though the day is `Monday`.
 node exercises/01-programming/04-making-decisions.ts
 ```
 
-Solve the exercises. Make every line say `OK`.
+Solve the exercises. Make each check say `OK`.
 
 ## Challenge
 

@@ -19,7 +19,7 @@ El tipo difícil es el **bug de lógica** de la lección 12: el programa corre, 
 ## El método
 
 1. **Observa.** Escribe dos líneas. "Esperaba: ..." y "Obtuve: ...". Usa valores exactos, no "está roto".
-2. **Reproduce.** Haz que el *bug* ocurra siempre, con la misma entrada. Un *bug* que no puedes repetir no lo puedes probar.
+2. **Reproduce.** Repite la entrada y las condiciones que provocan el *bug*. Si no ocurre siempre, registra cuándo aparece para comparar las ejecuciones.
 3. **Reduce.** Construye el **ejemplo mínimo**: la entrada más pequeña y las menos líneas que todavía fallan. Borra todo lo que no cambia el resultado.
 4. **Formula una hipótesis.** Una **hipótesis** es una suposición que un experimento puede refutar. "El bucle se salta la segunda fila" es una hipótesis. "Algo anda mal con el bucle" no lo es.
 5. **Diseña un experimento.** Elige un lugar para un `console.log`, o cambia una entrada. Escribe lo que predices que mostrará. Hazlo antes de ejecutar.
@@ -29,7 +29,7 @@ El tipo difícil es el **bug de lógica** de la lección 12: el programa corre, 
 
 ## Una investigación completa
 
-Aquí hay un marcador de unas 20 líneas. Un juego da puntos a tres jugadores. El programa debe imprimir al ganador. Debería imprimir `Leo with 10 points`.
+Aquí hay un marcador de unas 20 líneas. Un juego da puntos a tres jugadores. El programa debe imprimir al ganador. Debería imprimir `Winner: Leo with 10 points`.
 
 ```ts
 // Expected: "Winner: Leo with 10 points"
@@ -60,7 +60,7 @@ Players: 3
 Winner: Mia with 9 points
 ```
 
-**Observa.** Esperaba Leo con 10. Obtuve Mia con 9. El programa es igual cada vez, así que ya es reproducible. Ya es pequeño, así que no hay nada que reducir.
+**Observa.** Esperaba Leo con 10. Obtuve Mia con 9. Con estos mismos datos, cada ejecución produce el mismo resultado. El ejemplo es pequeño; después reduciremos la comparación que falla.
 
 **Primera hipótesis: el bucle se salta a Leo.** El experimento: imprimir cada jugador dentro del bucle. Si la hipótesis es cierta, falta `Leo`. Predigo: no habrá línea con `Leo`.
 
@@ -69,7 +69,7 @@ Winner: Mia with 9 points
     console.log("row:", row.player)
 ```
 
-El resultado:
+Las líneas agregadas imprimen:
 
 ```text
 row: Mia
@@ -79,13 +79,13 @@ row: Zoe
 
 Mi predicción fue incorrecta, así que tacho la hipótesis. El bucle sí visita a Leo.
 
-**Segunda hipótesis: la comparación dice "no" para la fila de Leo.** El experimento: imprimir los dos números y la comparación. Predigo que para Leo muestra `true`, porque 10 es más que 9.
+**Segunda hipótesis: los puntos de Leo y Mia son números.** El experimento: imprimir los dos valores y la comparación. Predigo que para Leo muestra `true`, porque 10 es más que 9.
 
 ```ts
     console.log(row.player, row.points, winner.points, row.points > winner.points)
 ```
 
-El resultado:
+Las líneas agregadas imprimen:
 
 ```text
 Mia 9 9 false
@@ -111,7 +111,7 @@ false
 true
 ```
 
-Lo encontré. El texto JSON tiene los números entre comillas, así que `points` es texto. El texto se compara letra por letra, y `"1"` va antes que `"9"`. Por eso `"10" > "9"` es `false`. La línea `as Score[]` le dijo a TypeScript que confiara en mí, así que no avisó.
+Lo encontré. El texto JSON tiene los números entre comillas, así que `points` es texto. JavaScript compara texto de izquierda a derecha por sus códigos UTF-16; `"1"` va antes que `"9"`, por eso `"10" > "9"` es `false`. `JSON.parse` devuelve `any`, y `as Score[]` solo indica al verificador qué tipo asumir: no revisa ni transforma los datos.
 
 **Arregla una sola cosa.** Convierte el texto en números cuando leas los datos:
 
@@ -122,18 +122,18 @@ const scores: Score[] = raw.map((row) => ({ player: row.player, points: Number(r
 
 Ahora imprime `Winner: Leo with 10 points`.
 
-**Explica y vuelve a comprobar.** Los números eran texto, así que la comparación usó el orden del alfabeto. Revisa otros casos: los puntos `100` y `20` deben dar `100`, y Mia debe seguir ganando cuando tiene más puntos.
+**Explica y vuelve a comprobar.** Los puntos eran texto, así que JavaScript comparó sus códigos en vez de sus valores numéricos. Revisa otros casos: los puntos `100` y `20` deben dar `100`, y Mia debe seguir ganando cuando tiene más puntos.
 
 ## Herramientas para cuando estás atascado
 
 **Explicar al patito de goma.** Explica el código, línea por línea, en voz alta, a un patito de goma o a una silla vacía. Di qué hace cada línea y qué guarda cada variable. Muchas veces te oyes decir algo que no es cierto, y ese es el *bug*.
 
-**Bisección.** Bisecar significa partir a la mitad el área de búsqueda. Un programa tiene 8 pasos y el resultado final es incorrecto. Imprime el valor después del paso 4. Si ya es incorrecto, el *bug* está en los pasos 1 a 4. Si es correcto, el *bug* está en los pasos 5 a 8. Parte a la mitad otra vez. Ocho pasos necesitan solo tres impresiones, no ocho.
+**Bisección.** Divide el área de búsqueda a la mitad. Si conoces el estado correcto después de cada paso y el error sigue visible una vez que aparece, revisa el estado después del paso 4 de 8. Si ya está mal, busca en los pasos 1 a 4; si está bien, busca en los pasos 5 a 8. Repite: puedes localizar el primer paso que falla con tres comprobaciones. Un solo valor puede ocultar un error en otro dato.
 
 ## La lista de trampas
 
 - **Arreglar el síntoma.** Haces que la salida se vea bien para esta entrada, por ejemplo con `if (name === "Leo")`. La causa sigue ahí.
-- **"Ahora funciona, no sé por qué".** Esto no es una solución. El *bug* se está escondiendo. Deshaz tu cambio y mira si vuelve a fallar. Si no falla, no arreglaste nada.
+- **"Ahora funciona, no sé por qué".** Falta comprobar la causa. Deshaz tu cambio y repite la misma entrada y las mismas condiciones. Si no vuelve a fallar, todavía no sabes si el cambio resolvió el *bug*.
 
 ## Práctica
 
@@ -148,7 +148,7 @@ Ahora imprime `Winner: Leo with 10 points`.
 node exercises/01-programming/12b-debug-like-a-scientist.ts
 ```
 
-7. Para cada función, escribe una hipótesis y una predicción antes de cambiar el código. Haz que cada línea diga `OK`.
+7. Para cada función, escribe una hipótesis y una predicción antes de cambiar el código. Haz que cada comprobación diga `OK`.
 
 ## Reto
 
@@ -187,7 +187,7 @@ Imprime `[ 8, 2, 9, 7 ]`, que son cuatro puntajes, no tres. `slice(-4)` toma los
 
 <details><summary>Respuesta</summary>
 
-Puede ser solo una solución al síntoma. `NaN` viene de dividir 0 entre 0, lo cual es matemáticamente correcto para "ningún valor". Lo que debes preguntar es qué necesita quien llama: ¿una lista vacía debe devolver 0, no devolver nada o ser un error? Un promedio de 0 puede parecer un dato real y esconder un problema.
+Puede ser solo una solución al síntoma. `NaN` es el resultado de `0 / 0` en JavaScript; el promedio de una lista vacía no está definido. Lo que debes preguntar es qué necesita quien llama: ¿una lista vacía debe devolver 0, no devolver nada o ser un error? Un promedio de 0 puede parecer un dato real y esconder un problema.
 
 </details>
 
@@ -195,7 +195,7 @@ Puede ser solo una solución al síntoma. `NaN` viene de dividir 0 entre 0, lo c
 
 <details><summary>Respuesta</summary>
 
-Pierdes la causa. Un cambio puede ser la solución real, y el otro puede ser un nuevo *bug* escondido. Para saberlo, deshaz un cambio y ejecuta de nuevo. Si el *bug* vuelve, ese cambio era la solución. Luego prueba cada cambio por separado.
+Pierdes la causa. Un cambio puede ser la solución real, y el otro puede ser un nuevo *bug* escondido. Para saberlo, deshaz un cambio y ejecuta de nuevo. Si el *bug* vuelve, ese cambio contribuyó al resultado, pero quizá los dos sean necesarios. Prueba cada cambio por separado.
 
 </details>
 

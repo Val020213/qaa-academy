@@ -30,6 +30,8 @@ true
 false
 ```
 
+El verificador de tipos puede marcar comparaciones entre textos fijos distintos, como `"rain" === "sun"`, porque ya sabe que no coinciden. Node.js las ejecuta; en este ejemplo la comparación entre textos distintos produce `false`.
+
 Estos son los signos de comparación:
 
 | Signo | Significado              |
@@ -41,7 +43,7 @@ Estos son los signos de comparación:
 | `>=`  | es mayor o igual que     |
 | `<=`  | es menor o igual que     |
 
-> **Cuidado:** `=` guarda un valor. `===` compara dos valores. No los confundas. Además, nunca uses `==`. Tiene reglas extrañas. Usa siempre `===` y `!==`.
+> **Cuidado:** `=` guarda un valor. `===` compara dos valores. No los confundas. `==` puede convertir los valores antes de compararlos. Usa `===` y `!==`, que comparan sin esa conversión.
 
 Si confundes los signos, el programa no avisa:
 
@@ -61,9 +63,9 @@ stop
 red
 ```
 
-La luz estaba verde. El programa dice "stop", y ahora la luz está roja. La línea `lightColor = "red"` no hizo una pregunta. Guardó `"red"`, y el texto guardado cuenta como verdadero. No hubo ningún mensaje de error.
+La luz estaba verde. El programa dice "stop", y ahora la luz está roja. La línea `lightColor = "red"` no hizo una pregunta. La asignación guarda `"red"` y también produce ese texto como resultado. Como no está vacío, la condición lo trata como verdadero. No hubo ningún mensaje de error.
 
-El texto se compara letra por letra, aunque parezca un número.
+JavaScript compara dos textos de izquierda a derecha por sus códigos UTF-16, aunque parezcan números.
 
 ```ts
 console.log(10 > 9)
@@ -77,7 +79,7 @@ true
 false
 ```
 
-El texto `"10"` empieza con `1`, y `"9"` empieza con `9`. La primera letra decide, y `1` va antes que `9`. Los números se comparan como números. El texto se compara como texto.
+El texto `"10"` empieza con `1`, y `"9"` empieza con `9`. El primer código distinto decide, y `1` va antes que `9`. Los números se comparan como números. El texto se compara como texto.
 
 Las mayúsculas también cuentan:
 
@@ -89,7 +91,7 @@ Esto imprime `false`.
 
 ## if
 
-Una instrucción **if** ejecuta código solo cuando una condición es `true`. El código va dentro de llaves `{ }`.
+Una instrucción **if** ejecuta código cuando JavaScript trata el valor de su condición como verdadero. El código va dentro de llaves `{ }`.
 
 ```ts
 const isRaining = true
@@ -111,7 +113,7 @@ Si `isRaining` fuera `false`, el primer mensaje no se imprimiría. Solo se impri
 
 ## else
 
-Usa **else** para ejecutar código cuando la condición es `false`.
+Usa **else** cuando JavaScript trata la condición como falsa.
 
 ```ts
 const temperature = 28
@@ -183,11 +185,11 @@ if (points >= 90) {
 }
 ```
 
-Ahora imprime `gold medal`. La regla: en una cadena de `else if`, la condición más específica va primero.
+Ahora imprime `gold medal`. Aquí los rangos se solapan: 95 cumple las tres condiciones. Revisa primero el umbral más alto para dar la medalla que corresponde.
 
 ## Operadores lógicos
 
-Puedes unir condiciones con tres **operadores lógicos**.
+Puedes unir condiciones con tres **operadores lógicos**. Con valores booleanos:
 
 `&&` significa Y. Los dos lados deben ser verdaderos.
 
@@ -253,7 +255,7 @@ Escribes la comparación completa a ambos lados. `day === "Saturday" || "Sunday"
 
 ## Valores límite
 
-La mayoría de los errores de decisión viven en el borde de una regla, no en el medio. Una regla "envío gratis desde 50" puede estar mal en 49, 50 y 51, y en ningún otro lugar. Un **valor límite** es un valor en el borde de una regla. Cuando pruebas una decisión, elige valores justo por debajo, justo en el borde y justo por encima de cada límite.
+Una regla de envío gratis desde 50 debe excluir 49 e incluir 50 y 51. Confundir `>` con `>=` cambia el resultado en 50. Un **valor límite** está en el borde de una regla; prueba justo por debajo, en el borde y por encima.
 
 ## Truthy y falsy
 
@@ -279,10 +281,10 @@ Esto imprime `no age given`. La edad se conoce, y es 0. El número `0` es *falsy
 
 ### Por qué `&&` puede protegerte
 
-JavaScript evalúa `a && b` de izquierda a derecha. Si `a` es falso, la respuesta ya es falsa. Entonces no evalúa `b`. Esto se llama evaluación de **cortocircuito** (*short-circuit*).
+JavaScript evalúa `a && b` de izquierda a derecha. Si `a` es *falsy*, devuelve ese valor sin evaluar `b`. Si `a` es *truthy*, evalúa y devuelve `b`. Esto se llama evaluación de **cortocircuito** (*short-circuit*).
 
 ```ts
-const userName: string | undefined = undefined
+let userName: string | undefined
 
 if (userName !== undefined && userName.length > 0) {
   console.log("has name")
@@ -297,11 +299,11 @@ Esto imprime:
 no name
 ```
 
-`userName.length` (el número de caracteres del texto) fallaría con `undefined`. Nunca se ejecuta, porque la primera parte es falsa. El orden de las dos partes importa.
+Leer `userName.length` fallaría si `userName` fuera `undefined`. Nunca se ejecuta, porque la primera parte es falsa. El orden de las dos partes importa.
 
-### Por qué `day === "Saturday" || "Sunday"` siempre es verdadero
+### Por qué `day === "Saturday" || "Sunday"` siempre es truthy
 
-`===` tiene más precedencia que `||`, así que el analizador arma la expresión como `(day === "Saturday") || "Sunday"`: dos expresiones unidas por `||`. La segunda es solo el texto `"Sunday"`, y un texto que no está vacío es *truthy*, así que la condición siempre es verdadera.
+`===` tiene más precedencia que `||`, así que el analizador arma la expresión como `(day === "Saturday") || "Sunday"`: dos expresiones unidas por `||`. `||` devuelve el primer valor si es *truthy*; si no, devuelve el segundo. Aquí devuelve `true` cuando `day` es `"Saturday"`, o el texto `"Sunday"` en otro caso. Ambos son *truthy*, por eso el `if` siempre entra.
 
 ```ts
 const day = "Monday"
@@ -317,7 +319,7 @@ Esto imprime `weekend`, aunque el día sea `Monday`.
 
 1. Crea el archivo `exercises/01-programming/decisions.ts`.
 2. Crea una `const` llamada `score` con un número. Escribe un `if` y un `else` que impriman `pass` cuando el puntaje sea 50 o más, y `fail` en caso contrario.
-3. Cambia el puntaje y ejecuta el archivo cada vez, con 49, 50 y 51. Comprueba que la salida cambia.
+3. Cambia el puntaje y ejecuta el archivo cada vez, con 49, 50 y 51. Comprueba que 49 imprime `fail`, y que 50 y 51 imprimen `pass`.
 4. Agrega un `else if` para un tercer caso: imprime `excellent` cuando el puntaje sea 90 o más. Ponlo antes del caso `pass`.
 5. Abre `exercises/01-programming/04-making-decisions.ts` y ejecútalo:
 
@@ -325,7 +327,7 @@ Esto imprime `weekend`, aunque el día sea `Monday`.
 node exercises/01-programming/04-making-decisions.ts
 ```
 
-Resuelve los ejercicios. Haz que todas las líneas digan `OK`.
+Resuelve los ejercicios. Haz que cada comprobación diga `OK`.
 
 ## Reto
 

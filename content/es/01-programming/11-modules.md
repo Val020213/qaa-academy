@@ -14,7 +14,7 @@ En esta lección divides el código en varios archivos y compartes lo necesario 
 
 ## Un archivo, un módulo
 
-Cada archivo es un **módulo**. Un módulo guarda sus propias variables y funciones, y los otros archivos no las pueden ver.
+En este curso, Node.js ejecuta los archivos `.ts` como **módulos** porque `package.json` declara `"type": "module"`. El verificador también trata cada archivo como módulo por `moduleDetection: "force"`. Sus variables y funciones quedan en su propio ámbito.
 
 Para compartir algo, el módulo debe **exportarlo** (*export*). Para usarlo, otro archivo debe **importarlo** (*import*).
 
@@ -60,7 +60,7 @@ Ejecútalo con `node exercises/01-programming/use-shapes.ts`. El programa imprim
 3.141592653589793
 ```
 
-Los nombres dentro de `{ }` deben coincidir exactamente con los nombres exportados.
+En esta forma, los nombres dentro de `{ }` coinciden exactamente con los nombres exportados.
 
 Si un archivo intenta importar el `secret` privado:
 
@@ -86,7 +86,7 @@ El texto después de `from` es la **ruta**. Una ruta que empieza con `./` apunta
 
 > **Nota:** En este curso, escribe la terminación `.ts` en los imports relativos. Node la necesita para encontrar el archivo.
 
-Cada una de estas tres versiones incorrectas falla de una forma distinta:
+Estas tres versiones incorrectas fallan al ejecutar:
 
 - `from "_shapes.ts"` (sin `./`): Node cree que es el nombre de un paquete y reporta `Cannot find package '_shapes.ts'`.
 - `from "./_shapes"` (sin `.ts`): Node reporta `Cannot find module` y muestra la ruta sin la terminación.
@@ -94,7 +94,7 @@ Cada una de estas tres versiones incorrectas falla de una forma distinta:
 
 ## Importar tipos
 
-Un tipo existe solo mientras TypeScript revisa tu código. Desaparece cuando el programa se ejecuta. Usa `import type` para los tipos.
+Un alias de tipo sirve al verificador, pero no crea un valor para ejecutar. Node.js elimina `import type` antes de cargar los módulos. Usa esa forma para importar tipos.
 
 Crea `exercises/01-programming/_weather.ts`:
 
@@ -177,9 +177,11 @@ ticket machine loaded
 3
 ```
 
-El mensaje aparece una vez y la pantalla muestra 3. Cuando dos archivos importan el mismo módulo, el código del módulo se ejecuta una sola vez, y los dos archivos reciben los mismos valores exportados, no copias. Hay una máquina y un contador, así que todos los clientes comparten los números.
+El mensaje aparece una vez y la pantalla muestra 3. En una ejecución, Node.js guarda los módulos cargados por su URL resuelta. Estos dos imports llegan al mismo archivo: su código se ejecuta una vez y ambos acceden a las mismas variables exportadas. Hay una máquina y un contador, así que todos los clientes comparten los números.
 
-Por eso una variable al inicio de un módulo vive tanto como el programa, y todas las funciones que la usan la comparten.
+![Los dos módulos usan el mismo contador; los tres turnos avanzan de 0 a 3.](/images/01-module-counter.es.svg)
+
+El contador de este módulo sigue disponible entre llamadas durante esta ejecución. Al ejecutar de nuevo el programa, empieza otra vez en 0.
 
 ## Paquetes
 
@@ -192,8 +194,8 @@ import { squareArea } from "./_shapes.ts"
 import { marked } from "marked"
 ```
 
-- Una ruta que empieza con `./` o `../` es un archivo tuyo.
-- Un nombre sin punto es un paquete. Node lo busca en la carpeta `node_modules`, donde pnpm pone los paquetes instalados.
+- Una ruta que empieza con `./` o `../` busca un archivo relativo al módulo que importa.
+- Un nombre de paquete como `marked` se busca en `node_modules`, desde la carpeta del módulo que importa y luego en sus carpetas superiores. pnpm enlaza ahí los paquetes instalados.
 
 ## Profundiza
 
@@ -226,7 +228,7 @@ import { age } from "./_dog.ts"
 age = 10
 ```
 
-Solo el módulo dueño de una variable puede cambiarla. El módulo ofrece una función, aquí `birthday`, para todos los demás. TypeScript lo reporta antes de ejecutar como "Cannot assign to 'age' because it is an import".
+El archivo que importa no puede reasignar esa variable. Si el valor fuera un objeto, sí podría cambiar sus propiedades. El módulo ofrece una función, aquí `birthday`, para todos los demás. TypeScript lo reporta antes de ejecutar como "Cannot assign to 'age' because it is an import".
 
 ### Un compromiso: el cajón de cosas sueltas
 
@@ -238,7 +240,7 @@ Comparte código cuando dos archivos necesitan lo mismo. Dale al módulo un nomb
 
 1. Crea `exercises/01-programming/_shapes.ts` y `exercises/01-programming/use-shapes.ts` a partir de esta lección y ejecuta `node exercises/01-programming/use-shapes.ts`.
 2. Quita `export` de `squareArea` y mira el error en VS Code y en la terminal. Luego vuelve a ponerlo.
-3. Crea los cuatro archivos de la panadería y ejecuta `bakery.ts`. Luego agrega una segunda llamada a `serveCustomer()` y ejecútalo otra vez.
+3. Crea los cuatro archivos de la panadería y ejecuta `bakery.ts`. Luego agrega otra llamada a `serveCustomer()` y ejecútalo otra vez.
 4. Abre `exercises/01-programming/_test-cases.ts` y léelo. No lo cambies.
 5. Abre `exercises/01-programming/11-modules.ts`. Reemplaza cada `// TODO` con código.
 6. Ejecuta el archivo del ejercicio con este comando:
@@ -247,7 +249,7 @@ Comparte código cuando dos archivos necesitan lo mismo. Dale al módulo un nomb
 node exercises/01-programming/11-modules.ts
 ```
 
-Haz que cada línea diga `OK`.
+Haz que cada comprobación diga `OK`.
 
 ## Reto
 
@@ -260,7 +262,7 @@ Está terminado cuando:
 - Ejecutar `node exercises/challenges/11-modules.ts` imprime al menos dos resultados que vienen de dos módulos distintos.
 - El archivo principal tiene exactamente una línea `import` para valores, y apunta a un archivo llamado `index.ts` en tu carpeta.
 - Un valor de un módulo no tiene `export`. Un segundo archivo, `exercises/challenges/11-private-test.ts`, intenta importarlo, y al ejecutar ese archivo falla con "does not provide an export named".
-- `pnpm typecheck` reporta un error solo para `11-private-test.ts`, y puedes leer ese error y decir qué significa.
+- `pnpm typecheck` reporta el import privado en `11-private-test.ts`, y puedes leer ese error y decir qué significa.
 
 Vas a necesitar algo que esta lección no enseñó: un archivo que toma nombres de otros módulos y los exporta de nuevo, para que un archivo sea la única puerta de una carpeta. Busca: `javascript re-export export from barrel file`.
 
@@ -295,7 +297,7 @@ Las dos cajas compartirían un contador, porque el módulo se ejecuta una vez y 
 
 </details>
 
-3. El archivo `a.ts` importa `b` desde `b.ts`, y `b.ts` importa `a` desde `a.ts`. Cada archivo imprime el valor del otro apenas se carga. Ejecutas `node a.ts`. ¿Qué pasa?
+3. El archivo `a.ts` importa `b` desde `b.ts`, y `b.ts` importa `a` desde `a.ts`. Cada archivo exporta su valor con `const` e imprime el valor del otro apenas se carga. Ejecutas `node a.ts`. ¿Qué pasa?
 
 <details><summary>Respuesta</summary>
 

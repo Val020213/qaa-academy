@@ -8,7 +8,8 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["vite/client", "node"],
 
-    // Strict mode: the compiler warns about anything that could be a bug.
+    // Strict mode: the type checker reports every type error it can find, such as a value that may be null.
+    // It does not find logic errors: code with correct types can still do the wrong thing.
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,

@@ -14,7 +14,7 @@ In this lesson you split code into several files and share what is needed betwee
 
 ## One file, one module
 
-Each file is a **module**. A module keeps its own variables and functions, and other files cannot see them.
+In this course, Node.js runs `.ts` files as **modules** because `package.json` declares `"type": "module"`. The checker also treats each file as a module because of `moduleDetection: "force"`. Their variables and functions have their own scope.
 
 To share something, the module must **export** it. To use it, another file must **import** it.
 
@@ -60,7 +60,7 @@ Run it with `node exercises/01-programming/use-shapes.ts`. The program prints:
 3.141592653589793
 ```
 
-The names in `{ }` must match the exported names exactly.
+In this form, the names in `{ }` match the exported names exactly.
 
 If a file tries to import the private `secret`:
 
@@ -86,7 +86,7 @@ The text after `from` is the **path**. A path that starts with `./` points to a 
 
 > **Note:** In this course, write the `.ts` ending in relative imports. Node needs it to find the file.
 
-Each of these three wrong versions fails in a different way:
+These three wrong versions fail at runtime:
 
 - `from "_shapes.ts"` (no `./`): Node thinks it is a package name and reports `Cannot find package '_shapes.ts'`.
 - `from "./_shapes"` (no `.ts`): Node reports `Cannot find module` and shows the path without the ending.
@@ -94,7 +94,7 @@ Each of these three wrong versions fails in a different way:
 
 ## Importing types
 
-A type exists only while TypeScript checks your code. It disappears when the program runs. Use `import type` for types.
+A type alias serves the checker, but does not create a runtime value. Node.js removes `import type` before loading modules. Use that form to import types.
 
 Create `exercises/01-programming/_weather.ts`:
 
@@ -177,9 +177,11 @@ ticket machine loaded
 3
 ```
 
-The message appears once, and the screen shows 3. When two files import the same module, the module code runs one time, and both files get the same exported values, not copies. There is one machine and one counter, so all customers share the numbers.
+The message appears once, and the screen shows 3. During a run, Node.js caches loaded modules by their resolved URL. These two imports reach the same file: its code runs once and both access the same exported variables. There is one machine and one counter, so all customers share the numbers.
 
-That is why a variable at the top of a module lives as long as the program, and every function that uses it shares it.
+![Both modules use the same counter; three tickets advance it from 0 to 3.](/images/01-module-counter.en.svg)
+
+This module’s counter remains available between calls during this run. When you run the program again, it starts at 0 again.
 
 ## Packages
 
@@ -192,8 +194,8 @@ import { squareArea } from "./_shapes.ts"
 import { marked } from "marked"
 ```
 
-- A path that starts with `./` or `../` is your own file.
-- A name without a dot is a package. Node looks for it in the `node_modules` folder, where pnpm puts installed packages.
+- A path that starts with `./` or `../` looks for a file relative to the importing module.
+- A package name such as `marked` is looked up in `node_modules`, starting from the importing module’s folder and then its parent folders. pnpm links installed packages there.
 
 ## Go deeper
 
@@ -226,7 +228,7 @@ import { age } from "./_dog.ts"
 age = 10
 ```
 
-Only the module that owns a variable may change it. The module offers a function, here `birthday`, for everyone else. TypeScript reports it before you run, as "Cannot assign to 'age' because it is an import".
+The importing file cannot reassign that variable. If its value were an object, it could still change its properties. The module offers a function, here `birthday`, for everyone else. TypeScript reports it before you run, as "Cannot assign to 'age' because it is an import".
 
 ### A trade-off: the junk drawer
 
@@ -238,7 +240,7 @@ Share code when two files need the same thing. Give the module a name that says 
 
 1. Create `exercises/01-programming/_shapes.ts` and `exercises/01-programming/use-shapes.ts` from this lesson and run `node exercises/01-programming/use-shapes.ts`.
 2. Remove `export` from `squareArea` and look at the error in VS Code and in the terminal. Then put it back.
-3. Create the four bakery files and run `bakery.ts`. Then add a second call of `serveCustomer()` and run it again.
+3. Create the four bakery files and run `bakery.ts`. Then add another call of `serveCustomer()` and run it again.
 4. Open `exercises/01-programming/_test-cases.ts` and read it. Do not change it.
 5. Open `exercises/01-programming/11-modules.ts`. Replace each `// TODO` with code.
 6. Run the exercise file with this command:
@@ -247,7 +249,7 @@ Share code when two files need the same thing. Give the module a name that says 
 node exercises/01-programming/11-modules.ts
 ```
 
-Make every line say `OK`.
+Make every check say `OK`.
 
 ## Challenge
 
@@ -260,7 +262,7 @@ It is done when:
 - Running `node exercises/challenges/11-modules.ts` prints at least two results that come from two different modules.
 - The main file has exactly one `import` line for values, and it points to a file named `index.ts` in your folder.
 - One value in a module has no `export`. A second file, `exercises/challenges/11-private-test.ts`, tries to import it, and running that file fails with "does not provide an export named".
-- `pnpm typecheck` reports an error only for `11-private-test.ts`, and you can read that error and say what it means.
+- `pnpm typecheck` reports the private import in `11-private-test.ts`, and you can read that error and say what it means.
 
 You will need something this lesson did not teach: a file that takes names from other modules and exports them again, so one file can be the single door to a folder. Search for: `javascript re-export export from barrel file`.
 
@@ -295,7 +297,7 @@ Both tills would share one counter, because the module runs once and `count` exi
 
 </details>
 
-3. File `a.ts` imports `b` from `b.ts`, and `b.ts` imports `a` from `a.ts`. Each file prints the other's value as soon as it loads. You run `node a.ts`. What happens?
+3. File `a.ts` imports `b` from `b.ts`, and `b.ts` imports `a` from `a.ts`. Each file exports its value with `const` and prints the other's value as soon as it loads. You run `node a.ts`. What happens?
 
 <details><summary>Answer</summary>
 

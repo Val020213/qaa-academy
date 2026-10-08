@@ -19,7 +19,7 @@ The hard kind is the **logic bug** from lesson 12: the program runs, prints a re
 ## The method
 
 1. **Observe.** Write two lines. "I expected: ..." and "I got: ...". Use exact values, not "it is broken".
-2. **Reproduce.** Make the bug happen every time, with the same input. A bug you cannot repeat, you cannot test.
+2. **Reproduce.** Repeat the input and conditions that trigger the bug. If it does not happen every time, record when it appears so you can compare runs.
 3. **Shrink.** Build the **minimal example**: the smallest input and the fewest lines that still fail. Delete everything that does not change the result.
 4. **Make one hypothesis.** A **hypothesis** is a guess that an experiment can prove wrong. "The loop skips the second row" is a hypothesis. "Something is wrong with the loop" is not.
 5. **Design one experiment.** Choose one place for a `console.log`, or change one input. Write down what you predict it will show. Do this before you run.
@@ -29,7 +29,7 @@ The hard kind is the **logic bug** from lesson 12: the program runs, prints a re
 
 ## One full investigation
 
-Here is a scoreboard of about 20 lines. A game gives points to three players. The program must print the winner. It should print `Leo with 10 points`.
+Here is a scoreboard of about 20 lines. A game gives points to three players. The program must print the winner. It should print `Winner: Leo with 10 points`.
 
 ```ts
 // Expected: "Winner: Leo with 10 points"
@@ -60,7 +60,7 @@ Players: 3
 Winner: Mia with 9 points
 ```
 
-**Observe.** I expected Leo with 10. I got Mia with 9. The program is the same every time, so it is already reproducible. It is already small, so there is nothing to shrink.
+**Observe.** I expected Leo with 10. I got Mia with 9. With these same inputs, each run produces the same result. The example is small; later we will isolate the failing comparison.
 
 **First hypothesis: the loop skips Leo.** The experiment: print each player inside the loop. If the hypothesis is true, `Leo` is missing. I predict: no `Leo` line.
 
@@ -69,7 +69,7 @@ Winner: Mia with 9 points
     console.log("row:", row.player)
 ```
 
-The result:
+The added lines print:
 
 ```text
 row: Mia
@@ -79,13 +79,13 @@ row: Zoe
 
 My prediction was wrong, so I cross the hypothesis out. The loop visits Leo.
 
-**Second hypothesis: the comparison says "no" for Leo's row.** The experiment: print both numbers and the comparison. I predict that for Leo it shows `true`, because 10 is more than 9.
+**Second hypothesis: Leo’s and Mia’s points are numbers.** The experiment: print both values and the comparison. I predict that for Leo it shows `true`, because 10 is more than 9.
 
 ```ts
     console.log(row.player, row.points, winner.points, row.points > winner.points)
 ```
 
-The result:
+The added lines print:
 
 ```text
 Mia 9 9 false
@@ -111,7 +111,7 @@ false
 true
 ```
 
-Found it. The JSON text has the numbers in quotes, so `points` is text. Text is compared letter by letter, and `"1"` comes before `"9"`. So `"10" > "9"` is `false`. The line `as Score[]` told TypeScript to trust me, so it did not warn.
+Found it. The JSON text has the numbers in quotes, so `points` is text. JavaScript compares strings from left to right by their UTF-16 codes; `"1"` comes before `"9"`, so `"10" > "9"` is `false`. `JSON.parse` returns `any`, and `as Score[]` only tells the checker which type to assume: it does not check or transform the data.
 
 **Fix one thing.** Convert the text to numbers when you read the data:
 
@@ -122,18 +122,18 @@ const scores: Score[] = raw.map((row) => ({ player: row.player, points: Number(r
 
 It now prints `Winner: Leo with 10 points`.
 
-**Explain and recheck.** The numbers were text, so the comparison used alphabet order. Check other cases: points `100` and `20` must give `100`, and Mia must still win when she has the most.
+**Explain and recheck.** The points were strings, so JavaScript compared their codes instead of their numeric values. Check other cases: points `100` and `20` must give `100`, and Mia must still win when she has the most.
 
 ## Tools for when you are stuck
 
 **Rubber-duck explaining.** Explain the code, line by line, out loud, to a rubber duck or an empty chair. Say what each line does and what each variable holds. Often you hear yourself say something that is not true, and that is the bug.
 
-**Bisecting.** Bisecting means halving the search area. A program has 8 steps and the final result is wrong. Print the value after step 4. If it is already wrong, the bug is in steps 1 to 4. If it is right, the bug is in steps 5 to 8. Halve again. Eight steps need only three prints, not eight.
+**Bisecting.** Halve the search area. If you know the correct state after each step and the error stays visible once it appears, inspect the state after step 4 of 8. If it is already wrong, search steps 1 to 4; if it is right, search steps 5 to 8. Repeat: you can locate the first failing step with three checks. A single value can hide an error in another piece of data.
 
 ## The trap list
 
 - **Fixing the symptom.** You make the output look right for this input, for example with `if (name === "Leo")`. The cause is still there.
-- **"It works now, I do not know why."** This is not a fix. The bug is hiding. Undo your change and see if it fails again. If it does not, you fixed nothing.
+- **"It works now, I do not know why."** You still need to check the cause. Undo your change and repeat the same input and conditions. If it does not fail again, you still do not know whether the change fixed the bug.
 
 ## Practice
 
@@ -148,7 +148,7 @@ It now prints `Winner: Leo with 10 points`.
 node exercises/01-programming/12b-debug-like-a-scientist.ts
 ```
 
-7. For each function, write one hypothesis and one prediction before you change code. Make every line say `OK`.
+7. For each function, write one hypothesis and one prediction before you change code. Make every check say `OK`.
 
 ## Challenge
 
@@ -187,7 +187,7 @@ It prints `[ 8, 2, 9, 7 ]`, which is four scores, not three. The `slice(-4)` tak
 
 <details><summary>Answer</summary>
 
-It may be only a symptom fix. `NaN` comes from dividing 0 by 0, which is correct maths for "no values". What you should ask is what the caller needs: should an empty list return 0, return nothing, or be an error? An average of 0 can look like real data and hide a problem.
+It may be only a symptom fix. `NaN` is JavaScript’s result for `0 / 0`; the average of an empty list is undefined. What you should ask is what the caller needs: should an empty list return 0, return nothing, or be an error? An average of 0 can look like real data and hide a problem.
 
 </details>
 
@@ -195,7 +195,7 @@ It may be only a symptom fix. `NaN` comes from dividing 0 by 0, which is correct
 
 <details><summary>Answer</summary>
 
-You lose the cause. One change may be the real fix, and the other may be a new hidden bug. To find out, undo one change and run again. If the bug returns, that change was the fix. Then test each change on its own.
+You lose the cause. One change may be the real fix, and the other may be a new hidden bug. To find out, undo one change and run again. If the bug returns, that change contributed to the result, but both changes may be necessary. Test each change on its own.
 
 </details>
 

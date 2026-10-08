@@ -15,11 +15,11 @@ En esta lección escribes y ejecutas tu primer programa en TypeScript, y aprende
 
 ## Del texto a la ejecución
 
-El procesador de tu computadora solo entiende código máquina: números que representan operaciones muy pequeñas, como sumar dos valores o copiar un dato. Nadie escribe así. Escribes texto en un lenguaje de programación, y otro programa lleva ese texto hasta el procesador.
+El procesador de tu computadora solo entiende código máquina: números que representan operaciones muy pequeñas, como sumar dos valores o copiar un dato. Normalmente escribes texto en un lenguaje de programación, y otro programa lleva ese texto hasta el procesador.
 
-Hay dos formas clásicas de hacerlo. Un **compilador** traduce el programa completo a código máquina antes de ejecutarlo y deja un archivo ejecutable; así trabajan lenguajes como C o Go. Un **intérprete** lee el código fuente y lo ejecuta directamente, sin dejar un ejecutable. Hoy la mayoría de los lenguajes mezcla las dos ideas.
+Un **compilador** traduce código a otra forma antes de que esa parte se ejecute: puede ser código máquina, bytecode u otro lenguaje. Un **intérprete** ejecuta instrucciones sin crear antes un ejecutable completo. Algunas herramientas combinan las dos ideas.
 
-En los dos casos el texto pasa por las mismas fases:
+Estas son las fases que encontrarás en las herramientas de este curso:
 
 1. **Análisis** (*parsing*). Se lee el texto y se comprueba que cumple la gramática del lenguaje: paréntesis que cierran, comillas completas. El resultado es un árbol que representa la estructura del código, el árbol de sintaxis (*AST*).
 2. **Verificación.** Algunos lenguajes revisan después que las piezas encajen, por ejemplo que no multipliques un texto por un número. En TypeScript esta fase es la verificación de tipos.
@@ -27,11 +27,11 @@ En los dos casos el texto pasa por las mismas fases:
 
 ### Qué hace Node.js con tu archivo
 
-En este curso escribes en **TypeScript**, que es JavaScript con anotaciones de tipos; sus archivos terminan en `.ts`. Los ejecuta **Node.js**, que instalaste en el módulo 0. Cuando le pides ejecutar un archivo `.ts`, pasa esto:
+En este curso escribes en **TypeScript**, que es JavaScript con anotaciones de tipos; sus archivos terminan en `.ts`. Los ejecuta **Node.js**, que instalaste en el módulo 0. Con los archivos `.ts` de este curso, pasa esto:
 
 1. Node.js analiza el archivo y le quita las anotaciones de tipos. Lo que queda es JavaScript. Node.js no verifica los tipos, solo los borra.
 2. V8, el motor de JavaScript que Node.js lleva dentro y que también usa Chrome, analiza ese JavaScript, construye el árbol y lo convierte en *bytecode*: instrucciones intermedias, más simples que tu código y más generales que el código máquina.
-3. V8 ejecuta el bytecode instrucción por instrucción. Las partes que se repiten mucho las compila a código máquina mientras el programa corre, para que vayan más rápido. Esto se llama compilación *just-in-time* (JIT).
+3. V8 empieza ejecutando el bytecode. También puede compilar partes usadas con frecuencia a código máquina mientras el programa corre, para ejecutarlas más rápido. Esto se llama compilación *just-in-time* (JIT).
 
 ![Lo que hace Node.js con un archivo .ts. El verificador de tipos es una herramienta aparte.](/images/code-to-execution.es.svg)
 
@@ -49,7 +49,7 @@ Escribe esta única línea:
 console.log("Hello, world!")
 ```
 
-`console.log` muestra el texto entre comillas en la terminal, y cada instrucción va en su propia línea. TypeScript también acepta un `;` al final de una instrucción, así que lo verás en el código de otras personas, pero este curso no lo escribe.
+`console.log` imprime el valor y añade un salto de línea. En este curso escribimos cada instrucción en su propia línea. TypeScript también acepta un `;` al final de una instrucción, así que lo verás en el código de otras personas, pero este curso no lo escribe.
 
 Ahora abre la terminal de VS Code (Terminal > New Terminal). Ejecuta el archivo:
 
@@ -83,11 +83,11 @@ Now playing: Hey Jude
 
 Si cambias de lugar dos líneas en el archivo, la salida también cambia. El orden de las líneas es parte del programa.
 
-Un programa también puede ejecutarse sin ningún error y aun así estar mal. Si escribes "meter el pastel al horno" antes de "calentar el horno a 180 grados", Node.js no se queja: el analizador solo exige que cada línea cumpla las reglas del lenguaje, no que tu idea tenga sentido.
+Un programa también puede ejecutarse sin ningún error y aun así estar mal. Si escribes "meter el pastel al horno" antes de "calentar el horno a 180 grados", Node.js no se queja: el analizador comprueba la gramática del archivo, no que el orden de los pasos tenga sentido.
 
 ## Comentarios
 
-Un **comentario** es una nota para las personas. El analizador lo descarta: no llega al árbol de sintaxis ni se ejecuta. Un comentario empieza con `//` y llega hasta el final de la línea.
+Un **comentario** es una nota para las personas. El analizador no lo trata como una instrucción, así que no se ejecuta. Un comentario de línea empieza con `//` y llega hasta el final de la línea.
 
 ```ts
 // A short routine for a pet shelter
@@ -110,9 +110,9 @@ También puedes poner `//` delante de una línea de código para apagarla por un
 
 Cuando el código tiene un error, lo que ves en la terminal cambia según Node.js lo detecte al analizar el archivo o al ejecutarlo.
 
-### Antes de ejecutar: nada se imprime
+### Antes de ejecutar: no se imprime la salida del programa
 
-Node.js lee el archivo completo antes de ejecutar una sola línea. Si una línea rompe las reglas del lenguaje, se niega a empezar y no imprime nada, ni siquiera las líneas correctas que van antes. A esto se le llama **error de sintaxis**.
+Node.js lee el archivo completo antes de ejecutar una sola línea. Si el archivo rompe las reglas del lenguaje, Node.js muestra el error y no ejecuta ninguna de sus instrucciones, ni siquiera las correctas que van antes. A esto se le llama **error de sintaxis**.
 
 Cambia la línea 1 de `hello.ts` para que olvide la comilla de cierre:
 
@@ -135,7 +135,7 @@ Siguen más líneas. Por ahora puedes ignorarlas. Lee las primeras:
 - La segunda línea muestra el código que tiene el problema.
 - La línea con `SyntaxError` nombra el tipo de error.
 
-El mensaje no siempre es fácil de entender. Aquí dice que la línea terminó demasiado pronto, y la razón real es la comilla que falta. Agrega la comilla y ejecuta de nuevo: el mensaje desaparece.
+El mensaje no siempre es fácil de entender. Aquí dice que el archivo terminó mientras el analizador esperaba más código, y la razón real es la comilla que falta. Agrega la comilla y ejecuta de nuevo: el mensaje desaparece.
 
 ### Durante la ejecución: las líneas anteriores ya se imprimieron
 
@@ -213,7 +213,7 @@ Los pasos están en el orden equivocado. Node.js ejecuta las líneas en el orden
 <details>
 <summary>Respuesta</summary>
 
-No se imprime nada y no hay error. Un archivo vacío es un programa válido con cero instrucciones, y uno con solo comentarios también, porque el analizador descarta los comentarios.
+No se imprime nada y no hay error. Un archivo vacío es un programa válido con cero instrucciones, y uno con solo comentarios tampoco tiene instrucciones que ejecutar.
 
 </details>
 

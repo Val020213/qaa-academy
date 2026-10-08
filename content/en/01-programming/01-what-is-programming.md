@@ -15,11 +15,11 @@ In this lesson you write and run your first TypeScript program, and learn to rea
 
 ## From text to a running program
 
-Your computer's processor only understands machine code: numbers that stand for very small operations, such as adding two values or copying a piece of data. Nobody writes that by hand. You write text in a programming language, and another program takes that text to the processor.
+Your computer's processor only understands machine code: numbers that stand for very small operations, such as adding two values or copying a piece of data. You normally write text in a programming language, and another program takes that text to the processor.
 
-There are two classic ways to do it. A **compiler** translates the whole program to machine code before it runs and leaves an executable file; languages such as C and Go work this way. An **interpreter** reads the source code and runs it directly, with no executable left behind. Most languages today mix the two ideas.
+A **compiler** translates code into another form before that part runs: it may be machine code, bytecode or another language. An **interpreter** runs instructions without first creating a complete executable. Some tools combine the two ideas.
 
-In both cases the text goes through the same phases:
+These are the phases you will encounter in this course's tools:
 
 1. **Parsing.** The text is read and checked against the grammar of the language: brackets that close, quotes that are complete. The result is a tree that represents the structure of the code, the syntax tree (*AST*).
 2. **Checking.** Some languages then check that the pieces fit together, for example that you do not multiply a text by a number. In TypeScript this phase is type checking.
@@ -27,11 +27,11 @@ In both cases the text goes through the same phases:
 
 ### What Node.js does with your file
 
-In this course you write **TypeScript**, which is JavaScript with type annotations; its files end in `.ts`. **Node.js**, which you installed in module 0, runs them. When you ask it to run a `.ts` file, this happens:
+In this course you write **TypeScript**, which is JavaScript with type annotations; its files end in `.ts`. **Node.js**, which you installed in module 0, runs them. With this course's `.ts` files, this happens:
 
 1. Node.js parses the file and removes the type annotations. What is left is JavaScript. Node.js does not check the types, it only removes them.
 2. V8, the JavaScript engine inside Node.js and also inside Chrome, parses that JavaScript, builds the tree and turns it into *bytecode*: intermediate instructions, simpler than your code and more general than machine code.
-3. V8 runs the bytecode one instruction at a time. The parts that repeat a lot are compiled to machine code while the program runs, so they go faster. This is called *just-in-time* (JIT) compilation.
+3. V8 starts by running the bytecode. It can also compile frequently used parts to machine code while the program runs, to run them faster. This is called *just-in-time* (JIT) compilation.
 
 ![What Node.js does with a .ts file. The type checker is a separate tool.](/images/code-to-execution.en.svg)
 
@@ -49,7 +49,7 @@ Type this one line:
 console.log("Hello, world!")
 ```
 
-`console.log` shows the text between quotes in the terminal, and each instruction goes on its own line. TypeScript also accepts a `;` at the end of an instruction, so you will see it in other people's code, but this course leaves it out.
+`console.log` prints the value and adds a newline. In this course we put each instruction on its own line. TypeScript also accepts a `;` at the end of an instruction, so you will see it in other people's code, but this course leaves it out.
 
 Now open the terminal in VS Code (Terminal > New Terminal). Run the file:
 
@@ -83,11 +83,11 @@ Now playing: Hey Jude
 
 If you swap two lines in the file, the output swaps too. The order of the lines is part of the program.
 
-A program can also run with no error and still be wrong. If you write "put the cake in the oven" before "heat the oven to 180 degrees", Node.js does not complain: the parser only requires that each line follows the rules of the language, not that your idea makes sense.
+A program can also run with no error and still be wrong. If you write "put the cake in the oven" before "heat the oven to 180 degrees", Node.js does not complain: the parser checks the file's grammar, not whether the order of the steps makes sense.
 
 ## Comments
 
-A **comment** is a note for people. The parser discards it: it does not reach the syntax tree and it never runs. A comment starts with `//` and goes to the end of the line.
+A **comment** is a note for people. The parser does not treat it as an instruction, so it does not run. A line comment starts with `//` and goes to the end of the line.
 
 ```ts
 // A short routine for a pet shelter
@@ -110,9 +110,9 @@ You can also put `//` in front of a line of code to switch it off for a while. P
 
 When your code has an error, what you see in the terminal changes depending on whether Node.js finds it while parsing the file or while running it.
 
-### Before it runs: nothing is printed
+### Before it runs: no program output
 
-Node.js reads the whole file before it runs a single line. If a line breaks the rules of the language, it refuses to start and prints nothing, not even the correct lines that come before. This is called a **syntax error**.
+Node.js reads the whole file before it runs a single line. If the file breaks the language rules, Node.js shows the error and runs none of its instructions, not even the correct ones that come before. This is called a **syntax error**.
 
 Change line 1 of `hello.ts` so that it forgets the closing quote:
 
@@ -135,7 +135,7 @@ More lines follow. You can ignore them for now. Read the first lines:
 - The second line shows the code that has the problem.
 - The line with `SyntaxError` names the kind of error.
 
-The message is not always easy to understand. Here it says the line ended too early, and the real reason is the missing quote. Add the quote and run again: the message goes away.
+The message is not always easy to understand. Here it says the file ended while the parser expected more code, and the real reason is the missing quote. Add the quote and run again: the message goes away.
 
 ### While it runs: earlier lines were already printed
 
@@ -213,7 +213,7 @@ The steps are in the wrong order. Node.js runs the lines in the order they are w
 <details>
 <summary>Answer</summary>
 
-Nothing is printed and there is no error. An empty file is a valid program with zero instructions, and so is a file with only comments, because the parser discards comments.
+Nothing is printed and there is no error. An empty file is a valid program with zero instructions, and a file with only comments also has no instructions to run.
 
 </details>
 

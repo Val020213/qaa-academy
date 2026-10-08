@@ -97,7 +97,7 @@ The sign `+` has two jobs. If one side is text, it joins. So `"3" + 4` becomes t
 
 This automatic change is called **type coercion**. It is dangerous because the program does not stop: the same text gives different kinds of result in each line, and none of them is an error.
 
-TypeScript does see the problem. In VS Code, the lines with `*` and `-` show a red line: the left side of the maths must be a number. The command `node` ignores types and runs the file anyway.
+The type checker flags the operations with `*` and `-`: `cats` is text rather than a number. Node.js removes type annotations, but does not run the checker.
 
 ## Type annotations
 
@@ -119,7 +119,7 @@ You often do not need to write the type. TypeScript can see it from the value. T
 const dogName = "Rex"
 ```
 
-TypeScript knows that `dogName` is a string, because the value is text.
+TypeScript infers the type from the text you assigned to `dogName`.
 
 A good rule: let TypeScript infer the type for simple variables, and write it when TypeScript cannot know it.
 
@@ -150,15 +150,15 @@ You see the problem in two places:
 pnpm typecheck
 ```
 
-> **Note:** The command `node file.ts` does not check types. It only removes them and runs the code. The checker is `pnpm typecheck` and the red lines in VS Code.
+> **Note:** The command `node file.ts` does not check types. It only removes them and runs the code. `pnpm typecheck` runs the checker; VS Code shows its diagnostics while you type.
 
 ## null and undefined
 
-Sometimes a value is missing. TypeScript has two special values for this.
+Sometimes a value is missing. JavaScript has two values we use to represent missing data.
 
-`undefined` means: nothing has been given yet. A weather station that has not made its first measurement has an `undefined` temperature.
+We use `undefined` when no value has been supplied yet. A variable declared without an initial value, such as the temperature of a station with no measurements, starts as `undefined`.
 
-`null` means: there is no value, and this is on purpose. A dog in a shelter that nobody has adopted has no owner. You set that yourself.
+We use `null` to state explicitly that there is no value. You can assign it to the owner of a dog that nobody has adopted.
 
 ```ts
 let temperature: number | undefined
@@ -177,15 +177,15 @@ undefined
 null
 ```
 
-The sign `|` means "or". So `number | undefined` means: a number, or nothing yet. And `string | null` means: a string, or no value on purpose.
+The sign `|` means "or". So `number | undefined` allows a number or `undefined`. And `string | null` allows a string or `null`.
 
-If a value can be missing, the type checker makes you think about that case.
+With the project's strict configuration, the checker flags an operation that needs a value when it could still be `null` or `undefined`.
 
 ## Go deeper
 
 ### Types disappear when the program runs
 
-TypeScript checks your types, and then it removes them. What Node.js runs is plain JavaScript. So TypeScript only knows what you tell it: if a value comes from outside, like text from a web page, it cannot look inside. At run time, the value has the type it really has.
+With `node file.ts`, Node.js removes type annotations and V8 runs the resulting JavaScript. The type checker runs separately. An annotation does not check an external value at run time: that check must be in the code.
 
 ### Number() always gives a `number`, but not always a useful one
 
@@ -203,7 +203,7 @@ NaN
 number
 ```
 
-`NaN` means "not a number". It is a number value that marks a failed conversion. Its type is still `number`. And an empty text becomes `0`, with no warning. So check the text before you trust the result.
+`NaN` means "not a number". It is a value of type `number`; here it appears because converting `"abc"` failed. And an empty text becomes `0`, with no warning. So check the text before you trust the result.
 
 ## Practice
 
@@ -218,7 +218,7 @@ number
 node exercises/01-programming/03-types.ts
 ```
 
-Solve the exercises. Make every line say `OK`.
+Solve the exercises. Make each check say `OK`.
 
 ## Challenge
 

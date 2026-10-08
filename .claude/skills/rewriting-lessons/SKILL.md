@@ -40,6 +40,12 @@ A manual QA tester who works in a software team. They know what a program, a dat
     Give the mechanism, not only the name: say *why* the result is what it is (precedence, short-circuit, the value an expression produces).
 14. **Screenshots where the learner can get lost.** A step that says "click X, top right" on a site, or the first look at a tool, gets a screenshot.
 
+## When accuracy and the owner's request pull apart
+
+An accuracy pass once deleted the explanation of array indices as offsets from a pointer, because JavaScript does not promise that layout. The owner had asked for exactly that explanation. Both can be satisfied: keep what the owner asked to be taught, and say precisely what it is true of. There, the index-as-offset layout is how C works and where the zero-based convention comes from; JavaScript inherited the convention, and V8 stores a dense array in a block of contiguous slots (checked with `node --allow-natives-syntax` and `%DebugPrint`). An explanation the owner requested is never removed for being loose. It is made exact. When you brief an auditor, list the passages the owner asked for and tell it so.
+
+The same goes for code style: module 1 has no semicolon at the end of a statement, like the rest of the course. The one place a learner types a semicolon is the header of a `for` loop with an index.
+
 ## Shape of a lesson
 
 Frontmatter: `title` and `duration`. `summary` is optional and module 0 does not use it. Set `duration` honestly after trimming.

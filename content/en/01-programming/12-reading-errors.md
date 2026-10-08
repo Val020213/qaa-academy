@@ -16,8 +16,8 @@ In this lesson you learn to read a TypeScript error message and a stack trace, a
 
 In the first lesson you saw that an error can be found before the program runs or while it runs. In TypeScript those two cases have names of their own:
 
-- A **type error** is found before the program runs. TypeScript checks your code and finds a mismatch. You see it as a red underline in VS Code, or when you run `pnpm typecheck`.
-- A **runtime error** happens while the program runs. The program stops at the failing line.
+- A **type error** is a mismatch between a value and its expected type detected by the type checker. Node.js does not perform that check when it runs `.ts` files. You see it as a red underline in VS Code, or when you run `pnpm typecheck`.
+- A **runtime error** happens while the program runs. If nothing catches the error, Node.js stops the program; a `catch` can handle it.
 
 A third kind is a **logic bug**. The program runs without error but gives a wrong answer. No message helps you here: you must compare the result with what you expect. The next lesson is about this kind.
 
@@ -42,7 +42,7 @@ Read it in parts:
 - `TS2322` is the error code. Search for it on the web to find explanations.
 - `Type 'string' is not assignable to type 'number'` is the message. It says: you put text where a number is expected.
 
-The phrase "Type X is not assignable to type Y" is the most common one. Read it as "I got X, but I need Y."
+The phrase "Type X is not assignable to type Y" appears when a value does not fit the target type. Read it as "I got X, but I need Y."
 
 ## Anatomy of a stack trace
 
@@ -105,7 +105,7 @@ You called something that is not a function. Check the name and the dots. Maybe 
 
 ### 7. Cannot find module
 
-An import path is wrong, or a package is not installed. Check `./`, the file name and the `.ts` ending. For packages, run `pnpm install`.
+An import path is wrong, or a package is not installed. Check `./`, the file name and the `.ts` ending. If the package is already in `package.json`, `pnpm install` installs declared dependencies; it does not fix a misspelled package name.
 
 ### 8. A Promise shows as [object Promise]
 
@@ -142,7 +142,7 @@ TypeError: Cannot read properties of undefined (reading 'name')
     at demo.ts:13:1
 ```
 
-Node points to line 6, and line 6 is fine. The mistake is that nobody has a dog with id 2, and line 13 asked for it. The text `as Dog` told TypeScript to trust you, so it hid the `undefined`.
+Node points to line 6, where `name` is read. Also inspect line 5: `find` can return `undefined`, but `as Dog` hides that possibility from the checker. The call on line 13 requests a missing id; the function must decide how to handle it, rather than assuming it always exists.
 
 The `at` lines tell you how to get from the crash back to the source. Node keeps a list of the functions that are running, the **call stack**, and prints it when a crash happens. Read it from top to bottom: `getName` crashed, it was called by `printName` on line 10, and that was called by the main file on line 13. The bad value came from further down the list. At each line, ask: what did I expect here, and what did I get?
 
@@ -166,7 +166,7 @@ for (const dog of dogs) {
 }
 ```
 
-It prints `Ana` and then crashes on line 4, but line 4 is not the mistake. Mimi has no owner, and `as { name: string }` told TypeScript "trust me, the owner is there". The data and the code disagree, and the `as` hid it. A good fix decides what should happen for a dog with no owner: print "no owner", or report a clear message.
+It prints `Ana` and then crashes on line 4: that line reads a property without checking the optional owner. Mimi has no owner, and `as { name: string }` hid that possibility from the checker. The data and the code disagree, and the `as` hid it. A good fix decides what should happen for a dog with no owner: print "no owner", or report a clear message.
 
 Compare the crash with this "fix" for Mimi:
 
@@ -197,7 +197,7 @@ async function main(): Promise<void> {
 main()
 ```
 
-It prints `test passed`, although the check failed. The empty `catch` swallowed the error. A test like this can never fail. Use `catch` only when you can do something useful. If you only want to log, write `throw error` at the end of the `catch` block to pass the error on.
+It prints `test passed`, although the check failed. The empty `catch` swallowed the error. A test like this can never fail. Use `catch` only when you can do something useful. If you only want to log, use `catch (error)` and write `throw error` at the end to pass it on.
 
 ## Practice
 
@@ -212,7 +212,7 @@ It prints `test passed`, although the check failed. The empty `catch` swallowed 
 node exercises/01-programming/12-reading-errors.ts
 ```
 
-7. Fix one bug at a time. Use `console.log` to print values. Make every line say `OK`.
+7. Fix one bug at a time. Use `console.log` to print values. Make every check say `OK`.
 
 ## Challenge
 
@@ -248,7 +248,7 @@ It prints `NaN false`. `Number("5cm")` cannot make a number from that text, but 
 
 <details><summary>Answer</summary>
 
-At run time, `dogs[0]` is `undefined`, so the program stops with "Cannot read properties of undefined (reading 'name')". With the strict settings of this course, TypeScript reports `Object is possibly 'undefined'` before you run. The edge case is the empty list. Check the value first with `if (first !== undefined)`, and decide what the program should do for no dogs.
+At run time, `dogs[0]` is `undefined`, so the program stops with "Cannot read properties of undefined (reading 'name')". With this course’s `noUncheckedIndexedAccess` setting, TypeScript reports `Object is possibly 'undefined'` before you run. The edge case is the empty list. Check the value first with `if (first !== undefined)`, and decide what the program should do for no dogs.
 
 </details>
 

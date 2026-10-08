@@ -22,9 +22,9 @@ Instálalas en el orden de abajo. Para cada una, usa el instalador oficial y ace
 
 ## Cómo comprobar una instalación
 
-Después de instalar cada herramienta, cierra la terminal y abre una nueva. En VS Code, usa Terminal > New Terminal. Luego ejecuta el comando `--version` de esa herramienta.
+Después de instalar cada herramienta, cierra las terminales y todas las ventanas de VS Code. Abre VS Code otra vez y usa Terminal > New Terminal. Luego ejecuta el comando `--version` de esa herramienta.
 
-Una terminal que ya estaba abierta no ve los programas que instalaste después de abrirla. El comando `--version` imprime el número de versión. Si ves un número, la herramienta funciona. Si ves "is not recognized", la instalación no terminó o la terminal que usas es vieja.
+La terminal hereda de VS Code la configuración para encontrar programas; reiniciar ambos la actualiza. El comando `--version` imprime el número de versión. Si ves un número, el comando está disponible. Si ves "is not recognized", revisa el nombre, la instalación y el reinicio.
 
 ## 1. VS Code
 
@@ -36,11 +36,11 @@ Abre VS Code y luego la terminal con Terminal > New Terminal. Aparece en la part
 code --version
 ```
 
-Ves tres líneas: un número de versión, un código y `x64`. Por ejemplo:
+Ves tres líneas: la versión, el identificador de la revisión y la arquitectura, como `x64`. Por ejemplo:
 
 ```text
-1.105.0
-a1b2c3d4e5f6...
+1.140.0
+07f806f999227108933c2e30515b26eecc1fda74
 x64
 ```
 
@@ -48,7 +48,7 @@ Tus números serán distintos, y está bien.
 
 ## 2. Node.js 24 LTS
 
-Ve al sitio de Node.js, [nodejs.org](https://nodejs.org), y descarga el instalador de Windows para **24 LTS**. LTS significa soporte a largo plazo (*long-term support*): es la versión estable. Ejecútalo y acepta las opciones por defecto.
+Ve al sitio de Node.js, [nodejs.org](https://nodejs.org), y descarga el instalador de Windows para **24 LTS**. LTS significa soporte a largo plazo (*long-term support*): recibe correcciones durante más tiempo. Ejecútalo y acepta las opciones por defecto.
 
 Con una terminal nueva, ejecuta:
 
@@ -85,10 +85,10 @@ git version 2.50.0.windows.1
 pnpm se instala con npm, un programa que vino con Node.js. Ejecuta:
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.33.4
 ```
 
-La opción `-g` significa global: pnpm queda disponible en toda tu computadora.
+La opción `-g` significa global: pnpm se instala fuera del proyecto para usarlo desde distintas carpetas.
 
 Con una terminal nueva, ejecuta:
 
@@ -110,13 +110,13 @@ Cuando ejecutas `npm` o `pnpm`, PowerShell puede mostrar un error como este:
 npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system.
 ```
 
-Windows bloquea los scripts por defecto, por seguridad. La solución es permitir los scripts que tú escribiste o que están firmados. Ejecuta este comando una sola vez:
+La política de ejecución de PowerShell bloquea el script de npm o pnpm. Ejecuta este comando para permitir scripts locales y exigir firma a los marcados como descargados de internet:
 
 ```bash
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
-El comando cambia una regla de seguridad solo para tu usuario. Los scripts locales pueden ejecutarse, y los descargados deben estar firmados.
+El comando cambia una regla de seguridad solo para tu usuario. Los scripts locales pueden ejecutarse; los marcados como descargados de internet necesitan una firma de confianza. Una política de la empresa puede mantener el bloqueo.
 
 Si PowerShell pide confirmación, escribe `Y` y presiona Enter. Luego vuelve a probar tu comando.
 
@@ -127,7 +127,7 @@ Abre el panel de Extensions con Ctrl+Shift+X. Busca cada nombre y haz clic en In
 | Extensión | Para qué la quieres |
 | --- | --- |
 | Playwright Test for VSCode | Ejecuta y depura tests de Playwright desde el editor |
-| ESLint | Muestra problemas del código mientras escribes |
+| ESLint | Muestra problemas del código si el proyecto configura ESLint |
 | Prettier | Da formato a tu código con un estilo limpio y común |
 | Error Lens | Muestra los mensajes de error en la misma línea que el código |
 
@@ -141,13 +141,13 @@ Playwright es uno de esos programas. Se ejecuta en Node.js y controla el navegad
 
 ### Por qué importa el número de versión
 
-El curso pide Node.js 24 y da las versiones exactas de las herramientas. Una versión tiene tres números, como `10.33.4`, y versiones distintas pueden comportarse distinto. Un test que pasa en tu computadora puede fallar en la de un colega que tiene otra versión.
+El curso pide Node.js 24 y fija algunas versiones. Una versión como `10.33.4` tiene tres números, y versiones distintas pueden comportarse distinto. Un test que pasa en tu computadora puede fallar en la de un colega que tiene otra versión.
 
-Es una causa común de "en mi máquina funciona". Los equipos escriben las versiones en `package.json` y en un archivo de bloqueo (*lock file*), para que todas las computadoras y el servidor de CI usen las mismas. CI (integración continua, *continuous integration*) es la práctica de integrar los cambios de todo el equipo varias veces al día y verificar cada uno de forma automática: un servidor instala el proyecto desde cero, lo compila y ejecuta las comprobaciones y los tests antes de aceptar el cambio.
+El proyecto registra las versiones en `package.json` y en un archivo de bloqueo (*lock file*). pnpm usa ese archivo para instalar las mismas versiones de las dependencias. Node.js se instala aparte: usa la versión 24 que pide el curso.
 
 ### La versión de pnpm de cada proyecto
 
-`npm install -g pnpm` instala un solo pnpm para toda tu computadora. Aun así, un proyecto puede pedir una versión exacta en el campo `packageManager` de su `package.json`, y pnpm 10 descarga y usa esa versión cuando trabajas dentro de ese proyecto. El proyecto del curso lo hace, así que la versión que instalaste aquí no tiene que coincidir con la suya.
+`npm install -g pnpm@10.33.4` instala pnpm fuera de los proyectos. Un proyecto puede pedir otra versión exacta en el campo `packageManager` de su `package.json`, y pnpm 10 la descarga y usa por defecto cuando trabajas dentro de ese proyecto. El proyecto del curso lo hace, así que la versión que instalaste aquí no tiene que coincidir con la suya.
 
 ## Práctica
 
@@ -162,7 +162,7 @@ pnpm --version
 
 Debes ver cuatro números de versión, y el de Node.js debe empezar con 24. Si alguno dice "is not recognized", revisa esa instalación. Si `npm` o `pnpm` muestran el error de scripts, ejecuta el comando `Set-ExecutionPolicy` y repite.
 
-![Una terminal sana: cada comando responde con un número de versión.](/images/terminal-versions.png)
+![Node.js, Git y pnpm responden con su versión; comprueba VS Code con el comando de arriba.](/images/terminal-versions.png)
 
 ## Piénsalo bien
 
@@ -171,7 +171,7 @@ Debes ver cuatro números de versión, y el de Node.js debe empezar con 24. Si a
 <details>
 <summary>Respuesta</summary>
 
-El comando cambia más de lo necesario. `LocalMachine` cambia la regla para todos los usuarios de la computadora, y `Unrestricted` permite que se ejecute cualquier script, incluso los descargados. El comando más seguro, `-Scope CurrentUser RemoteSigned`, cambia solo tu usuario y sigue bloqueando los scripts descargados sin firma. Antes de ejecutar una solución que encuentras en internet, pregunta qué más cambia.
+El comando cambia más de lo necesario. `LocalMachine` cambia la regla para todos los usuarios de la computadora, y `Unrestricted` permite ejecutar scripts sin firma, incluidos los descargados. El comando más seguro, `-Scope CurrentUser RemoteSigned`, cambia solo tu usuario y bloquea los scripts sin firma marcados como descargados de internet. Antes de ejecutar una solución que encuentras en internet, pregunta qué más cambia.
 
 </details>
 

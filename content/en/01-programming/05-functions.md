@@ -14,7 +14,7 @@ In this lesson you write functions that take in data and give a result back, and
 
 ## Your first function
 
-A **function** is a block of code with a name. You write the steps once and run them by name as often as you like.
+A **function** groups steps that run when you call it. This example gives it a name so you can call it as often as you like.
 
 ```ts
 function barkTwice() {
@@ -86,7 +86,7 @@ The `: number` after the round brackets is the type of the return value: this fu
 
 When Node.js runs `return`, the function ends. The lines after it do not run.
 
-> **Careful:** `console.log` shows a value in the terminal. `return` gives a value back to the code that called the function. They are not the same. A function that only prints has no return value.
+> **Careful:** `console.log` shows a value in the terminal. `return` gives a value back to the code that called the function. They are not the same. A function that only prints and reaches the end without `return` returns `undefined`.
 
 ### A function that only prints
 
@@ -102,7 +102,7 @@ const total = areaOfSquare(3) + areaOfSquare(4)
 console.log(total)
 ```
 
-Because it has no `return`, each call gives back `undefined`, which means "nothing". The third line adds `undefined + undefined`, and the terminal shows:
+Because it has no `return`, each call returns `undefined`. The `const total` line adds `undefined + undefined`, and the terminal shows:
 
 ```text
 9
@@ -110,7 +110,7 @@ Because it has no `return`, each call gives back `undefined`, which means "nothi
 NaN
 ```
 
-The `9` and the `16` are printed inside the function, by `console.log`. The `NaN` is the result of adding two nothings. The type checker catches this too: VS Code underlines the `+` and says it cannot add two `void` values.
+The `9` and the `16` are printed inside the function, by `console.log`. For addition, JavaScript converts each `undefined` to `NaN`; the result is also `NaN`. The type checker flags the addition because it cannot apply `+` to two `void` values.
 
 The fix is to return the number, and print only at the end:
 
@@ -123,9 +123,9 @@ const total = areaOfSquare(3) + areaOfSquare(4)
 console.log(total)
 ```
 
-This prints `25`. A function that returns a value can be used in maths, stored, compared and tested. A function that only prints can only be read by a person.
+This prints `25`. The number the function returns can be stored, compared or used in calculations. Printing the area does not return it to the calling code.
 
-The same happens with any function that has no `return`:
+A function like this also returns `undefined` when it reaches the end without `return`:
 
 ```ts
 function printGreeting() {
@@ -143,7 +143,7 @@ Hello
 undefined
 ```
 
-The word `Hello` comes from the `console.log` inside the function. The variable `result` got nothing. If you want a value, you must return it.
+The word `Hello` comes from the `console.log` inside the function. The variable `result` received `undefined`. To receive the greeting as the call's result, the function must return it.
 
 ## Decisions inside a function
 
@@ -206,11 +206,11 @@ This prints:
 20
 ```
 
-It does the same as a normal function. You can use either style; be consistent within one file.
+In this example, the arrow function computes the same product as a function declared with `function`. You can use either style; be consistent within one file.
 
 ## Default parameters
 
-A **default parameter** has a value that is used when you give no argument.
+A **default parameter** supplies its declared value when you omit the argument or pass `undefined`.
 
 ```ts
 function describeSong(title: string, minutes: number = 3): string {
@@ -276,7 +276,7 @@ Before you write a big function, apply **decomposition**: break the problem into
 
 ### Variables inside a function stay inside
 
-Variables made inside a function exist only while the function runs. This is called **scope**.
+Variables declared inside a function can only be used within their scope. **Scope** is the part of the code where a name is available.
 
 ```ts
 function secretDemo() {
@@ -290,7 +290,7 @@ console.log(secret)
 
 The last line fails with `ReferenceError: secret is not defined`. Thanks to this, two functions can use the same name without a clash.
 
-A parameter is also a copy of the value. Changing it does not change the variable you passed in.
+Each parameter receives the argument's value. Assigning another value to the parameter does not reassign the variable you passed.
 
 ```ts
 function addOne(n: number): number {
@@ -328,7 +328,7 @@ A function should make code easier to read. `login()` is a good name for three s
 node exercises/01-programming/05-functions.ts
 ```
 
-Solve the exercises. Make every line say `OK`.
+Solve the exercises. Make each check say `OK`.
 
 ## Challenge
 

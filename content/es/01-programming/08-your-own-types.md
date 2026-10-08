@@ -118,7 +118,7 @@ type Size = "small" | "medium" | "large"
 const size: Size = "Large"
 ```
 
-TypeScript atrapa el error de ortografía antes de que ejecutes nada. Si cambias el tipo del parámetro de `pizzaPrice` a `Size`, la llamada con `"Large"` también falla:
+TypeScript atrapa el error de ortografía antes de que ejecutes nada. Si cambias el tipo del parámetro de `pizzaPrice` a `Size`, el verificador también marca la llamada con `"Large"`. Este fragmento omite el cuerpo de la función; conserva el del ejemplo anterior:
 
 ```ts
 function pizzaPrice(size: Size): number {
@@ -128,13 +128,13 @@ function pizzaPrice(size: Size): number {
 pizzaPrice("Large")
 ```
 
-La llamada recibe un subrayado rojo: `Argument of type '"Large"' is not assignable to parameter of type 'Size'`. Una unión convierte una respuesta incorrecta y silenciosa en un error fuerte y temprano. Un error que ves mientras escribes cuesta segundos; uno que llega a un cliente cuesta mucho más.
+La llamada recibe un subrayado rojo: `Argument of type '"Large"' is not assignable to parameter of type 'Size'`. La unión permite detectar esta llamada incorrecta al verificar tipos; Node.js no la rechaza por su tipo.
 
-> **Nota:** Otros tutoriales usan `enum` para esto. En este curso, usa una unión de valores de texto. Es más simple y funciona en todas partes.
+> **Nota:** Otros tutoriales usan `enum` para esto. En este curso, usa una unión de valores de texto. Se elimina al ejecutar el archivo con Node.js. Un `enum` necesita transformar código y Node.js no lo admite en su modo de eliminación de tipos.
 
 ## Estrechar con if
 
-A veces un valor puede ser de varios tipos. Dentro de un `if`, TypeScript aprende cuál es. Esto se llama **estrechamiento** (*narrowing*).
+A veces un valor puede ser de varios tipos. Una condición puede descartar algunos tipos posibles; el verificador la usa para estrechar el tipo en cada rama. Esto se llama **estrechamiento** (*narrowing*).
 
 ```ts
 type Dog = {
@@ -168,13 +168,13 @@ Después del `if` con `return`, TypeScript sabe que `nickname` es un `string`. S
 A veces ves tipos con `<` y `>`. Solo necesitas leerlos, no escribirlos. Lee la parte dentro de `< >` como "de".
 
 - `Array<Dog>` es "un array de perros". Es lo mismo que `Dog[]`.
-- `Promise<string>` es "un string que llegará más tarde".
+- `Promise<string>` es una promesa cuyo valor, si se cumple, es un `string`.
 
 ## Profundiza
 
-### Los tipos existen solo mientras escribes
+### Los tipos no comprueban datos al ejecutar
 
-TypeScript quita todos los tipos antes de que el programa se ejecute. Node solo ve JavaScript simple, así que un tipo no puede comprobar datos que llegan mientras el programa corre.
+Al ejecutar un archivo `.ts`, Node.js elimina las anotaciones de tipo antes de ejecutar JavaScript. No verifica tipos, así que un tipo no comprueba los datos que llegan mientras el programa corre.
 
 ```ts
 type Dog = { name: string, age: number }
@@ -199,7 +199,7 @@ No escribas un tipo para todo. Esta línea no necesita ninguno:
 const count = 3
 ```
 
-TypeScript ya sabe que `count` es un número. Escribe tipos para los parámetros de las funciones, para formas que muchos lugares comparten y para opciones fijas. Los tipos de más hacen el código más largo y no lo hacen más seguro. La idea aquí es *KISS*: mantenlo simple (*keep it simple*). Una idea relacionada es *YAGNI*, "No lo vas a necesitar" (*You Aren't Gonna Need It*): no construyas para necesidades que solo imaginas, como un tipo con diez propiedades opcionales porque "quizá las necesitemos".
+TypeScript ya sabe que `count` es un número. Escribe tipos para los parámetros de las funciones, para formas que muchos lugares comparten y para opciones fijas. Repetir un tipo que el verificador ya deduce no siempre agrega una comprobación útil. La idea aquí es *KISS*: mantenlo simple (*keep it simple*). Una idea relacionada es *YAGNI*, "No lo vas a necesitar" (*You Aren't Gonna Need It*): no construyas para necesidades que solo imaginas, como un tipo con diez propiedades opcionales porque "quizá las necesitemos".
 
 Usa una unión solo cuando las opciones son una lista pequeña y fija. Si el texto puede ser cualquier cosa, como el nombre que escribe una persona, usa `string`.
 
@@ -217,7 +217,7 @@ Usa una unión solo cuando las opciones son una lista pequeña y fija. Si el tex
 node exercises/01-programming/08-your-own-types.ts
 ```
 
-Haz que cada línea diga `OK`.
+Haz que cada comprobación diga `OK`.
 
 ## Reto
 
@@ -227,7 +227,7 @@ Crea el archivo `exercises/challenges/your-own-types.ts`. Ejecútalo con `node e
 
 Está terminado cuando:
 
-- El tipo tiene al menos tres clases, y una clase no puede tener las propiedades de otra. Compruébalo a propósito y luego quita la línea incorrecta.
+- El tipo tiene al menos tres clases. Al escribir directamente un objeto de una clase con una propiedad que solo pertenece a otra, el verificador marca el error. Compruébalo a propósito y luego quita la línea incorrecta.
 - Tu función maneja cada clase, y ejecutar el archivo imprime una línea por clase.
 - Agregas una cuarta clase al tipo, y TypeScript muestra un error dentro de tu función hasta que manejes la clase nueva.
 - `pnpm typecheck` no muestra ningún error para tu archivo al final.
@@ -248,7 +248,7 @@ console.log(`Nickname: ${rex.nickname}`)
 <details>
 <summary>Respuesta</summary>
 
-Imprime `Nickname: undefined`. La propiedad `nickname` es opcional y no se dio, así que su valor es `undefined`, y una plantilla de texto convierte cualquier valor en texto. TypeScript no te detiene, pero el resultado probablemente no es lo que quieres en una pantalla. Sería mejor una comprobación con `if`.
+Imprime `Nickname: undefined`. La propiedad `nickname` es opcional y no se dio, así que su valor es `undefined`. La plantilla lo convierte en el texto "undefined". TypeScript no te detiene, pero el resultado probablemente no es lo que quieres en una pantalla. Sería mejor una comprobación con `if`.
 
 </details>
 
@@ -283,7 +283,7 @@ console.log(rex.age + 1)
 <details>
 <summary>Respuesta</summary>
 
-Un código como `rex.age * 2` recibe un subrayado rojo, porque un texto no se puede multiplicar. Eso es bueno: el compilador te muestra los lugares que debes revisar. Pero `rex.age + 1` está permitido. Con un string, `+` une textos, y el programa imprime `31`, no `4`. Después de un cambio de tipo así, busca cada uso de la propiedad y lee cada uno.
+El verificador rechaza `rex.age * 2` porque su operando tiene tipo `string`. JavaScript puede convertir texto numérico al multiplicarlo, pero TypeScript exige aquí un tipo numérico. En cambio, `rex.age + 1` está permitido: `+` concatena cuando un operando es texto, y el programa imprime `31`, no `4`. Después de un cambio de tipo así, busca cada uso de la propiedad y lee cada uno.
 
 </details>
 

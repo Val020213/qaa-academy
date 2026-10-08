@@ -118,7 +118,7 @@ type Size = "small" | "medium" | "large"
 const size: Size = "Large"
 ```
 
-TypeScript catches the spelling mistake before you run anything. If you change the parameter type of `pizzaPrice` to `Size`, the call with `"Large"` fails too:
+TypeScript catches the spelling mistake before you run anything. If you change the parameter type of `pizzaPrice` to `Size`, the checker also flags the call with `"Large"`. This excerpt omits the function body; keep the body from the earlier example:
 
 ```ts
 function pizzaPrice(size: Size): number {
@@ -128,13 +128,13 @@ function pizzaPrice(size: Size): number {
 pizzaPrice("Large")
 ```
 
-The call gets a red underline: `Argument of type '"Large"' is not assignable to parameter of type 'Size'`. A union turns a silent wrong answer into a loud, early error. A mistake you see while typing costs seconds; one that reaches a customer costs much more.
+The call gets a red underline: `Argument of type '"Large"' is not assignable to parameter of type 'Size'`. The union lets the checker detect this incorrect call; Node.js does not reject it because of its type.
 
-> **Note:** Other tutorials use `enum` for this. In this course, use a union of text values instead. It is simpler and works everywhere.
+> **Note:** Other tutorials use `enum` for this. In this course, use a union of text values instead. It is removed when Node.js runs the file. An `enum` needs code transformation, which Node.js does not support in its type-stripping mode.
 
 ## Narrowing with if
 
-Sometimes a value can be one of several types. Inside an `if`, TypeScript learns which one it is. This is called **narrowing**.
+Sometimes a value can be one of several types. A condition can rule out some possible types; the checker uses it to narrow the type in each branch. This is called **narrowing**.
 
 ```ts
 type Dog = {
@@ -168,13 +168,13 @@ After the `if` with `return`, TypeScript knows `nickname` is a `string`. Without
 Sometimes you see types with `<` and `>`. You only need to read them, not write them. Read the part inside `< >` as "of".
 
 - `Array<Dog>` is "an array of dogs". It is the same as `Dog[]`.
-- `Promise<string>` is "a string that will arrive later".
+- `Promise<string>` is a promise whose value, if it fulfills, is a `string`.
 
 ## Go deeper
 
-### Types exist only while you write
+### Types do not validate data at runtime
 
-TypeScript removes all types before the program runs. Node only sees plain JavaScript, so a type cannot check data that arrives while the program runs.
+When you run a `.ts` file, Node.js removes type annotations before executing JavaScript. It does not check types, so a type does not validate data that arrives while the program runs.
 
 ```ts
 type Dog = { name: string, age: number }
@@ -199,7 +199,7 @@ Do not write a type for everything. This line needs none:
 const count = 3
 ```
 
-TypeScript already knows that `count` is a number. Write types for function parameters, for shapes that many places share, and for fixed choices. Extra types make the code longer and do not make it safer. The idea here is **KISS**: keep it simple. A related idea is **YAGNI**, "You Aren't Gonna Need It": do not build for needs that you only imagine, such as a type with ten optional properties because "maybe we will need them".
+TypeScript already knows that `count` is a number. Write types for function parameters, for shapes that many places share, and for fixed choices. Repeating a type the checker already infers does not always add a useful check. The idea here is **KISS**: keep it simple. A related idea is **YAGNI**, "You Aren't Gonna Need It": do not build for needs that you only imagine, such as a type with ten optional properties because "maybe we will need them".
 
 Use a union only when the choices are a small, fixed list. If the text can be anything, such as the name a person types, use `string`.
 
@@ -217,7 +217,7 @@ Use a union only when the choices are a small, fixed list. If the text can be an
 node exercises/01-programming/08-your-own-types.ts
 ```
 
-Make every line say `OK`.
+Make every check say `OK`.
 
 ## Challenge
 
@@ -227,7 +227,7 @@ Create the file `exercises/challenges/your-own-types.ts`. Run it with `node exer
 
 It is done when:
 
-- The type has at least three kinds, and a kind cannot have the properties of another kind. Check this on purpose, then remove the wrong line.
+- The type has at least three kinds. When you write an object of one kind directly with a property belonging only to another, the checker flags it. Check this on purpose, then remove the wrong line.
 - Your function handles every kind, and running the file prints one line per kind.
 - You add a fourth kind to the type, and TypeScript shows an error inside your function until you handle the new kind.
 - `pnpm typecheck` shows no error for your file at the end.
@@ -248,7 +248,7 @@ console.log(`Nickname: ${rex.nickname}`)
 <details>
 <summary>Answer</summary>
 
-It prints `Nickname: undefined`. The property `nickname` is optional and was not given, so its value is `undefined`, and a template string turns any value into text. TypeScript does not stop you, but the result is probably not what you want on a screen. A check with `if` would be better.
+It prints `Nickname: undefined`. The property `nickname` is optional and was not given, so its value is `undefined`. The template converts it to the text "undefined". TypeScript does not stop you, but the result is probably not what you want on a screen. A check with `if` would be better.
 
 </details>
 
@@ -283,7 +283,7 @@ console.log(rex.age + 1)
 <details>
 <summary>Answer</summary>
 
-Code like `rex.age * 2` gets a red underline, because text cannot be multiplied. That is good: the compiler shows you the places to review. But `rex.age + 1` is allowed. With a string, `+` joins text, and the program prints `31`, not `4`. After a type change like this, search for every use of the property and read each one.
+The checker rejects `rex.age * 2` because its operand has type `string`. JavaScript can convert numeric text when multiplying, but TypeScript requires a numeric type here. In contrast, `rex.age + 1` is allowed: `+` concatenates when an operand is text, and the program prints `31`, not `4`. After a type change like this, search for every use of the property and read each one.
 
 </details>
 

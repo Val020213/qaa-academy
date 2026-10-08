@@ -14,7 +14,7 @@ En esta lección guardas texto, números y valores verdadero/falso en variables,
 
 ## Valores
 
-Un **valor** es un dato con el que trabaja tu programa. Hay tres tipos básicos. Puedes probarlos con `console.log`.
+Un **valor** es un dato con el que trabaja tu programa. Aquí usarás tres tipos de valores. Puedes probarlos con `console.log`.
 
 ```ts
 console.log("Rex")
@@ -82,9 +82,9 @@ Esto imprime `25`.
 
 ## const y let
 
-Hay dos maneras de crear una variable.
+En este curso declaramos variables de dos maneras.
 
-`const` crea una variable que no puede cambiar. Úsala por defecto.
+`const` declara una variable a la que no puedes asignar otro valor. Úsala por defecto.
 
 `let` crea una variable que sí puede cambiar. Úsala solo cuando el valor deba cambiar.
 
@@ -114,7 +114,7 @@ Esto imprime:
 
 Fíjate en que escribes `let` solo una vez. Para cambiar el valor después, escribe el nombre y `=`.
 
-¿Por qué no usar `let` en todas partes? Porque `const` le dice al lector que el valor nunca cambia, y cuando ve `let` sabe que debe vigilar un cambio.
+¿Por qué no usar `let` en todas partes? Porque `const` le dice al lector que la variable no se reasigna, y cuando ve `let` sabe que debe vigilar un cambio.
 
 > **Cuidado:** Puedes ver `var` en código viejo de internet. Nunca uses `var`. Tiene reglas confusas. Usa `const` o `let`.
 
@@ -122,7 +122,7 @@ Fíjate en que escribes `let` solo una vez. Para cambiar el valor después, escr
 
 Elige un nombre que diga para qué sirve el valor. Un buen nombre te ahorra escribir un comentario: `const t = 5 * 7` no dice nada, y `const cookingMinutes = servings * minutesPerServing` se entiende sola.
 
-Reglas:
+Convenciones de este curso:
 
 - Usa palabras en inglés.
 - Empieza con una letra minúscula.
@@ -187,9 +187,9 @@ Imprime:
 0.30000000000000004
 ```
 
-Esto no es un bug de tu programa ni de JavaScript. Se llama **error de punto flotante** (*floating point error*) y aparece en casi todos los lenguajes de programación.
+Esto no es un bug de tu programa ni de JavaScript. Es un **error de redondeo** de la representación en punto flotante (*floating point*).
 
-La causa es la forma en que se guardan los números. Tú los escribes en base 10, pero JavaScript los guarda en binario y con un espacio fijo: 64 bits por número, según el estándar IEEE 754. En base 10 pasa algo parecido con 1/3, que es 0.3333… sin fin: si solo puedes escribir una cantidad fija de cifras, tienes que cortar. En binario, 0.1 es una de esas fracciones que no terminan. Lo que queda guardado es el número más cercano posible, 0.1000000000000000055…, y con 0.2 pasa lo mismo. Al sumarlos se suman también los dos errores, y el resultado ya no cae exactamente en 0.3.
+La causa es la precisión limitada. El tipo `number` de JavaScript sigue el formato binario de 64 bits IEEE 754. En base 10 pasa algo parecido con 1/3: si solo puedes guardar una cantidad fija de cifras, tienes que redondear. En binario, 0.1 y 0.2 tampoco terminan; se representan con los valores disponibles más cercanos. La suma también se redondea a un valor representable, y por eso no coincide exactamente con el valor que JavaScript usa para 0.3.
 
 No todos los decimales tienen este problema. 0.5 y 0.25 son exactos, porque en binario son 1/2 y 1/4. Los números enteros también son exactos, hasta 9 007 199 254 740 992 (2 elevado a 53).
 
@@ -203,7 +203,7 @@ const priceInCents = 1999
 console.log(priceInCents * 3)
 ```
 
-Esto imprime `5997`. Divides entre 100 solo cuando muestras el precio a una persona.
+Esto imprime `5997`. En este ejemplo divides entre 100 solo cuando muestras el precio a una persona.
 
 ## Unir texto
 
@@ -257,9 +257,9 @@ Rex is 21 in dog years
 
 ## Profundiza
 
-### Una variable guarda su propia copia de un valor
+### Copiar un número a otra variable
 
-Cuando escribes `const saved = price`, JavaScript copia el valor de `price` en `saved`. Las dos variables no quedan unidas.
+En `const saved = price`, `price` es un número y JavaScript copia ese valor en `saved`. Las dos variables no quedan unidas.
 
 ```ts
 let price = 10
@@ -302,7 +302,7 @@ Pasa lo mismo con los *template literals*. Un texto normal entre comillas no rel
 node exercises/01-programming/02-values-and-variables.ts
 ```
 
-Al principio todas las líneas dicen `FAIL`. Resuelve los ejercicios uno por uno. Ejecuta el archivo después de cada uno. Haz que todas las líneas digan `OK`.
+Al principio, las cinco comprobaciones dicen `FAIL`. Resuelve los ejercicios uno por uno. Ejecuta el archivo después de cada uno. Haz que cada comprobación diga `OK`.
 
 ## Reto
 
@@ -356,7 +356,7 @@ Imprime `Hello, ${dogName}`. El texto usa comillas normales, así que el analiza
 <details>
 <summary>Respuesta</summary>
 
-No se rompe nada al ejecutarlo. El programa da la misma salida. Lo que pierdes es información: con `let` en todas partes, el lector debe revisar cada variable por si cambia. También pierdes una red de seguridad. Si cambias un valor por accidente, `const` detiene el programa con un error, y `let` no.
+Si el programa no intenta reasignar ninguna variable declarada con `const`, la salida no cambia. Lo que pierdes es información: con `let` en todas partes, el lector debe revisar cada variable por si cambia. También pierdes una red de seguridad. Si reasignas una variable por accidente, `const` detiene el programa con un error, y `let` no.
 
 </details>
 

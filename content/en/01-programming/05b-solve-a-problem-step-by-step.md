@@ -97,7 +97,7 @@ It prints:
 6
 ```
 
-The borders work: 11 pays 6 and 12 pays 10, 64 pays 10 and 65 pays 7. But you found two problems. The text `"tuesday"` with a small `t` gets no discount. And an age of -1 pays 6, because -1 is under 12. A real person cannot be -1 years old.
+The borders work: 11 pays 6 and 12 pays 10, 64 pays 10 and 65 pays 7. Two cases still need a decision. The text `"tuesday"` with a small `t` gets no discount: this version requires `"Tuesday"`. Decide whether it should accept both forms. An age of -1 pays 6 because -1 is under 12, although it is not a valid age.
 
 Add a rule at the top. Decide what the function does for a wrong age. Here it returns -1 and you say so in a comment. Later lessons show better ways.
 
@@ -113,7 +113,7 @@ Add a rule at the top. Decide what the function does for a wrong age. Here it re
 
 This one is shorter and comes from another world: the calendar.
 
-**Move 1: say it.** Say if a year has 366 days. Example: 2024 gives `true`.
+**Move 1: say it.** For this problem, use positive integer years and the Gregorian calendar rule. Say whether the year has 366 days. Example: 2024 gives `true`.
 
 **Move 2: solve it by hand.** You may not remember the rules. Make a table of years you know, then find what they share.
 
@@ -160,7 +160,7 @@ function isLeapYear(year: number): boolean {
 console.log(isLeapYear(2000), isLeapYear(1900), isLeapYear(2024), isLeapYear(2023))
 ```
 
-This prints `true false true false`. These are the four years from your hand table. **Move 5** passed with the same four values. Add edge cases: 2100, 1600, and the year 0.
+This prints `true false true false`. These are the four years from your hand table. **Move 5** passed with the same four values. Add 2100 and 1600. Also test year 0 as invalid input: this function does not validate its input yet, so it returns `true`. Decide what it should return in that case.
 
 ## When you are stuck
 
@@ -183,7 +183,7 @@ Writing steps takes time that feels lost. For a task of two lines, it is too muc
 
 1. Create the file `exercises/01-programming/solve.ts`.
 2. Write the cinema `ticketPrice` function in the same order as the lesson: one step, one run. Keep the steps as comments above the function.
-3. Add the three edge cases from the lesson and read the results.
+3. Add the test cases from the lesson and read the results.
 4. Write `isLeapYear`. Test 1900, 2000, 2024 and 2100.
 5. Open `exercises/01-programming/05b-solve-a-problem-step-by-step.ts` and run it:
 
@@ -191,11 +191,11 @@ Writing steps takes time that feels lost. For a task of two lines, it is too muc
 node exercises/01-programming/05b-solve-a-problem-step-by-step.ts
 ```
 
-Each exercise is a small problem in words. Write your steps in a comment first. Make every line say `OK`.
+Each exercise is a small problem in words. Write your steps in a comment first. Make each check say `OK`.
 
 ## Challenge
 
-A shop gives change in coins. Write a function that says how many coins are needed to give back a given amount, using as few coins as possible. Choose your own world, such as a shop with euro cents or a game with gold, silver and copper coins. Use at least five coin values.
+A shop gives change in coins. Write a function that says how many coins are needed to give back a given amount, using as few coins as possible. Use coins worth 50, 20, 10, 5, 2 and 1 units. You can choose the theme: a shop with cents or a game with those coins.
 
 Create the file `exercises/challenges/solve-a-problem.ts`. Name the function `coinsForChange`. Write your steps in plain words as a comment at the top.
 
@@ -243,7 +243,7 @@ function isLeapYear(year: number): boolean {
 <details>
 <summary>Answer</summary>
 
-For 1900 it returns `true`, but 1900 is not a leap year. The year 1900 divides by 4, so the first `if` returns before the 100 rule is checked. The same happens for 2100. The checks are in the wrong order: the most specific rule, 400, must come first, as in your plain-word steps.
+For 1900 it returns `true`, but 1900 is not a leap year. The year 1900 divides by 4, so the first `if` returns before the 100 rule is checked. The same happens for 2100. In this version, the checks are in the wrong order: check the 400 rule before the 100 and 4 rules, as in your plain-word steps.
 
 </details>
 
@@ -252,7 +252,7 @@ For 1900 it returns `true`, but 1900 is not a leap year. The year 1900 divides b
 <details>
 <summary>Answer</summary>
 
-It returns `10`. Every comparison with `NaN` is false, so the age is not under 0, not under 12 and not 65 or more. The function falls to the base price and gives an adult price for a value that is not an age. The fix depends on the requirement: return a code for a wrong age, as for -1, or check with `Number.isNaN`.
+It returns `10`. The comparisons `age < 0`, `age < 12` and `age >= 65` are false with `NaN`. The function falls to the base price and gives an adult price for a value that is not an age. Detect that case with `Number.isNaN` and decide what to return according to the requirement, such as the code -1 for a wrong age.
 
 </details>
 

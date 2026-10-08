@@ -1,20 +1,20 @@
-// Why an index starts at 0: an array in memory. Used in 01-programming/06-arrays-and-loops.
+// Why an index starts at 0: how C lays out an array in memory. Used in 01-programming/06-arrays-and-loops.
 import { diagram } from "./lib.mjs"
 
 const TEXT = {
   en: {
-    title: "An array in memory",
-    variable: "the variable holds a pointer:", where: "the address where the array starts",
+    title: "An array in memory, in a language like C",
+    variable: "the variable holds a pointer:", where: "the address of the first slot",
     address: "address", index: "index",
     formula: "address = start + index × slot size",
-    example: "example addresses, slots of 8 bytes",
+    example: "example addresses; each 8-byte slot holds a reference to a text",
   },
   es: {
-    title: "Un array en memoria",
-    variable: "la variable guarda un puntero:", where: "la dirección donde empieza el array",
+    title: "Un array en memoria, en un lenguaje como C",
+    variable: "la variable guarda un puntero:", where: "la dirección de la primera casilla",
     address: "dirección", index: "índice",
     formula: "dirección = inicio + índice × tamaño de la casilla",
-    example: "direcciones de ejemplo, casillas de 8 bytes",
+    example: "direcciones de ejemplo; cada casilla de 8 bytes guarda la referencia a un texto",
   },
 }
 const DOGS = ['"Rex"', '"Mimi"', '"Luna"']

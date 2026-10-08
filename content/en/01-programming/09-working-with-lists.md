@@ -14,7 +14,7 @@ In this lesson you ask questions of a list with the array methods: transform it,
 
 ## The data
 
-All examples in this lesson use a music playlist. Copy it to the top of your practice file.
+The first examples use a music playlist. Copy it to the top of your practice file.
 
 ```ts
 type Song = {
@@ -34,11 +34,11 @@ const playlist: Song[] = [
 
 ## Callback functions
 
-The methods in this lesson take a function as an input. That function is called a **callback**, and the method runs it once for each item in the list. You write it as an arrow function: `(song) => ...`.
+Several methods in this lesson take a function as an input. That function is called a **callback**. The method calls it while going through the list; some stop as soon as they find the answer. Here we write it as an arrow function: `(song) => ...`.
 
 ## map: change every item
 
-`map` makes a new array. It runs your callback on each item and collects the results.
+`map` makes a new array. It runs your callback on each present item and collects the results.
 
 ```ts
 const titles = playlist.map((song) => song.title)
@@ -51,7 +51,7 @@ The program prints:
 [ 'Blue', 'Rain Dance', 'Sunday', 'Echo' ]
 ```
 
-The new array has the same length as the old one, and the old one is not changed. Each item can become something different, for example a number:
+The new array has the old array’s initial length. `map` does not modify the original array, although your callback can. Each item can become something different, for example a number:
 
 ```ts
 const minutes = playlist.map((song) => Math.round(song.seconds / 60))
@@ -68,7 +68,7 @@ This prints:
 
 ## filter: keep some items
 
-`filter` makes a new array with only the items for which your callback returns `true`.
+`filter` makes a new array with only the items for which your callback returns a value JavaScript treats as true.
 
 ```ts
 const liked = playlist.filter((song) => song.liked)
@@ -97,7 +97,7 @@ A chain reads from top to bottom like a sentence: "from the playlist, keep the s
 
 ## find: get one item
 
-`find` returns the first item for which your callback returns `true`. If nothing matches, it returns `undefined`.
+`find` returns the first item for which your callback returns a value JavaScript treats as true. If nothing matches, it returns `undefined`.
 
 ```ts
 const found = playlist.find((song) => song.artist === "Tomas")
@@ -114,9 +114,9 @@ Rain Dance
 undefined
 ```
 
-The result type is `Song | undefined`, so you must handle the `undefined` case. The `?.` in `found?.title` means "read `title` only if `found` has a value". Otherwise the result is `undefined`.
+The result type is `Song | undefined`, so you must handle the `undefined` case. The `?.` in `found?.title` reads `title` if `found` is neither `null` nor `undefined`; in those two cases, the result is `undefined`.
 
-`find` gives only the first match. There are two songs by Mia, and `find` for Mia gives `Blue` and never shows `Sunday`. If you need all matches, use `filter`.
+`find` gives only the first match. There are two songs by Mia, and `find` for Mia returns the `Blue` object, not the `Sunday` object. If you need all matches, use `filter`.
 
 ## some and every: yes or no
 
@@ -156,7 +156,7 @@ true
 
 ## Spread: copy a list
 
-Three dots `...` before an array mean **spread**. It puts all items of the array into a new place.
+Inside an array literal, `...playlist` uses **spread** to add the elements of `playlist` to the new array.
 
 ```ts
 const extended: Song[] = [
@@ -175,7 +175,7 @@ The program prints:
 5
 ```
 
-The original list still has 4 items. You made a new list with 5 items.
+The original list still has 4 items. You made a new list with 5 items, but both lists share the first four song objects. Changing a property of one of those objects is visible in both.
 
 ## Sorting
 
@@ -191,7 +191,7 @@ console.log(scores)
 
 It prints `[ 100, 25, 9 ]` two times. First, `sort` without a callback sorts items as text. As text, `"100"` comes before `"25"`, because the first character `1` is smaller than `2`, and `"25"` comes before `"9"`. Second, `sort` changes the original list and returns that same list. So `sorted` and `scores` are one list with two names, as you saw in lesson 06.
 
-To sort numbers, `toSorted` takes a callback that says how to compare two items. The callback gets `a` and `b`, and returns a negative number if `a` goes first, or a positive number if `b` goes first.
+To sort numbers, `toSorted` takes a callback that says how to compare two items. The callback gets `a` and `b`, and returns a negative number if `a` goes first, or a positive number if `b` goes first. It returns `0` if it considers them equal; those items keep their relative order.
 
 ```ts
 const scores = [9, 100, 25]
@@ -207,7 +207,7 @@ The program prints:
 [ 9, 100, 25 ]
 ```
 
-`toSorted` makes a new list and the old one stays as it was. `map`, `filter`, `find`, `some`, `every` and `toSorted` do not change the original; `sort` and `push` do. When you are not sure about a method, look up its documentation: it tells you what the method returns and whether it changes the list.
+`toSorted` makes a new list. `map`, `filter`, `find`, `some`, `every` and `toSorted` do not modify the original array themselves; your callback can modify it or change its objects. `sort` and `push` modify the array. When you are not sure about a method, look up its documentation: it tells you what the method returns and whether it changes the list.
 
 ## map or for...of?
 
@@ -220,7 +220,7 @@ Both work. Use this rule:
 
 ### What map really does
 
-There is no magic in `map`. It is a loop that someone wrote for you. This function does the same work with a `for...of` loop:
+You can reproduce this use of `map` with a loop. This function gets the durations from our list with `for...of`:
 
 ```ts
 function myMap(items: Song[], callback: (song: Song) => number): number[] {
@@ -255,7 +255,7 @@ The text `(song: Song) => number` is the type of a callback. It says: a function
 node exercises/01-programming/09-working-with-lists.ts
 ```
 
-Make every line say `OK`.
+Make every check say `OK`.
 
 ## Challenge
 
@@ -268,7 +268,7 @@ Create the file `exercises/challenges/working-with-lists.ts`. Run it with `node 
 It is done when:
 
 - `report` prints the top three by the number property, highest first.
-- After `report` runs, the original list still has the same order as when you wrote it. Print its first item to see this for yourself.
+- After `report` runs, the original list still has the same order as when you wrote it. Print the complete list to check.
 - `report` prints one count for each group, for example `Reds 3`, and each group appears only once.
 - `report([])` prints a clear message such as `No players`, and no error.
 
@@ -320,7 +320,7 @@ const isReady = playlist.every((song) => song.seconds < 300)
 <details>
 <summary>Answer</summary>
 
-An empty playlist gives `true`, so it is "ready". For `every`, no item breaks the rule, so the rule holds. That is probably not what the business wants: nobody wants to publish an empty playlist. You must add a rule: `playlist.length > 0 && playlist.every(...)`.
+An empty playlist gives `true`, so it is "ready". For `every`, no item breaks the rule. If publishing requires at least one song, add the rule: `playlist.length > 0 && playlist.every(...)`.
 
 </details>
 

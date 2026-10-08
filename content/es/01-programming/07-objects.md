@@ -7,7 +7,7 @@ duration: 50 min
 
 En esta lección agrupas valores relacionados en un objeto, guardas muchos objetos en un array y entiendes por qué una función puede cambiar un objeto pero no un número.
 
-- Leer, cambiar y agregar una propiedad de un objeto, también en un objeto anidado.
+- Leer y cambiar una propiedad de un objeto, también en un objeto anidado.
 - Guardar muchos objetos en un array y recorrerlos con un bucle.
 - Predecir cuándo una función cambia el valor que le diste, y cuándo no.
 - Decidir cuándo cambiar un objeto y cuándo crear uno nuevo.
@@ -66,7 +66,7 @@ El programa imprime:
 
 La segunda línea es el área del cuadrado: lado por lado. El objeto guarda los datos y el código calcula otros a partir de ellos.
 
-La propiedad `size` no existe en `square`. Si escribes `console.log(square.size)`, TypeScript muestra un subrayado rojo antes de que ejecutes nada. Si lo ignoras y ejecutas el archivo, el programa imprime `undefined` y no se detiene. Un error de ortografía en el nombre de una propiedad da "ningún valor", no un error.
+La propiedad `size` no existe en `square`. Si escribes `console.log(square.size)`, TypeScript muestra un subrayado rojo antes de que ejecutes nada. Si lo ignoras y ejecutas el archivo, el programa imprime `undefined` y no se detiene.
 
 ## Cambiar una propiedad
 
@@ -131,7 +131,7 @@ El programa imprime:
 5
 ```
 
-`rectangle.width` y `rectangle["width"]` significan lo mismo. La forma con punto es más fácil de leer. Usa la forma con corchetes solo cuando el nombre está en una variable.
+`rectangle.width` y `rectangle["width"]` significan lo mismo. La forma con punto es más fácil de leer. Usa corchetes cuando el nombre está en una variable o no se puede escribir después de un punto.
 
 ## Una lista de objetos
 
@@ -163,11 +163,11 @@ Sunday by Mia
 Total: 640 seconds
 ```
 
-Un array de objetos es una forma muy común de organizar datos: cada elemento es un objeto y cada objeto tiene las mismas propiedades.
+En esta lista, cada elemento es un objeto con las mismas propiedades. Los arrays también permiten objetos con propiedades distintas.
 
 ## Desestructuración
 
-La **desestructuración** saca propiedades de un objeto y las pone en variables, en una sola línea.
+La **desestructuración** lee propiedades de un objeto y guarda sus valores en variables.
 
 ```ts
 const song = { title: "Blue", artist: "Mia", seconds: 215 }
@@ -183,7 +183,7 @@ El programa imprime:
 Blue lasts 215 seconds
 ```
 
-Los nombres dentro de `{ }` deben coincidir con los nombres de las propiedades. También puedes usarla en el parámetro de una función:
+En esta forma, los nombres dentro de `{ }` coinciden con los nombres de las propiedades. También puedes usarla en el parámetro de una función:
 
 ```ts
 function describe({ title, artist }: { title: string, artist: string }): string {
@@ -219,9 +219,9 @@ console.log(age, dog.age)
 
 El programa imprime `3 4`. La edad del número no cambió, pero la del perro sí.
 
-Un número se pasa por valor: la función recibe su propia copia de `3`, le suma 1 a la copia, y la copia desaparece. Un objeto no. Una variable no guarda el objeto mismo, guarda un enlace hacia él, y ese enlace se llama **referencia**. La función recibe el mismo enlace, así que `dog.age = ...` cambia al único perro al que apuntan los dos nombres.
+Los argumentos se pasan por valor. Con un número, el parámetro recibe el valor `3`, y asignarle otro número no cambia la variable original. Con un objeto, se copia una **referencia**, un enlace al mismo objeto. Por eso `dog.age = ...` cambia el perro compartido. Asignar otro objeto al parámetro no cambia la variable original.
 
-Lo mismo pasa con una asignación. Cuando escribes `const same = original`, copias el enlace, no el objeto, y dos nombres apuntan a un solo objeto. Los tres puntos de `{ ...original }` crean un objeto nuevo con las mismas propiedades.
+Lo mismo pasa con una asignación. Cuando escribes `const same = original`, copias el enlace, no el objeto, y dos nombres apuntan a un solo objeto. En este ejemplo, `{ ...original }` crea un objeto nuevo con las mismas propiedades.
 
 ```ts
 const original = { id: 1, status: "failed" }
@@ -266,13 +266,13 @@ El programa imprime:
 { name: 'Rex', age: 4 }
 ```
 
-Los tres puntos `...dog` ponen todas las propiedades de `dog` en el objeto nuevo. Luego `age: dog.age + 1` reemplaza una de ellas. Es más fácil confiar en una función que devuelve un valor nuevo y no cambia nada más: puedes llamarla dos veces y no pasa nada sorprendente.
+En este objeto, `...dog` copia sus propiedades al objeto nuevo. Luego `age: dog.age + 1` reemplaza una de ellas. Es más fácil confiar en una función que devuelve un valor nuevo y no cambia nada más: puedes llamarla dos veces y no pasa nada sorprendente.
 
 ## Profundiza
 
 ### La copia superficial
 
-`{ ...rex }` copia cada propiedad tal como es. Si una propiedad guarda otro objeto, se copia el enlace y ese objeto interior sigue compartido.
+En este ejemplo, `{ ...rex }` copia los valores de las propiedades. Si una propiedad guarda otro objeto, se copia el enlace y ese objeto interior sigue compartido.
 
 ```ts
 const rex = { name: "Rex", owner: { city: "Lima" } }
@@ -281,7 +281,7 @@ copyOfRex.owner.city = "Cusco"
 console.log(rex.owner.city)
 ```
 
-Imprime `Cusco`. La copia tiene su propio `name`, pero su `owner` es el mismo objeto. Para copiar también todo lo de adentro, usa `structuredClone(rex)`.
+Imprime `Cusco`. La copia tiene su propio `name`, pero su `owner` es el mismo objeto. Para copiar también el objeto interior de este ejemplo, usa `structuredClone(rex)`.
 
 ![La copia es un objeto nuevo, pero su owner es el mismo objeto que el del original.](/images/shallow-copy.es.svg)
 
@@ -312,7 +312,7 @@ Imprime `false`, `true` y `true`. El verificador al final de cada archivo de eje
 node exercises/01-programming/07-objects.ts
 ```
 
-Haz que cada línea diga `OK`.
+Haz que cada comprobación diga `OK`.
 
 ## Reto
 
@@ -362,7 +362,7 @@ console.log(`${song.title} lasts ${song.seconds} seconds`)
 <details>
 <summary>Respuesta</summary>
 
-TypeScript muestra un subrayado rojo: la propiedad `seconds` no existe. Si lo ignoras y ejecutas el archivo, imprime `Blue lasts undefined seconds`. Si luego el código usara el valor en una suma, el resultado sería `NaN`. El cambio de nombre debe hacerse en todos los lugares.
+TypeScript muestra un subrayado rojo: la propiedad `seconds` no existe. Si lo ignoras y ejecutas el archivo, imprime `Blue lasts undefined seconds`. Si luego sumas un número a ese `undefined`, el resultado es `NaN`. El cambio de nombre debe hacerse en todos los lugares.
 
 </details>
 

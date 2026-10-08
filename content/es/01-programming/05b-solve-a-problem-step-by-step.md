@@ -97,7 +97,7 @@ Imprime:
 6
 ```
 
-Los bordes funcionan: 11 paga 6 y 12 paga 10, 64 paga 10 y 65 paga 7. Pero encontraste dos problemas. El texto `"tuesday"` con `t` minúscula no recibe descuento. Y una edad de -1 paga 6, porque -1 es menor que 12. Una persona real no puede tener -1 años.
+Los bordes funcionan: 11 paga 6 y 12 paga 10, 64 paga 10 y 65 paga 7. Quedan dos casos por decidir. El texto `"tuesday"` con `t` minúscula no recibe descuento: esta versión exige `"Tuesday"`. Decide si debe aceptar ambas formas. Una edad de -1 paga 6, porque -1 es menor que 12, aunque no es una edad válida.
 
 Agrega una regla al principio. Decide qué hace la función con una edad incorrecta. Aquí devuelve -1 y lo explicas en un comentario. Lecciones posteriores muestran mejores formas.
 
@@ -113,7 +113,7 @@ Agrega una regla al principio. Decide qué hace la función con una edad incorre
 
 Este es más corto y viene de otro mundo: el calendario.
 
-**Movimiento 1: dilo.** Di si un año tiene 366 días. Ejemplo: 2024 da `true`.
+**Movimiento 1: dilo.** Para este problema, usa años enteros positivos y la regla del calendario gregoriano. Di si el año tiene 366 días. Ejemplo: 2024 da `true`.
 
 **Movimiento 2: resuélvelo a mano.** Quizá no recuerdes las reglas. Haz una tabla con los años que conoces y luego busca qué tienen en común.
 
@@ -160,7 +160,7 @@ function isLeapYear(year: number): boolean {
 console.log(isLeapYear(2000), isLeapYear(1900), isLeapYear(2024), isLeapYear(2023))
 ```
 
-Esto imprime `true false true false`. Son los cuatro años de tu tabla hecha a mano. El **movimiento 5** pasó con los mismos cuatro valores. Agrega casos límite: 2100, 1600 y el año 0.
+Esto imprime `true false true false`. Son los cuatro años de tu tabla hecha a mano. El **movimiento 5** pasó con los mismos cuatro valores. Agrega 2100 y 1600. Prueba también el año 0 como entrada incorrecta: esta función todavía no valida la entrada, así que devuelve `true`. Decide qué debería devolver en ese caso.
 
 ## Cuando te atascas
 
@@ -183,7 +183,7 @@ Escribir los pasos toma un tiempo que parece perdido. Para una tarea de dos lín
 
 1. Crea el archivo `exercises/01-programming/solve.ts`.
 2. Escribe la función `ticketPrice` del cine en el mismo orden que la lección: un paso, una ejecución. Deja los pasos como comentarios encima de la función.
-3. Agrega los tres casos límite de la lección y lee los resultados.
+3. Agrega los casos de prueba de la lección y lee los resultados.
 4. Escribe `isLeapYear`. Prueba 1900, 2000, 2024 y 2100.
 5. Abre `exercises/01-programming/05b-solve-a-problem-step-by-step.ts` y ejecútalo:
 
@@ -191,11 +191,11 @@ Escribir los pasos toma un tiempo que parece perdido. Para una tarea de dos lín
 node exercises/01-programming/05b-solve-a-problem-step-by-step.ts
 ```
 
-Cada ejercicio es un problema pequeño en palabras. Escribe tus pasos primero en un comentario. Haz que cada línea diga `OK`.
+Cada ejercicio es un problema pequeño en palabras. Escribe tus pasos primero en un comentario. Haz que cada comprobación diga `OK`.
 
 ## Reto
 
-Una tienda da el cambio en monedas. Escribe una función que diga cuántas monedas hacen falta para devolver una cantidad dada, usando las menos monedas posibles. Elige tu propio mundo, por ejemplo una tienda con centavos de euro o un juego con monedas de oro, plata y cobre. Usa al menos cinco valores de moneda.
+Una tienda da el cambio en monedas. Escribe una función que diga cuántas monedas hacen falta para devolver una cantidad dada, usando las menos monedas posibles. Usa monedas de 50, 20, 10, 5, 2 y 1 unidades. Puedes elegir el tema: una tienda con centavos o un juego con esas monedas.
 
 Crea el archivo `exercises/challenges/solve-a-problem.ts`. Llama a la función `coinsForChange`. Escribe tus pasos en palabras simples como comentario al inicio.
 
@@ -243,7 +243,7 @@ function isLeapYear(year: number): boolean {
 <details>
 <summary>Respuesta</summary>
 
-Para 1900 devuelve `true`, pero 1900 no es bisiesto. El año 1900 es divisible entre 4, así que el primer `if` devuelve antes de revisar la regla del 100. Lo mismo pasa con 2100. Las comprobaciones están en el orden equivocado: la regla más específica, la del 400, debe ir primero, como en tus pasos en palabras simples.
+Para 1900 devuelve `true`, pero 1900 no es bisiesto. El año 1900 es divisible entre 4, así que el primer `if` devuelve antes de revisar la regla del 100. Lo mismo pasa con 2100. En esta versión, las comprobaciones están en el orden equivocado: revisa la regla del 400 antes de las del 100 y del 4, como en tus pasos en palabras simples.
 
 </details>
 
@@ -252,7 +252,7 @@ Para 1900 devuelve `true`, pero 1900 no es bisiesto. El año 1900 es divisible e
 <details>
 <summary>Respuesta</summary>
 
-Devuelve `10`. Toda comparación con `NaN` es falsa, así que la edad no es menor que 0, ni menor que 12, ni 65 o más. La función cae en el precio base y da un precio de adulto para un valor que no es una edad. La solución depende del requisito: devolver un código para una edad incorrecta, como con -1, o comprobar con `Number.isNaN`.
+Devuelve `10`. Las comparaciones `age < 0`, `age < 12` y `age >= 65` son falsas con `NaN`. La función cae en el precio base y da un precio de adulto para un valor que no es una edad. Detecta ese caso con `Number.isNaN` y decide qué devolver según el requisito, como el código -1 para una edad incorrecta.
 
 </details>
 

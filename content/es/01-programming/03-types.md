@@ -97,7 +97,7 @@ El signo `+` tiene dos trabajos. Si un lado es texto, une. Entonces `"3" + 4` se
 
 Este cambio automático se llama **coerción de tipos** (*type coercion*). Es peligrosa porque el programa no se detiene: el mismo texto da resultados de clases distintas en cada línea y ninguna da un error.
 
-TypeScript sí ve el problema. En VS Code, las líneas con `*` y `-` muestran una línea roja: el lado izquierdo de la operación debe ser un número. El comando `node` ignora los tipos y ejecuta el archivo de todos modos.
+El verificador de tipos marca las operaciones con `*` y `-`: `cats` es texto, no un número. Node.js quita las anotaciones de tipo, pero no ejecuta el verificador.
 
 ## Anotaciones de tipo
 
@@ -119,7 +119,7 @@ Muchas veces no necesitas escribir el tipo. TypeScript puede verlo a partir del 
 const dogName = "Rex"
 ```
 
-TypeScript sabe que `dogName` es un *string*, porque el valor es texto.
+TypeScript infiere el tipo a partir del texto que asignaste a `dogName`.
 
 Una buena regla: deja que TypeScript infiera el tipo en las variables simples, y escríbelo cuando TypeScript no pueda saberlo.
 
@@ -150,15 +150,15 @@ Ves el problema en dos lugares:
 pnpm typecheck
 ```
 
-> **Nota:** El comando `node file.ts` no revisa los tipos. Solo los quita y ejecuta el código. El verificador es `pnpm typecheck` y las líneas rojas de VS Code.
+> **Nota:** El comando `node file.ts` no revisa los tipos. Solo los quita y ejecuta el código. `pnpm typecheck` ejecuta el verificador; VS Code muestra sus diagnósticos mientras escribes.
 
 ## null y undefined
 
-A veces falta un valor. TypeScript tiene dos valores especiales para esto.
+A veces falta un valor. JavaScript tiene dos valores que usamos para representar que falta un dato.
 
-`undefined` significa: todavía no se ha dado nada. Una estación meteorológica que no ha hecho su primera medición tiene una temperatura `undefined`.
+Usamos `undefined` cuando todavía no se ha dado un valor. Una variable declarada sin valor inicial, como la temperatura de una estación sin mediciones, empieza con `undefined`.
 
-`null` significa: no hay valor, y es a propósito. Un perro del refugio que nadie ha adoptado no tiene dueño. Eso lo decides tú.
+Usamos `null` para indicar explícitamente que no hay valor. Puedes asignarlo al dueño de un perro que nadie ha adoptado.
 
 ```ts
 let temperature: number | undefined
@@ -177,15 +177,15 @@ undefined
 null
 ```
 
-El signo `|` significa "o". Entonces `number | undefined` significa: un número, o todavía nada. Y `string | null` significa: un *string*, o ningún valor a propósito.
+El signo `|` significa "o". Entonces `number | undefined` permite un número o `undefined`. Y `string | null` permite un *string* o `null`.
 
-Si un valor puede faltar, el verificador de tipos te obliga a pensar en ese caso.
+Con la configuración estricta del proyecto, el verificador marca una operación que necesita un valor si todavía podría ser `null` o `undefined`.
 
 ## Profundiza
 
 ### Los tipos desaparecen cuando el programa se ejecuta
 
-TypeScript revisa tus tipos y luego los quita. Lo que Node.js ejecuta es JavaScript simple. Por eso TypeScript solo sabe lo que tú le dices: si un valor viene de fuera, como un texto de una página web, no puede mirar dentro. Al ejecutarse, el valor tiene el tipo que realmente tiene.
+Con `node file.ts`, Node.js quita las anotaciones de tipo y V8 ejecuta el JavaScript resultante. El verificador de tipos se ejecuta por separado. Una anotación no comprueba un valor que llega de fuera al ejecutarse: esa comprobación debe estar en el código.
 
 ### Number() siempre da un `number`, pero no siempre un número útil
 
@@ -203,7 +203,7 @@ NaN
 number
 ```
 
-`NaN` significa "no es un número" (*not a number*). Es un valor numérico que marca una conversión fallida. Su tipo sigue siendo `number`. Y un texto vacío se vuelve `0`, sin ninguna advertencia. Por eso revisa el texto antes de confiar en el resultado.
+`NaN` significa "no es un número" (*not a number*). Es un valor de tipo `number`; aquí aparece porque la conversión de `"abc"` falló. Y un texto vacío se vuelve `0`, sin ninguna advertencia. Por eso revisa el texto antes de confiar en el resultado.
 
 ## Práctica
 
@@ -218,7 +218,7 @@ number
 node exercises/01-programming/03-types.ts
 ```
 
-Resuelve los ejercicios. Haz que todas las líneas digan `OK`.
+Resuelve los ejercicios. Haz que cada comprobación diga `OK`.
 
 ## Reto
 

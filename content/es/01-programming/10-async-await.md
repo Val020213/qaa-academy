@@ -9,18 +9,18 @@ En esta lección aprendes a escribir código que espera trabajo lento, y a recon
 
 - Predecir en qué orden se imprimen las líneas de código lento y de código rápido.
 - Usar `async` y `await` para que tu código espere donde debe.
-- Detectar el *bug* del `await` olvidado, que no da ningún mensaje de error.
+- Detectar el *bug* del `await` olvidado, que puede no dar ningún mensaje de error.
 - Decidir cuándo las tareas deben correr una tras otra y cuándo juntas.
 
 ## Algunas tareas toman tiempo
 
-Hasta ahora, cada línea de código terminaba al instante. El trabajo real es más lento: pedirle a un servidor el clima de mañana, cargar una canción desde internet, abrir una página en el navegador.
+Hasta ahora usamos operaciones que terminan antes de pasar a la siguiente línea. Algunas tareas terminan más tarde: pedirle a un servidor el clima de mañana, cargar una canción desde internet, abrir una página en el navegador.
 
-Node.js no espera por sí solo a que termine una tarea lenta: pasa a la línea siguiente. Tú debes indicar en tu código dónde esperar.
+Al iniciar una operación asíncrona, Node.js puede pasar a la línea siguiente antes de que termine. Una operación síncrona, aunque sea lenta, sí bloquea esa ejecución.
 
 ## El trabajo lento termina después
 
-JavaScript hace una sola cosa a la vez. Cuando llega a un trabajo lento, como un temporizador o una petición, lo entrega y sigue con la línea siguiente. Cuando el trabajo lento termina, vuelve a él.
+En el hilo principal de Node.js, el motor de JavaScript ejecuta una función a la vez. Node.js gestiona temporizadores y operaciones de entrada y salida mientras ese código sigue. Su bucle de eventos ejecuta los callbacks pendientes cuando el hilo puede atenderlos.
 
 `setTimeout` ejecuta una función después de un tiempo en milisegundos. Un milisegundo es una milésima de segundo. Mira qué pasa con un tiempo de 0:
 
@@ -38,13 +38,13 @@ Get a cup
 Kettle is ready
 ```
 
-Incluso con 0 milisegundos, la función del temporizador espera a que termine el código que ya se está ejecutando. "Cero" significa "en cuanto estés libre", no "ahora". El trabajo lento siempre termina después del código que ya está en marcha.
+Incluso con 0 milisegundos, el callback espera a que termine el código que ya se está ejecutando. Node.js ajusta ese retraso a 1 ms; después puede ejecutar el callback cuando el hilo esté libre. El retraso no garantiza una hora exacta.
 
 ## Promise
 
-Una **Promise** (promesa) es un valor que todavía no está listo. Su resultado puede ser un éxito o un fallo.
+Una **Promise** (promesa) representa el resultado de una operación. Puede estar pendiente, cumplida con un valor o rechazada con un motivo; puede haber terminado cuando la recibes.
 
-El tipo `Promise<string>` significa "un *string* (texto) que llegará más tarde".
+El tipo `Promise<string>` indica que, si se cumple, su valor es un `string` (texto).
 
 Aquí hay un *helper* (ayudante) que simula trabajo lento. Espera unos milisegundos:
 
@@ -54,11 +54,11 @@ function wait(ms: number): Promise<void> {
 }
 ```
 
-Por ahora no necesitas entender el interior de este *helper*. Úsalo como una herramienta. `Promise<void>` significa "no llegará ningún valor, pero terminará más tarde".
+Por ahora no necesitas entender el interior de este *helper*. Úsalo como una herramienta. `Promise<void>` indica que no necesitas usar un valor de resultado. Este temporizador se cumple sin entregar un valor.
 
 ## async y await
 
-Pon `await` antes de una Promise para decir: "espera aquí hasta que esté lista y dame el resultado".
+Pon `await` antes de una Promise para pausar la función hasta que se cumpla o se rechace. Si se cumple, recibes su valor; si se rechaza, `await` lanza el motivo del rechazo.
 
 Puedes usar `await` dentro de una función marcada con `async`. También puedes usarlo en el nivel superior de un módulo. Una función `async` siempre devuelve una Promise.
 
@@ -81,7 +81,7 @@ async function main(): Promise<void> {
 main()
 ```
 
-El programa imprime `Asking for the forecast...`. Medio segundo después imprime:
+El programa imprime `Asking for the forecast...`. Unos 500 ms después imprime:
 
 ```text
 Forecast: sunny
@@ -121,7 +121,9 @@ La variable `forecast` guarda la Promise, no el resultado. El programa no esper�
 
 > **Consejo:** Cuando un valor se vea como `[object Promise]`, o un programa se comporte distinto en cada ejecución, revisa primero si falta un `await`.
 
-Sin `await`, la función sí se ejecuta. Solo que no la esperas. `await` pausa únicamente la función que lo contiene. Aquí falta el `await` y la función no devuelve nada: imprime un mensaje más tarde.
+Sin `await`, la función sí se ejecuta. Solo que no la esperas. Aquí, `await` pausa la función que lo contiene y permite que otro código siga. `slowLog` devuelve una Promise que se cumple sin valor; su mensaje se imprime más tarde.
+
+![await pausa slowLog; main sigue antes de que se reanude slowLog.](/images/01-await-caller.es.svg)
 
 ```ts
 function wait(ms: number): Promise<void> {
@@ -150,7 +152,7 @@ pasta is ready
 
 ## try y catch
 
-Una Promise puede fallar. Un servidor puede estar caído. Una canción puede no existir. Cuando una Promise con `await` falla, lanza un error.
+Una Promise puede fallar. Un servidor puede estar caído. Una canción puede no existir. Cuando una Promise se rechaza, `await` lanza su motivo de rechazo en la función que espera.
 
 Usa `try` y `catch` para manejar el error. El código de `try` se ejecuta primero. Si lanza un error, se ejecuta el código de `catch`.
 
@@ -207,11 +209,11 @@ async function main(): Promise<void> {
 main()
 ```
 
-El programa imprime tres líneas, una cada 100 milisegundos.
+El programa imprime tres líneas, una tras cada espera de unos 100 milisegundos.
 
 ## Una tras otra, o juntas
 
-Cada `await` seguido espera al anterior. Tres canciones de 100 ms cada una necesitan 300 ms. Si la canción 2 no necesita a la canción 1, puedes empezar las tres a la vez con `Promise.all`. Usa la función `wait` de arriba.
+En este ejemplo, cada tarea empieza después del `await` anterior: tres esperas de 100 ms tardan unos 300 ms. Si las tareas son independientes, puedes iniciarlas juntas al llamar a las tres funciones y esperar sus Promises con `Promise.all`. Usa la función `wait` de arriba.
 
 ```ts
 async function main(): Promise<void> {
@@ -229,7 +231,7 @@ async function main(): Promise<void> {
 main()
 ```
 
-La primera línea marca unos 300 ms y la segunda unos 100 ms (en una ejecución real: 302 ms y 101 ms). Juntas es más rápido, pero solo cuando las tareas no dependen unas de otras.
+La primera línea marca unos 300 ms y la segunda unos 100 ms (los tiempos varían en cada ejecución). Juntas es más rápido, pero solo cuando las tareas no dependen unas de otras.
 
 ## Profundiza
 
@@ -249,7 +251,7 @@ El método `forEach` inicia una función async por cada elemento y no espera a n
 node exercises/01-programming/10-async-await.ts
 ```
 
-Haz que cada línea diga `OK`.
+Haz que cada comprobación diga `OK`.
 
 ## Reto
 
@@ -264,7 +266,7 @@ Está terminado cuando:
 - El programa imprime el tiempo total, y el total está cerca de 300 ms, no de 600 ms.
 - Ninguna línea imprime `[object Promise]`, y no usas `forEach` con `async`.
 
-Vas a necesitar algo que esta lección no enseñó: una forma de esperar muchas Promises y conservar tanto los éxitos como los fallos. `Promise.all` se detiene en el primer fallo. Busca: `promise.allsettled status fulfilled rejected`.
+Vas a necesitar algo que esta lección no enseñó: una forma de esperar muchas Promises y conservar tanto los éxitos como los fallos. `Promise.all` se rechaza al recibir el primer rechazo, pero no cancela las otras tareas. Busca: `promise.allsettled status fulfilled rejected`.
 
 ## Piénsalo bien
 
@@ -336,7 +338,7 @@ Usa `loadSong` de la sección "try y catch".
 
 <details><summary>Respuesta</summary>
 
-Imprime `Promise { <pending> }` y `end of main`. Después Node se cierra con el error "Song 2 not found", y `catch` nunca se ejecuta. Sin `await`, el error no ocurre dentro del bloque `try`. Ocurre más tarde, dentro de la Promise, cuando nadie escucha. Un `await` faltante no solo da un valor incorrecto: también hace inútiles a `try` y `catch`.
+Imprime `Promise { <pending> }` y `end of main`. Después Node se cierra con el error "Song 2 not found", y `catch` nunca se ejecuta. Sin `await`, el bloque `try` termina sin esperar el rechazo de esa Promise. El `catch` no lo recibe y, con las opciones predeterminadas de Node.js, el rechazo sin manejar detiene el programa. El `catch` todavía puede atrapar errores síncronos del bloque.
 
 </details>
 

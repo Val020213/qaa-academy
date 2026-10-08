@@ -9,7 +9,7 @@ A version ships tomorrow and you have to run the regression. You open the sheet 
 
 Around case 90 you are clicking almost without looking, and that is where the unexpected slips through: the total that leaves out shipping, the button that landed out of place. The regression takes you two days, and the team is already planning the next version.
 
-A large part of that sheet can be run by a program in minutes, as many times as you need. This course teaches you to write that program.
+A program can run many of the checks on that sheet, as many times as you need. This course teaches you to write that program.
 
 ## Goal
 
@@ -20,7 +20,7 @@ A large part of that sheet can be run by a program in minutes, as many times as 
 
 ## What is test automation?
 
-Automating tests means writing code that runs your cases for you. Each case becomes an **automated test**: a file that opens the application, performs the steps, compares the result and reports pass or fail. It runs whenever you want, or on every change the team makes, with nobody watching.
+Automating tests means writing code that runs your cases for you. A case becomes an **automated test**: code that opens the application, performs the steps, compares the result and reports pass or fail. It runs whenever you want, or on every change the team makes, with nobody watching.
 
 ## You already have the hard part
 
@@ -35,11 +35,11 @@ An **end-to-end test** (E2E test) walks through a complete flow using the real a
 3. Click "Log in".
 4. Check that the *dashboard* appears.
 
-It is called "end to end" because it crosses all the layers at once: interface, server and database. If something fails in any of them, the test fails, though it does not tell you which one.
+It is called "end to end" because it follows the flow from the user’s action to its result. It can pass through the interface, server and database. It detects a failure if it prevents a step or changes a result the test checks.
 
 ## What is Playwright?
 
-**Playwright** is a free tool from Microsoft that controls a browser such as Chrome from code. It opens pages, clicks, types and reads what appears on the screen. Playwright also exists for Python, Java and .NET. In this course you use it with TypeScript, which is its most complete version.
+**Playwright** is a free tool from Microsoft that controls a browser such as Chrome from code. It opens pages, clicks, types and reads what appears on the screen. Playwright also exists for Python, Java and .NET. In this course you use it with TypeScript.
 
 ## Course tools
 
@@ -70,7 +70,7 @@ Many courses start with the tool. This one starts with the language, because a P
 | 3 | Playwright basics | Write your first real browser tests |
 | 4 | QAA good practices | Make tests stable, clear, and easy to maintain |
 | 5 | Real project | Test a complete small application |
-| 6 | References | Links and a glossary for later |
+| 6 | References | Links and repositories for later |
 
 ## How to study
 
@@ -104,7 +104,7 @@ That is why writing your cases as concrete steps, as in the Practice, is the fir
 
 ### Automation does not replace manual testing
 
-An automated test only repeats a check you already know. It does not find new bugs: it warns you when behavior that used to work breaks. Finding what is new still needs a person who explores, doubts and notices what looks strange. The best approach combines both: manual exploration to discover, and automation to protect what you discovered.
+An automated test repeats the checks you programmed. It can find a bug you had not seen, but only in what it checks. A person also needs to explore, question and notice what looks strange. The best approach combines both: manual exploration to discover, and automation to protect what you discovered.
 
 ## Practice
 

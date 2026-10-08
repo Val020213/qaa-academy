@@ -22,9 +22,9 @@ Install them in the order below. For each one, use the official installer and ac
 
 ## How to check an install
 
-After you install each tool, close the terminal and open a new one. In VS Code, use Terminal > New Terminal. Then run the `--version` command for that tool.
+After you install each tool, close the terminals and all VS Code windows. Open VS Code again and use Terminal > New Terminal. Then run the `--version` command for that tool.
 
-A terminal that was already open does not see programs you installed after it started. The `--version` command prints the version number. If you see a number, the tool works. If you see "is not recognized", the install did not finish or the terminal you are using is an old one.
+The terminal inherits VS Code’s settings for finding programs; restarting both updates them. The `--version` command prints the version number. If you see a number, the command is available. If you see "is not recognized", check the name, the install and the restart.
 
 ## 1. VS Code
 
@@ -36,11 +36,11 @@ Open VS Code, then open the terminal with Terminal > New Terminal. It appears at
 code --version
 ```
 
-You see three lines: a version number, a code, and `x64`. For example:
+You see three lines: the version, the revision identifier and the architecture, such as `x64`. For example:
 
 ```text
-1.105.0
-a1b2c3d4e5f6...
+1.140.0
+07f806f999227108933c2e30515b26eecc1fda74
 x64
 ```
 
@@ -48,7 +48,7 @@ Your numbers will be different, and that is fine.
 
 ## 2. Node.js 24 LTS
 
-Go to the Node.js website, [nodejs.org](https://nodejs.org), and download the Windows installer for **24 LTS**. LTS means long-term support: it is the stable version. Run it and accept the default options.
+Go to the Node.js website, [nodejs.org](https://nodejs.org), and download the Windows installer for **24 LTS**. LTS means long-term support: it receives fixes for longer. Run it and accept the default options.
 
 In a new terminal, run:
 
@@ -85,10 +85,10 @@ git version 2.50.0.windows.1
 You install pnpm with npm, a program that came with Node.js. Run:
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.33.4
 ```
 
-The `-g` option means global: pnpm is available everywhere on your computer.
+The `-g` option means global: pnpm is installed outside the project for use from different folders.
 
 In a new terminal, run:
 
@@ -110,13 +110,13 @@ When you run `npm` or `pnpm`, PowerShell can show an error like this:
 npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system.
 ```
 
-Windows blocks scripts by default, for safety. The fix is to allow scripts that you wrote or that are signed. Run this command once:
+PowerShell’s execution policy blocks npm’s or pnpm’s script. Run this command to allow local scripts and require signatures for those marked as downloaded from the internet:
 
 ```bash
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
-The command changes a security rule for your user only. Local scripts can run, and downloaded scripts must be signed.
+The command changes a security rule for your user only. Local scripts can run; those marked as downloaded from the internet need a trusted signature. A company policy can keep the script blocked.
 
 If PowerShell asks for confirmation, type `Y` and press Enter. Then try your command again.
 
@@ -127,7 +127,7 @@ Open the Extensions panel with Ctrl+Shift+X. Search for each name and click Inst
 | Extension | Why you want it |
 | --- | --- |
 | Playwright Test for VSCode | Runs and debugs Playwright tests from the editor |
-| ESLint | Shows code problems while you type |
+| ESLint | Shows code problems if the project configures ESLint |
 | Prettier | Formats your code in a clean, common style |
 | Error Lens | Shows error messages on the same line as the code |
 
@@ -141,13 +141,13 @@ Playwright is one of those programs. It runs in Node.js and controls the browser
 
 ### Why a version number matters
 
-The course asks for Node.js 24 and gives exact tool versions. A version has three numbers, such as `10.33.4`, and different versions can behave differently. A test that passes on your computer can fail on a colleague's computer that has another version.
+The course asks for Node.js 24 and pins some versions. A version such as `10.33.4` has three numbers, and different versions can behave differently. A test that passes on your computer can fail on a colleague's computer that has another version.
 
-This is a common cause of "it works on my machine". Teams write the versions in `package.json` and in a lock file, so every computer and the CI server use the same ones. CI (continuous integration) is the practice of merging the whole team's changes several times a day and verifying each one automatically: a server installs the project from scratch, builds it and runs the checks and the tests before the change is accepted.
+The project records versions in `package.json` and a lock file. pnpm uses that file to install the same dependency versions. Node.js is installed separately: use version 24 as the course asks.
 
 ### The pnpm version of each project
 
-`npm install -g pnpm` installs a single pnpm for your whole computer. Even so, a project can ask for an exact version in the `packageManager` field of its `package.json`, and pnpm 10 downloads and uses that version when you work inside that project. The course project does this, so the version you installed here does not have to match its version.
+`npm install -g pnpm@10.33.4` installs pnpm outside projects. A project can ask for another exact version in the `packageManager` field of its `package.json`, and pnpm 10 downloads and uses it by default when you work inside that project. The course project does this, so the version you installed here does not have to match its version.
 
 ## Practice
 
@@ -162,7 +162,7 @@ pnpm --version
 
 You must see four version numbers, and the Node.js one must start with 24. If any of them says "is not recognized", check that install. If `npm` or `pnpm` shows the scripts error, run the `Set-ExecutionPolicy` command and repeat.
 
-![A healthy terminal: each command answers with a version number.](/images/terminal-versions.png)
+![Node.js, Git and pnpm answer with their versions; check VS Code with the command above.](/images/terminal-versions.png)
 
 ## Think it through
 
@@ -171,7 +171,7 @@ You must see four version numbers, and the Node.js one must start with 24. If an
 <details>
 <summary>Answer</summary>
 
-The command changes more than needed. `LocalMachine` changes the rule for every user of the computer, and `Unrestricted` allows every script to run, including downloaded ones. The safer command, `-Scope CurrentUser RemoteSigned`, changes only your user and still blocks unsigned downloaded scripts. Before you run a fix you found on the internet, ask what else it changes.
+The command changes more than needed. `LocalMachine` changes the rule for every user of the computer, and `Unrestricted` allows unsigned scripts, including downloaded ones. The safer command, `-Scope CurrentUser RemoteSigned`, changes only your user and blocks unsigned scripts marked as downloaded from the internet. Before you run a fix you found on the internet, ask what else it changes.
 
 </details>
 

@@ -16,8 +16,8 @@ En esta lección aprendes a leer un mensaje de error de TypeScript y un *stack t
 
 En la primera lección viste que un error puede detectarse antes de ejecutar o mientras se ejecuta. En TypeScript esos dos casos tienen nombre propio:
 
-- Un **error de tipo** se encuentra antes de que el programa se ejecute. TypeScript revisa tu código y encuentra una diferencia. Lo ves como un subrayado rojo en VS Code, o al ejecutar `pnpm typecheck`.
-- Un **error en tiempo de ejecución** ocurre mientras el programa corre. El programa se detiene en la línea que falla.
+- Un **error de tipo** es una diferencia entre un valor y el tipo esperado que detecta el verificador de tipos. Node.js no hace esa comprobación al ejecutar archivos `.ts`. Lo ves como un subrayado rojo en VS Code, o al ejecutar `pnpm typecheck`.
+- Un **error en tiempo de ejecución** ocurre mientras el programa corre. Si nadie atrapa el error, Node.js detiene el programa; un `catch` puede manejarlo.
 
 Un tercer tipo es el **bug de lógica**. El programa corre sin error pero da una respuesta incorrecta. Aquí ningún mensaje te ayuda: debes comparar el resultado con lo que esperas. La siguiente lección trata de este tipo.
 
@@ -42,7 +42,7 @@ Léelo por partes:
 - `TS2322` es el código del error. Búscalo en la web para encontrar explicaciones.
 - `Type 'string' is not assignable to type 'number'` es el mensaje. Dice: pusiste texto donde se espera un número.
 
-La frase "Type X is not assignable to type Y" es la más común. Léela como "recibí X, pero necesito Y".
+La frase "Type X is not assignable to type Y" aparece cuando un valor no encaja en el tipo de destino. Léela como "recibí X, pero necesito Y".
 
 ## Anatomía de un stack trace
 
@@ -105,7 +105,7 @@ Llamaste a algo que no es una función. Revisa el nombre y los puntos. Quizá ol
 
 ### 7. Cannot find module
 
-La ruta de un import está mal, o un paquete no está instalado. Revisa `./`, el nombre del archivo y la terminación `.ts`. Para los paquetes, ejecuta `pnpm install`.
+La ruta de un import está mal, o un paquete no está instalado. Revisa `./`, el nombre del archivo y la terminación `.ts`. Si el paquete ya está en `package.json`, `pnpm install` instala las dependencias declaradas; no corrige un nombre de paquete mal escrito.
 
 ### 8. A Promise shows as [object Promise]
 
@@ -142,7 +142,7 @@ TypeError: Cannot read properties of undefined (reading 'name')
     at demo.ts:13:1
 ```
 
-Node señala la línea 6, y la línea 6 está bien. El error es que nadie tiene un perro con id 2, y la línea 13 lo pidió. El texto `as Dog` le dijo a TypeScript que confiara en ti, así que escondió el `undefined`.
+Node señala la línea 6, donde se lee `name`. Revisa también la línea 5: `find` puede devolver `undefined`, pero `as Dog` oculta esa posibilidad al verificador. La llamada de la línea 13 pide un id ausente; la función debe decidir cómo manejarlo, no asumir que siempre existe.
 
 Las líneas `at` te dicen cómo llegar de la caída al origen. Node guarda la lista de las funciones que se están ejecutando, la **pila de llamadas** (*call stack*), y la imprime cuando ocurre una caída. Léela de arriba hacia abajo: `getName` se rompió, la llamó `printName` en la línea 10, y a esa la llamó el archivo principal en la línea 13. El valor incorrecto vino de más abajo en la lista. Pregúntate en cada línea: ¿qué esperaba aquí y qué recibí?
 
@@ -166,7 +166,7 @@ for (const dog of dogs) {
 }
 ```
 
-Imprime `Ana` y luego se rompe en la línea 4, pero la línea 4 no es el error. Mimi no tiene dueño, y el `as { name: string }` le dijo a TypeScript "confía en mí, el dueño está ahí". Los datos y el código no coinciden, y el `as` lo escondió. Una buena solución decide qué debe pasar con un perro sin dueño: imprimir "no owner" (sin dueño) o reportar un mensaje claro.
+Imprime `Ana` y luego se rompe en la línea 4: esa línea lee una propiedad sin comprobar el dueño opcional. Mimi no tiene dueño, y `as { name: string }` ocultó esa posibilidad al verificador. Los datos y el código no coinciden, y el `as` lo escondió. Una buena solución decide qué debe pasar con un perro sin dueño: imprimir "no owner" (sin dueño) o reportar un mensaje claro.
 
 Compara la caída con esta "solución" para Mimi:
 
@@ -197,7 +197,7 @@ async function main(): Promise<void> {
 main()
 ```
 
-Imprime `test passed`, aunque la comprobación falló. El `catch` vacío se tragó el error. Un *test* así nunca puede fallar. Usa `catch` solo cuando puedas hacer algo útil. Si solo quieres registrar el error, escribe `throw error` al final del bloque `catch` para pasar el error hacia arriba.
+Imprime `test passed`, aunque la comprobación falló. El `catch` vacío se tragó el error. Un *test* así nunca puede fallar. Usa `catch` solo cuando puedas hacer algo útil. Si solo quieres registrar el error, usa `catch (error)` y escribe `throw error` al final para pasarlo hacia arriba.
 
 ## Práctica
 
@@ -212,7 +212,7 @@ Imprime `test passed`, aunque la comprobación falló. El `catch` vacío se trag
 node exercises/01-programming/12-reading-errors.ts
 ```
 
-7. Arregla un *bug* a la vez. Usa `console.log` para imprimir valores. Haz que cada línea diga `OK`.
+7. Arregla un *bug* a la vez. Usa `console.log` para imprimir valores. Haz que cada comprobación diga `OK`.
 
 ## Reto
 
@@ -248,7 +248,7 @@ Imprime `NaN false`. `Number("5cm")` no puede hacer un número con ese texto, pe
 
 <details><summary>Respuesta</summary>
 
-En tiempo de ejecución, `dogs[0]` es `undefined`, así que el programa se detiene con "Cannot read properties of undefined (reading 'name')". Con la configuración estricta de este curso, TypeScript reporta `Object is possibly 'undefined'` antes de ejecutar. El caso límite es la lista vacía. Revisa el valor primero con `if (first !== undefined)` y decide qué debe hacer el programa cuando no hay perros.
+En tiempo de ejecución, `dogs[0]` es `undefined`, así que el programa se detiene con "Cannot read properties of undefined (reading 'name')". Con `noUncheckedIndexedAccess` de este curso, TypeScript reporta `Object is possibly 'undefined'` antes de ejecutar. El caso límite es la lista vacía. Revisa el valor primero con `if (first !== undefined)` y decide qué debe hacer el programa cuando no hay perros.
 
 </details>
 

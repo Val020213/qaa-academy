@@ -9,18 +9,18 @@ In this lesson you learn to write code that waits for slow work, and to recognis
 
 - Predict the order in which lines of slow and fast code print.
 - Use `async` and `await` so that your code waits where it must.
-- Spot the forgotten-`await` bug, which gives no error message.
+- Spot the forgotten-`await` bug, which may give no error message.
 - Decide when tasks should run one after another and when together.
 
 ## Some work takes time
 
-Until now, every line of code finished at once. Real work is slower: asking a server for tomorrow's weather, loading a song from the internet, opening a page in the browser.
+Until now we used operations that finish before moving to the next line. Some tasks finish later: asking a server for tomorrow's weather, loading a song from the internet, opening a page in the browser.
 
-Node.js does not wait by itself for a slow task to finish: it moves on to the next line. You must say in your code where to wait.
+When you start an asynchronous operation, Node.js can move to the next line before it finishes. A synchronous operation blocks that execution, even if it is slow.
 
 ## Slow work finishes later
 
-JavaScript does one thing at a time. When it meets slow work, such as a timer or a request, it hands the work off and goes on with the next line. When the slow work ends, it comes back to it.
+On Node.js’s main thread, the JavaScript engine executes one function at a time. Node.js manages timers and input and output operations while that code continues. Its event loop runs pending callbacks when the thread can handle them.
 
 `setTimeout` runs a function after a time in milliseconds. A millisecond is one thousandth of a second. See what happens with a time of 0:
 
@@ -38,13 +38,13 @@ Get a cup
 Kettle is ready
 ```
 
-Even with 0 milliseconds, the timer function waits until the code that is already running has finished. "Zero" means "as soon as you are free", not "now". Slow work always finishes after the code that is already in progress.
+Even with 0 milliseconds, the callback waits until the code already running has finished. Node.js adjusts that delay to 1 ms; it can then run the callback when the thread is free. The delay does not guarantee an exact time.
 
 ## Promise
 
-A **Promise** is a value that is not ready yet. Its result can be a success or a failure.
+A **Promise** represents the result of an operation. It can be pending, fulfilled with a value or rejected with a reason; it may already have settled when you receive it.
 
-The type `Promise<string>` means "a string that will arrive later".
+The type `Promise<string>` says that, if it fulfills, its value is a `string`.
 
 Here is a helper that simulates slow work. It waits some milliseconds:
 
@@ -54,11 +54,11 @@ function wait(ms: number): Promise<void> {
 }
 ```
 
-You do not need to understand the inside of this helper now. Use it as a tool. `Promise<void>` means "nothing will arrive, but it will finish later".
+You do not need to understand the inside of this helper now. Use it as a tool. `Promise<void>` says you do not need to use a result value. This timer fulfills without providing a value.
 
 ## async and await
 
-Put `await` before a Promise to say: "wait here until it is ready, then give me the result."
+Put `await` before a Promise to pause the function until it fulfills or rejects. If it fulfills, you receive its value; if it rejects, `await` throws the rejection reason.
 
 You can use `await` inside a function marked with `async`. You can also use it at the top level of a module. An `async` function always returns a Promise.
 
@@ -81,7 +81,7 @@ async function main(): Promise<void> {
 main()
 ```
 
-The program prints `Asking for the forecast...`. After half a second it prints:
+The program prints `Asking for the forecast...`. About 500 ms later it prints:
 
 ```text
 Forecast: sunny
@@ -121,7 +121,9 @@ The variable `forecast` holds the Promise, not the result. The program did not w
 
 > **Tip:** When a value looks like `[object Promise]`, or a program behaves differently on each run, check for a missing `await` first.
 
-Without `await`, the function does run. You just do not wait for it. `await` pauses only the function that contains it. Here the `await` is missing and the function returns nothing: it prints a message later.
+Without `await`, the function does run. You just do not wait for it. Here, `await` pauses the function that contains it and lets other code continue. `slowLog` returns a Promise that fulfills without a value; its message prints later.
+
+![await pauses slowLog; main continues before slowLog resumes.](/images/01-await-caller.en.svg)
 
 ```ts
 function wait(ms: number): Promise<void> {
@@ -150,7 +152,7 @@ pasta is ready
 
 ## try and catch
 
-A Promise can fail. A server may be down. A song may not exist. When a Promise with `await` fails, it throws an error.
+A Promise can fail. A server may be down. A song may not exist. When a Promise rejects, `await` throws its rejection reason in the waiting function.
 
 Use `try` and `catch` to handle the error. The code in `try` runs first. If it throws, the code in `catch` runs.
 
@@ -207,11 +209,11 @@ async function main(): Promise<void> {
 main()
 ```
 
-The program prints three lines, one every 100 milliseconds.
+The program prints three lines, one after each wait of about 100 milliseconds.
 
 ## One after another, or together
 
-Each `await` in a row waits for the one before. Three songs of 100 ms each need 300 ms. If song 2 does not need song 1, you can start all three at once with `Promise.all`. Use the `wait` function from above.
+In this example, each task starts after the previous `await`: three 100 ms waits take about 300 ms. If the tasks are independent, you can start them together by calling all three functions and wait for their Promises with `Promise.all`. Use the `wait` function from above.
 
 ```ts
 async function main(): Promise<void> {
@@ -229,7 +231,7 @@ async function main(): Promise<void> {
 main()
 ```
 
-The first line is about 300 ms and the second is about 100 ms (in a real run: 302 ms and 101 ms). Together is faster, but only when the tasks do not depend on each other.
+The first line is about 300 ms and the second is about 100 ms (the times vary between runs). Together is faster, but only when the tasks do not depend on each other.
 
 ## Go deeper
 
@@ -249,7 +251,7 @@ The method `forEach` starts an async function for each item and does not wait fo
 node exercises/01-programming/10-async-await.ts
 ```
 
-Make every line say `OK`.
+Make every check say `OK`.
 
 ## Challenge
 
@@ -264,7 +266,7 @@ It is done when:
 - The program prints the total time, and the total is close to 300 ms, not 600 ms.
 - No line prints `[object Promise]`, and you do not use `forEach` with `async`.
 
-You will need something this lesson did not teach: a way to wait for many Promises and keep both the successes and the failures. `Promise.all` stops at the first failure. Search for: `promise.allsettled status fulfilled rejected`.
+You will need something this lesson did not teach: a way to wait for many Promises and keep both the successes and the failures. `Promise.all` rejects when it receives the first rejection, but does not cancel the other tasks. Search for: `promise.allsettled status fulfilled rejected`.
 
 ## Think it through
 
@@ -336,7 +338,7 @@ Use `loadSong` from the "try and catch" section.
 
 <details><summary>Answer</summary>
 
-It prints `Promise { <pending> }` and `end of main`. Then Node crashes with the error "Song 2 not found", and `catch` never runs. Without `await`, the error does not happen inside the `try` block. It happens later, inside the Promise, when nobody is listening. A missing `await` does not only give a wrong value: it also makes `try` and `catch` useless.
+It prints `Promise { <pending> }` and `end of main`. Then Node crashes with the error "Song 2 not found", and `catch` never runs. Without `await`, the `try` block ends without waiting for that Promise’s rejection. The `catch` does not receive it and, with Node.js’s default options, the unhandled rejection stops the program. The `catch` can still handle synchronous errors in the block.
 
 </details>
 
