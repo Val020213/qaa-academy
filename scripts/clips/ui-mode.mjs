@@ -1,6 +1,5 @@
-// Needs: QAA_E2E_PORT=5186 `playwright test --ui-host 127.0.0.1 --ui-port 5188` (see README.md).
-import { record } from "./lib.mjs"
-await record("ui-mode", async ({ page, mark, click, moveTo, pause }) => {
+import { recordTool } from "./tool-session.mjs"
+await recordTool("ui-mode", async ({ page, mark, click, moveTo, pause }) => {
   await page.goto("http://127.0.0.1:5188/")
   await page.getByText("playground.spec.ts").first().waitFor()
   await pause(2500); mark()

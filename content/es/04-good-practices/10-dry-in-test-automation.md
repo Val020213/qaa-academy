@@ -92,6 +92,8 @@ El helper de API `createProduct(request, overrides)` crea un producto en una pet
 
 `uniqueName` y `uniqueSku`, en `e2e/lib/helpers.ts`, reúnen la generación de datos únicos. Los tests llaman a esas funciones en vez de mantener una versión propia.
 
+![Cada responsabilidad compartida tiene un lugar; el spec conserva la acción y lo esperado.](/images/04-dry-knowledge.es.svg)
+
 ## Un cuerpo de test para varias entradas
 
 Una tabla de datos permite compartir el cuerpo de un test cuando cambian las entradas y el resultado esperado. Estos cuatro casos comprueban la validación de campos. Las reglas y los mensajes están en `lib/validation.ts`; los ids de error, en `components/product-form.tsx`.
@@ -260,6 +262,8 @@ Una bandera para un escenario que quizá pruebes algún día agrega una condici�
 El mensaje `"Price must be greater than 0."` aparece tanto en la app como en el test. La copia en el test expresa el texto que el usuario debe ver.
 
 Si importas el mensaje desde la app, un cambio accidental altera tanto el texto mostrado como la expectativa, y el test sigue pasando. Mantén la expectativa separada del código que comprueba.
+
+![Una expectativa independiente detecta un cambio accidental del mensaje.](/images/04-independent-expectations.es.svg)
 
 ## Práctica
 

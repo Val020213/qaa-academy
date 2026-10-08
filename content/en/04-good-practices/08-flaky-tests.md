@@ -143,6 +143,8 @@ Click the failed test and open its trace. Find the first step that differs from 
 4. Form a concrete hypothesis, such as: "The test reads the number before it arrives." Remove steps until you have the shortest case that still fails.
 5. Change one thing that lets you test the hypothesis, then run the test again. If you change several things together, you do not know which resolved the failure.
 
+![A failure investigation keeps the trace, hypothesis and verification connected.](/images/04-flaky-investigation.en.svg)
+
 ## Retries hide flakiness
 
 The runner can execute a failed test again. The shop config allows two retries on CI and none locally:

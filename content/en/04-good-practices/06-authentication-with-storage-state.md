@@ -53,6 +53,8 @@ If you remove the dependency and run a single file, such as `pnpm shop:e2e produ
 
 Empty storage in `setup` prevents it from inheriting `storageState: "e2e/.auth/admin.json"` from the general config. Without that option, setup would try to read the file before it could create it.
 
+![Setup starts signed out, writes the file, and unblocks the dependent tests.](/images/04-auth-bootstrap.en.svg)
+
 ## Saving the session in setup
 
 Open `apps/practice-shop/e2e/global.setup.ts`. After filling in the form, the test ends with:

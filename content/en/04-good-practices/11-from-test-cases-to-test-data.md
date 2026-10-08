@@ -36,6 +36,8 @@ The form sends the values to the API. The server validates them and returns erro
 
 The code sets no maximum name length or business price maximum, but requires a finite price. A row with a 10000 character name needs a purpose based on requirements or risk; it can reveal a missing maximum.
 
+![The name boundary is evaluated after trimming, with valid values in the other fields.](/images/04-name-boundaries.en.svg)
+
 > **Careful:** The code is not the requirement. If the requirement says "name: 3 to 50 characters" and the code has no maximum, a validation check is missing. Compare the rules with the requirements and discuss the difference with the product owner.
 
 ## One table, one loop

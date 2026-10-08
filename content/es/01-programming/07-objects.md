@@ -68,6 +68,8 @@ La segunda línea es el área del cuadrado: lado por lado. El objeto guarda los 
 
 La propiedad `size` no existe en `square`. Si escribes `console.log(square.size)`, TypeScript muestra un subrayado rojo antes de que ejecutes nada. Si lo ignoras y ejecutas el archivo, el programa imprime `undefined` y no se detiene.
 
+![El verificador del Playground marca size; el subrayado desaparece al escribir side.](/clips/01b-object-property.webm)
+
 ## Cambiar una propiedad
 
 Puedes asignar un valor nuevo a una propiedad con `=`.

@@ -53,6 +53,8 @@ Si quitas la dependencia y ejecutas un solo archivo, como `pnpm shop:e2e product
 
 El almacenamiento vacío de `setup` evita que herede `storageState: "e2e/.auth/admin.json"` de la configuración general. Sin esa opción, el setup intentaría leer el archivo antes de poder crearlo.
 
+![El setup empieza sin sesión, escribe el archivo y habilita los tests dependientes.](/images/04-auth-bootstrap.es.svg)
+
 ## Guardar la sesión en el setup
 
 Abre `apps/practice-shop/e2e/global.setup.ts`. Después de llenar el formulario, el test termina con:

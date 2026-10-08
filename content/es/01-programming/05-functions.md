@@ -84,6 +84,8 @@ Esto imprime:
 
 El `: number` después de los paréntesis es el tipo del valor de retorno: esta función devuelve un número.
 
+![Los argumentos 4 y 5 llegan a width y height. return entrega 20 a gardenArea; console.log lo imprime después.](/images/01-function-return.es.svg)
+
 Cuando Node.js ejecuta `return`, la función termina. Las líneas que siguen no se ejecutan.
 
 > **Cuidado:** `console.log` muestra un valor en la terminal. `return` devuelve un valor al código que llamó a la función. No son lo mismo. Una función que solo imprime y llega al final sin `return` devuelve `undefined`.

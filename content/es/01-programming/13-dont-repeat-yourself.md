@@ -82,6 +82,8 @@ Passed: 0
 
 La próxima vez que cambie la nota mínima, editas una línea. Ese es todo el beneficio de DRY.
 
+![describeStudent y countPassed usan hasPassed; hasPassed consulta el único PASS_MARK.](/images/01b-one-rule.es.svg)
+
 ## Las herramientas que ya tienes
 
 Ya conoces varias formas de darle un hogar al conocimiento. Cada una sirve para un tipo distinto de repetición.
@@ -170,6 +172,8 @@ const LIMIT = 10
 ```
 
 Supón que la pizzería permite 12 ingredientes el mes que viene. Con un solo `LIMIT`, los títulos de las listas también crecen a 12 caracteres, y nadie lo pidió. Dos reglas necesitan dos nombres: `MAX_TOPPINGS` y `MAX_TITLE_LENGTH`. El número es el mismo por casualidad. El conocimiento no.
+
+![MAX_TOPPINGS cambia a 12; la regla independiente MAX_TITLE_LENGTH sigue en 10.](/images/01b-independent-limits.es.svg)
 
 ### Distinto texto, mismo conocimiento
 

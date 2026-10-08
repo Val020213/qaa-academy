@@ -20,6 +20,8 @@ La pirámide propone muchos tests unitarios, menos tests de integración y pocos
 - Un **test de integración** comprueba varias piezas juntas. Un **test de API** envía una petición al servidor y revisa la respuesta.
 - Un **test E2E** recorre la aplicación con un navegador, como los tests que ya escribiste con Playwright.
 
+![La pirámide distribuye las reglas y los recorridos de navegador en distintos niveles.](/images/04-test-pyramid.es.svg)
+
 ### El costo de repetir una comprobación
 
 Supón que un test unitario tarda 2 milisegundos, uno de API tarda 40 milisegundos y uno de navegador tarda 6 segundos. Son tiempos de ejemplo, no mediciones de la tienda.
@@ -69,6 +71,8 @@ Para la regla «el precio debe ser mayor que 0», considera tres tests:
 - C envía el formulario en el navegador y comprueba el mensaje de error.
 
 Estos tests cubren fallos distintos:
+
+![Cada nivel detecta una parte distinta del recorrido de validación del precio.](/images/04-layer-failures.es.svg)
 
 1. La función acepta 0: A, B y C fallan.
 2. La función es correcta, pero el servidor no la llama: B y C fallan.

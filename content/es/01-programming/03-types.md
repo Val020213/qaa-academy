@@ -141,6 +141,8 @@ error TS2322: Type 'string' is not assignable to type 'number'.
 
 Dice: prometiste un número, pero diste texto.
 
+![TypeScript Playground: el verificador muestra TS2322 al asignar texto a number. Al reemplazar el texto por 3, desaparece el subrayado.](/clips/01-type-error.webm)
+
 Ves el problema en dos lugares:
 
 - En VS Code aparece una línea roja ondulada bajo el código. Pasa el mouse encima para leer el mensaje.

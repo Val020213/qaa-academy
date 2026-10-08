@@ -106,6 +106,8 @@ Usa los comentarios para explicar por qué hiciste algo. No los uses para repeti
 
 También puedes poner `//` delante de una línea de código para apagarla por un rato. Los programadores le llaman **comentar** la línea.
 
+![TypeScript Playground: al comentar la segunda línea y volver a ejecutar, Logs muestra solo el primer mensaje.](/clips/01-comment-out.webm)
+
 ## Dos tipos de error
 
 Cuando el código tiene un error, lo que ves en la terminal cambia según Node.js lo detecte al analizar el archivo o al ejecutarlo.

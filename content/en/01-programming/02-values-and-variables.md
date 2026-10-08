@@ -68,6 +68,8 @@ console.log(area)
 
 It prints `16`. The line `const area = side * side` does the maths once: it reads `side`, which is 4, calculates 16, and stores the number 16. After that, `side = 5` changes only `side`, and `area` still holds 16.
 
+![The calculation result is stored. Changing side afterwards leaves area at 16.](/images/01-stored-result.en.svg)
+
 If you want the new area, you must calculate it again:
 
 ```ts

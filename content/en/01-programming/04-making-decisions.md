@@ -155,6 +155,8 @@ jacket
 
 Here `temperature < 0` is false, so Node.js moves on to the next condition. Then `temperature < 15` is true, so it runs that block, prints `jacket` and skips the rest of the chain. It never reaches the `else`.
 
+![With temperature at 12, Node.js checks two conditions, prints jacket and skips the else.](/images/01-branch-selection.en.svg)
+
 This is why the order matters. A video game gives a medal at the end of a level: bronze from 50 points, silver from 70 and gold from 90. Each condition is correct on its own, but they are in the wrong order:
 
 ```ts
@@ -256,6 +258,8 @@ You write the full comparison on both sides. `day === "Saturday" || "Sunday"` do
 ## Boundary values
 
 A free-shipping rule from 50 must exclude 49 and include 50 and 51. Confusing `>` with `>=` changes the result at 50. A **boundary value** is at a rule's edge; test just below, at and above it.
+
+![The >= and > comparisons agree at 49 and 51; at the boundary 50 they give different answers.](/images/01-boundary-values.en.svg)
 
 ## Truthy and falsy
 

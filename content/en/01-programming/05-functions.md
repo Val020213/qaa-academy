@@ -84,6 +84,8 @@ This prints:
 
 The `: number` after the round brackets is the type of the return value: this function gives back a number.
 
+![The arguments 4 and 5 reach width and height. return delivers 20 to gardenArea; console.log prints it afterwards.](/images/01-function-return.en.svg)
+
 When Node.js runs `return`, the function ends. The lines after it do not run.
 
 > **Careful:** `console.log` shows a value in the terminal. `return` gives a value back to the code that called the function. They are not the same. A function that only prints and reaches the end without `return` returns `undefined`.

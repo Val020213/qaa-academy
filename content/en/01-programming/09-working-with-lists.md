@@ -95,6 +95,8 @@ The program prints:
 
 A chain reads from top to bottom like a sentence: "from the playlist, keep the songs by Mia, then take their titles." The order matters. If you write `map` first and `filter` second, the items are already just titles and `song.artist` does not exist.
 
+![filter keeps the Blue and Sunday objects in another array; map obtains their titles.](/images/01b-filter-map.en.svg)
+
 ## find: get one item
 
 `find` returns the first item for which your callback returns a value JavaScript treats as true. If nothing matches, it returns `undefined`.
@@ -115,6 +117,8 @@ undefined
 ```
 
 The result type is `Song | undefined`, so you must handle the `undefined` case. The `?.` in `found?.title` reads `title` if `found` is neither `null` nor `undefined`; in those two cases, the result is `undefined`.
+
+![The checker requires handling a find with no match before reading found.title.](/clips/01b-find-guard.webm)
 
 `find` gives only the first match. There are two songs by Mia, and `find` for Mia returns the `Blue` object, not the `Sunday` object. If you need all matches, use `filter`.
 

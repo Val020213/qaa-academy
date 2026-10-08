@@ -106,6 +106,8 @@ Use comments to explain why you did something. Do not use them to repeat what th
 
 You can also put `//` in front of a line of code to switch it off for a while. Programmers call this **commenting out** the line.
 
+![TypeScript Playground: after commenting out the second line and running again, Logs shows only the first message.](/clips/01-comment-out.webm)
+
 ## Two kinds of error
 
 When your code has an error, what you see in the terminal changes depending on whether Node.js finds it while parsing the file or while running it.

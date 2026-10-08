@@ -68,6 +68,8 @@ The second line is the area of the square: side times side. The object holds the
 
 The property `size` does not exist on `square`. If you write `console.log(square.size)`, TypeScript shows a red underline before you run anything. If you ignore it and run the file, the program prints `undefined` and does not stop.
 
+![The Playground checker flags size; the underline disappears when side is entered.](/clips/01b-object-property.webm)
+
 ## Change a property
 
 You can assign a new value to a property with `=`.

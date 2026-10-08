@@ -1,6 +1,5 @@
-// Needs: `playwright show-report --host 127.0.0.1 --port 5189 <report-folder>` (see README.md).
-import { record } from "./lib.mjs"
-await record("html-report", async ({ page, mark, click, pause }) => {
+import { recordTool } from "./tool-session.mjs"
+await recordTool("html-report", async ({ page, mark, click, pause }) => {
   await page.goto("http://127.0.0.1:5189/")
   await page.getByText("rejects wrong credentials").first().waitFor()
   await pause(2500); mark()

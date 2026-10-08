@@ -44,6 +44,8 @@ Read it in parts:
 
 The phrase "Type X is not assignable to type Y" appears when a value does not fit the target type. Read it as "I got X, but I need Y."
 
+![The Playground shows TS2322 when "five" is assigned to a number; entering 5 removes it.](/clips/01b-type-error.webm)
+
 ## Anatomy of a stack trace
 
 Here is a runtime error. The function reads the owner's name from a JSON text. JSON is a text format for data.
@@ -145,6 +147,8 @@ TypeError: Cannot read properties of undefined (reading 'name')
 Node points to line 6, where `name` is read. Also inspect line 5: `find` can return `undefined`, but `as Dog` hides that possibility from the checker. The call on line 13 requests a missing id; the function must decide how to handle it, rather than assuming it always exists.
 
 The `at` lines tell you how to get from the crash back to the source. Node keeps a list of the functions that are running, the **call stack**, and prints it when a crash happens. Read it from top to bottom: `getName` crashed, it was called by `printName` on line 10, and that was called by the main file on line 13. The bad value came from further down the list. At each line, ask: what did I expect here, and what did I get?
+
+![The trace leads from getName to printName and the top-level call; line 5 hides the missing result.](/images/01b-stack-trace.en.svg)
 
 ## Go deeper
 

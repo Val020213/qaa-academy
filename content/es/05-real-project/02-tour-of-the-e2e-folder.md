@@ -83,6 +83,8 @@ this.rows = page.getByTestId(/^products-row-/)
 
 La expresión regular coincide con todo id que empiece con `products-row-`. Los dos tests de pedidos usan locators directamente; no tienen Page Object.
 
+![El spec de productos usa código compartido; la cobertura registra lo que comprueba.](/images/05-spec-dependencies.es.svg)
+
 ## La carpeta .auth
 
 El setup escribe la sesión de admin en `.auth/admin.json`. El archivo `e2e/.gitignore` le dice a Git que ignore esta carpeta, porque contiene una sesión privada que cambia en cada ejecución.

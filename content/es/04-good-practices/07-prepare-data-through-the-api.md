@@ -130,6 +130,8 @@ test("confirming in the dialog removes the product", async ({ page, request }) =
 
 El test crea el producto antes de abrir la lista. La aserción espera a que su fila sea visible; luego el Page Object hace clic en borrar y confirma el diálogo. Las dos aserciones finales comprueban que la fila desapareció y que el mensaje contiene el nombre del producto.
 
+![La respuesta de la API llega antes de que la navegación pida la lista.](/images/04-prepare-before-navigation.es.svg)
+
 Si el test termina correctamente, el propio borrado limpia el producto. Otros tests dejan datos que el setup reinicia en la próxima ejecución. En un entorno que no se reinicia, o si esos datos afectan un conteo posterior, necesitas limpiar los productos que creaste.
 
 Si la API cambia y exige un campo nuevo, los tests que usan `createProduct` fallan durante la preparación. Agregar el valor por defecto en el helper actualiza esa preparación en un solo lugar.

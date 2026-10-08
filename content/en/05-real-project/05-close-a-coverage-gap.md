@@ -21,6 +21,8 @@ The gap is "Editing a product". Open the shop and edit a product by hand. Write 
 3. An invalid price shows an error and the product keeps its old data.
 4. Cancel leaves the product unchanged.
 
+![Changing a product’s name and cancelling keeps its original name in the list.](/clips/05-edit-cancel.webm)
+
 Each scenario becomes a test. The plan leaves out other field errors, such as invalid stock or an empty name, because the suite already checks them in the create form in `products/products.spec.ts`.
 
 ## Decide the data

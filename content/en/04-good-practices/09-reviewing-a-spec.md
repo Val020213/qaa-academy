@@ -154,7 +154,11 @@ The last line looks for `product-row-` plus the id. The real test id is `product
 
 The initial check uses `products.row(product.id)`, but the final check uses another locator. Check that the row was visible and that it disappears with the same locator, as in the corrected version.
 
+![The same row locator proves the product existed and then disappeared.](/images/04-review-same-locator.en.svg)
+
 To check that the test detects the failure, comment out the delete line or change the expected value and run it. If it still passes, it does not detect that change. This is a small, manual version of **mutation testing**: change the code a little and see whether the tests notice. Restore the change after the check.
+
+![With deletion skipped, the misspelled row id passes; the correct row id fails.](/clips/04-review-mutation.webm)
 
 ## Go deeper
 

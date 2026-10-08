@@ -72,6 +72,8 @@ GitHub sets the environment variable `CI`. Both `playwright.config.ts` files rea
 
 A test that fails and then passes on a retry is marked **flaky** in the report. Investigate the cause of the failure even if the retry passes.
 
+![An immediate pass, a successful retry and three failures produce different results.](/images/05-retry-classification.en.svg)
+
 The shop config keeps the trace of every failed test (`retain-on-failure`). The course site config records a trace on the first retry (`on-first-retry`) and swaps the `list` reporter for `github` in CI, which prints errors on the pull request page.
 
 The shop uses one worker (`workers: 1`) because its data lives in memory and the tests share it. The course site config runs tests in parallel.

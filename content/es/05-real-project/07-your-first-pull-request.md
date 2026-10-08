@@ -60,6 +60,8 @@ Nunca debes ver `.auth/`, `playwright-report/` ni `test-results/` en la lista. E
 
 > **Cuidado:** `git commit -am "message"` prepara solo cambios en archivos que Git ya sigue. Un spec nuevo queda fuera del commit hasta que lo agregues con `git add`.
 
+![Un spec nuevo necesita git add explícito para entrar al commit.](/images/05-commit-inclusion.es.svg)
+
 ## 3. Ejecuta las comprobaciones
 
 Ejecuta estos tres comandos desde la raíz del repositorio. Todos deben pasar.

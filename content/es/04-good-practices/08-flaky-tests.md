@@ -143,6 +143,8 @@ Haz clic en el test que falló y abre su trace. Busca el primer paso que difiere
 4. Formula una hipótesis concreta, por ejemplo: "El test lee el número antes de que llegue". Quita pasos hasta tener el caso más corto que todavía falla.
 5. Cambia una sola cosa que permita comprobar la hipótesis y vuelve a ejecutar el test. Si cambias varias cosas juntas, no sabes cuál resolvió el fallo.
 
+![La investigación conecta el trace, la hipótesis y la comprobación del cambio.](/images/04-flaky-investigation.es.svg)
+
 ## Los reintentos esconden la inestabilidad
 
 El runner puede ejecutar de nuevo un test que falló. La configuración de la tienda permite dos reintentos en CI y ninguno en local:

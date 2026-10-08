@@ -44,6 +44,8 @@ Léelo por partes:
 
 La frase "Type X is not assignable to type Y" aparece cuando un valor no encaja en el tipo de destino. Léela como "recibí X, pero necesito Y".
 
+![El Playground muestra TS2322 al asignar "five" a un number; al escribir 5 desaparece.](/clips/01b-type-error.webm)
+
 ## Anatomía de un stack trace
 
 Aquí hay un error en tiempo de ejecución. La función lee el nombre del dueño desde un texto JSON. JSON es un formato de texto para datos.
@@ -145,6 +147,8 @@ TypeError: Cannot read properties of undefined (reading 'name')
 Node señala la línea 6, donde se lee `name`. Revisa también la línea 5: `find` puede devolver `undefined`, pero `as Dog` oculta esa posibilidad al verificador. La llamada de la línea 13 pide un id ausente; la función debe decidir cómo manejarlo, no asumir que siempre existe.
 
 Las líneas `at` te dicen cómo llegar de la caída al origen. Node guarda la lista de las funciones que se están ejecutando, la **pila de llamadas** (*call stack*), y la imprime cuando ocurre una caída. Léela de arriba hacia abajo: `getName` se rompió, la llamó `printName` en la línea 10, y a esa la llamó el archivo principal en la línea 13. El valor incorrecto vino de más abajo en la lista. Pregúntate en cada línea: ¿qué esperaba aquí y qué recibí?
+
+![La traza lleva de getName a printName y a la llamada del archivo; la línea 5 oculta el resultado ausente.](/images/01b-stack-trace.es.svg)
 
 ## Profundiza
 

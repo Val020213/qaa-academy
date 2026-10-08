@@ -176,6 +176,8 @@ Esto imprime:
 
 Usa `for...of` cuando solo necesitas cada elemento, porque no hay contador que puedas escribir mal. Usa el bucle con índice cuando necesitas la posición, como aquí para numerar las líneas. El error típico de esta forma es escribir `i <= dogs.length`: el bucle da una vuelta de más y `dogs[3]` es `undefined`.
 
+![El índice visita 0, 1 y 2. Cuando i llega a 3, i < dogs.length es falso y el bucle termina sin leer dogs[3].](/images/01-loop-traversal.es.svg)
+
 ### Un bucle sobre una lista que crece
 
 Aquí el bucle agrega un elemento nuevo mientras se ejecuta:

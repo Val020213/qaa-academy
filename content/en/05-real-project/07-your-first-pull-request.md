@@ -60,6 +60,8 @@ You must never see `.auth/`, `playwright-report/` or `test-results/` in the list
 
 > **Careful:** `git commit -am "message"` stages only changes to files Git already tracks. A new spec stays out of the commit until you add it with `git add`.
 
+![A new spec needs an explicit git add before it can enter a commit.](/images/05-commit-inclusion.en.svg)
+
 ## 3. Run the checks
 
 Run these three commands from the root of the repository. All must pass.

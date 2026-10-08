@@ -124,6 +124,8 @@ await page.getByTestId("product-sku").fill(uniqueSku())
 
 The generated name lets the test search for the product it created, rather than a word that may appear in other products.
 
+![Each test uses its own product identity while sharing the same server.](/images/04-data-identities.en.svg)
+
 ## Records and totals that change
 
 In `e2e/orders/orders.spec.ts`, an order status only moves forward. Once it is "paid", it cannot return to "pending".

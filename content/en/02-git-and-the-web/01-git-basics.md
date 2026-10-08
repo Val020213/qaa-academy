@@ -206,6 +206,17 @@ Add a failing test for the wrong-password error
 Use data-testid for the sign-in button
 ```
 
+Many teams also follow a convention for the message, called *Conventional Commits*. The message starts with the **type** of change, then the **scope** in parentheses, which is the part of the product it touches, and after the colon comes the description:
+
+```text
+fix(payments): add callback for bipay
+test(login): add a failing test for the wrong-password error
+```
+
+The most used types are `feat` (a new feature), `fix` (a bug fix), `test` (tests), `docs` (documentation), `refactor` (an internal change that does not alter behaviour) and `chore` (maintenance). The scope is optional and each team defines its own.
+
+Git does not require this format: it accepts any text as a message. The team requires it, because with it the history can be filtered by type or by part of the product, and there are tools that build the list of changes of a release from the messages. Before your first commit in a repository, run `git log --oneline` and follow the format it already uses.
+
 A commit for every line also makes review harder. Group changes from one task so the team can review or undo them together.
 
 ## Practice

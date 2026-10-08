@@ -95,6 +95,8 @@ El programa imprime:
 
 Una cadena se lee de arriba abajo como una oración: "de la lista de reproducción, quédate con las canciones de Mia, y luego toma sus títulos". El orden importa. Si escribes `map` primero y `filter` después, los elementos ya son solo títulos y `song.artist` no existe.
 
+![filter conserva los objetos de Blue y Sunday en otro array; map obtiene sus títulos.](/images/01b-filter-map.es.svg)
+
 ## find: obtener un elemento
 
 `find` devuelve el primer elemento para el que tu callback devuelve un valor que JavaScript considera verdadero. Si nada coincide, devuelve `undefined`.
@@ -115,6 +117,8 @@ undefined
 ```
 
 El tipo del resultado es `Song | undefined`, así que debes manejar el caso de `undefined`. El `?.` en `found?.title` lee `title` si `found` no es `null` ni `undefined`; en esos dos casos, el resultado es `undefined`.
+
+![El verificador exige manejar un find sin coincidencias antes de leer found.title.](/clips/01b-find-guard.webm)
 
 `find` da solo la primera coincidencia. Hay dos canciones de Mia, y `find` para Mia devuelve el objeto de `Blue`, no el de `Sunday`. Si necesitas todas las coincidencias, usa `filter`.
 

@@ -141,6 +141,8 @@ The spec prepares the product, opens the list and checks that the row is visible
 
 Assertions stay in the spec. The Page Object exposes `row` and `message`, and each test decides what result it expects from those locators.
 
+![The Page Object shares actions and locators; the spec chooses the expected result.](/images/04-pom-responsibilities.en.svg)
+
 ## Decide what to extract
 
 Use these rules when extracting a Page Object:
@@ -149,6 +151,8 @@ Use these rules when extracting a Page Object:
 2. Organize each Page Object around a view: the products list and the form have different locators and actions.
 3. Wait until several specs need the same page before extracting the class. A small flow may only need a function, such as `fillLoginForm` in `auth.spec.ts`.
 4. Name methods after what the user does, such as `search` or `delete`. Avoid creating a method for every click.
+
+![Searching for the created product’s full name leaves only its row.](/clips/04-product-search.webm)
 
 Only `products.spec.ts` imports `ProductsPage` in the shop. The orders and dashboard specs use `getByTestId` directly; the products class is the example of the pattern you study here.
 

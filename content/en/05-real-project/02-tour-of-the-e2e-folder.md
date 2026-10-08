@@ -83,6 +83,8 @@ this.rows = page.getByTestId(/^products-row-/)
 
 The regular expression matches every id that starts with `products-row-`. The two order tests use locators directly; they have no Page Object.
 
+![The product spec uses shared code; coverage records what the spec checks.](/images/05-spec-dependencies.en.svg)
+
 ## The .auth folder
 
 Setup writes the saved admin session to `.auth/admin.json`. The file `e2e/.gitignore` tells Git to ignore this folder because it contains a private session that changes on every run.

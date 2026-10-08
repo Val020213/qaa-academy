@@ -119,6 +119,8 @@ Forecast: [object Promise]
 
 The variable `forecast` holds the Promise, not the result. The program did not wait and printed too early. There is no error message, which is why this is the hard kind of bug.
 
+![The type of forecast changes from Promise<string> to string when await is added in the Playground.](/clips/01b-await-result.webm)
+
 > **Tip:** When a value looks like `[object Promise]`, or a program behaves differently on each run, check for a missing `await` first.
 
 Without `await`, the function does run. You just do not wait for it. Here, `await` pauses the function that contains it and lets other code continue. `slowLog` returns a Promise that fulfills without a value; its message prints later.

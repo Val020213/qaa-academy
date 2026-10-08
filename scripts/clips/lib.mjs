@@ -1,33 +1,19 @@
 // Shared helper for the clip scripts. See README.md.
 import { chromium } from "@playwright/test"
-import { spawn, execFileSync } from "node:child_process"
+import { execFileSync } from "node:child_process"
 import { mkdirSync, rmSync, readdirSync, renameSync, statSync, existsSync } from "node:fs"
 import path from "node:path"
+import { tmpdir } from "node:os"
 import { fileURLToPath } from "node:url"
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 export const SITE = "http://localhost:5186"
 export const SHOP = "http://localhost:5196"
-const RAW = path.join(ROOT, ".scratch/raw")
-const OUT = path.join(ROOT, "public/clips")
+export const WORK = process.env.CLIPS_WORK ?? path.join(tmpdir(), "qaa-clips-work")
+const RAW = path.join(WORK, "raw")
+export const OUT = process.env.CLIPS_OUT ?? path.join(ROOT, "public/clips")
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
-
-async function up(url) {
-  try { const r = await fetch(url); return r.status < 500 } catch { return false }
-}
-
-/** Starts a dev server if nothing answers on `url`. Returns a stop() function. */
-export async function ensureServer({ url, args, cwd, timeout = 120000 }) {
-  if (await up(url)) return () => {}
-  const child = spawn("pnpm", args, { cwd, stdio: "ignore", detached: true })
-  const t0 = Date.now()
-  while (!(await up(url))) {
-    if (Date.now() - t0 > timeout) throw new Error("server did not start: " + url)
-    await sleep(500)
-  }
-  return () => { try { process.kill(-child.pid) } catch {} }
-}
 
 const CURSOR = `
 (() => {

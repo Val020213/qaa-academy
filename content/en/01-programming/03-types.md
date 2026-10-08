@@ -141,6 +141,8 @@ error TS2322: Type 'string' is not assignable to type 'number'.
 
 It says: you promised a number, but you gave text.
 
+![TypeScript Playground: the checker shows TS2322 when text is assigned to number. Replacing the text with 3 removes the underline.](/clips/01-type-error.webm)
+
 You see the problem in two places:
 
 - In VS Code, a red wavy line appears under the code. Move the mouse over it to read the message.

@@ -36,6 +36,8 @@ El formulario envía los valores a la API. El servidor ejecuta la validación y 
 
 El código no fija una longitud máxima para el nombre ni un precio máximo de negocio, pero exige que el precio sea finito. Una fila con un nombre de 10000 caracteres necesita un propósito basado en los requisitos o el riesgo; puede revelar que falta un máximo.
 
+![El límite del nombre se evalúa después de quitar espacios, con los otros campos válidos.](/images/04-name-boundaries.es.svg)
+
 > **Cuidado:** El código no es el requisito. Si el requisito dice "nombre: de 3 a 50 caracteres" y el código no tiene máximo, falta una validación. Compara las reglas con los requisitos y consulta la diferencia con el responsable del producto.
 
 ## Una tabla, un bucle

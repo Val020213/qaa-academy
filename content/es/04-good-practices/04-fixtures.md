@@ -113,6 +113,8 @@ En ambos casos se borra el producto. Si el borrado fuera la última línea del c
 
 Un fixture puede pedir otro fixture. El runner prepara primero la dependencia y la desmonta después del fixture que la usa. Este código muestra el orden con un producto que depende de un usuario:
 
+![La preparación sigue las dependencias; la limpieza va en orden inverso.](/images/04-fixture-dependencies.es.svg)
+
 ```ts
 type Use<T> = (value: T) => Promise<void>
 

@@ -141,6 +141,8 @@ El spec prepara el producto, abre la lista y comprueba que la fila esté visible
 
 Las aserciones quedan en el spec. El Page Object expone `row` y `message`, y cada test decide qué resultado espera de esos locators.
 
+![El Page Object comparte acciones y locators; el spec elige el resultado esperado.](/images/04-pom-responsibilities.es.svg)
+
 ## Decidir qué extraer
 
 Usa estas reglas al extraer un Page Object:
@@ -149,6 +151,8 @@ Usa estas reglas al extraer un Page Object:
 2. Organiza cada Page Object alrededor de una vista: la lista de productos y el formulario tienen locators y acciones distintos.
 3. Espera a que varios specs necesiten la misma página antes de extraer la clase. Para un flujo pequeño puede bastar una función, como `fillLoginForm` en `auth.spec.ts`.
 4. Nombra los métodos por lo que hace el usuario, como `search` o `delete`. Evita crear un método para cada clic.
+
+![Buscar el nombre completo del producto creado deja solo su fila.](/clips/04-product-search.webm)
 
 Solo `products.spec.ts` importa `ProductsPage` en la tienda. Los specs de pedidos y del dashboard usan `getByTestId` directo; la clase de productos es el ejemplo del patrón que estudias aquí.
 

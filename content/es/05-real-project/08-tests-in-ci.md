@@ -72,6 +72,8 @@ GitHub define la variable de entorno `CI`. Los dos archivos `playwright.config.t
 
 Un test que falla y luego pasa en un reintento se marca como **flaky** (inestable) en el reporte. Investiga la causa del fallo aunque el reintento pase.
 
+![Un éxito inicial, un reintento exitoso y tres fallos producen resultados distintos.](/images/05-retry-classification.es.svg)
+
 La configuración de la tienda guarda el trace de cada test fallido (`retain-on-failure`). La del sitio del curso graba un trace en el primer reintento (`on-first-retry`) y cambia el reporter `list` por `github` en CI, que imprime los errores en la página del pull request.
 
 La tienda usa un solo worker (`workers: 1`) porque sus datos viven en memoria y los tests los comparten. La configuración del sitio del curso ejecuta los tests en paralelo.

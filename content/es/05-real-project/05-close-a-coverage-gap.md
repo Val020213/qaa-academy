@@ -21,6 +21,8 @@ El hueco es "Editing a product" (editar un producto). Abre la tienda y edita un 
 3. Un precio inválido muestra un error y el producto conserva sus datos anteriores.
 4. Cancelar deja el producto sin cambios.
 
+![Cambiar el nombre de un producto y cancelar conserva el nombre original en la lista.](/clips/05-edit-cancel.webm)
+
 Cada escenario será un test. El plan deja fuera otros errores de campo, como un stock inválido o un nombre vacío, porque la suite ya los comprueba en el formulario de creación en `products/products.spec.ts`.
 
 ## Decide los datos

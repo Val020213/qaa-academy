@@ -73,6 +73,8 @@ Cada botón recibe el test id `${step.testId}-${order.id}`. El botón de cancela
 
 Después del clic, la página envía el cambio al servidor con PATCH y vuelve a consultar los pedidos con `load()`. El estado que comprueba el test viene de esa nueva lectura.
 
+![Los pedidos pendientes y pagados se pueden cancelar; enviados y cancelados son finales.](/images/05-order-transitions.es.svg)
+
 ## Elige el pedido
 
 El estado de un pedido solo avanza. Después de marcarlo como pagado, la API no permite devolverlo a pendiente. Reserva un pedido distinto para cada test que cambie su estado.
@@ -109,6 +111,8 @@ Escribe el pseudocódigo del test antes de agregarlo al archivo.
 **Paso 3.** Haz clic en `orders-cancel-1001`.
 
 **Paso 4.** Comprueba que el estado es `cancelled` y que los dos botones desaparecieron. El test debe comprobar la regla de cancelación; el color de la insignia y el encabezado de la tabla quedan fuera de ese comportamiento.
+
+![Cancelar el pedido 1001 cambia pending a cancelled y quita los dos botones de acción.](/clips/05-order-cancel.webm)
 
 **Paso 5.** Actualiza el comentario del inicio para reservar el pedido 1001.
 

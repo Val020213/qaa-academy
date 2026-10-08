@@ -77,6 +77,8 @@ pnpm exec playwright show-report
 
 El reporte lista cada test con su resultado. Haz clic en un test fallido para ver el error, la línea de código y la captura de pantalla.
 
+![El reporte real muestra la expectativa fallida: payed en lugar del estado real paid.](/clips/05-order-report.webm)
+
 Pulsa `Ctrl+C` en la terminal para detener el servidor del reporte. Luego vuelve a la raíz con `cd ../..`.
 
 ## Traces
@@ -134,6 +136,8 @@ Received: "paid"
 El setup reinicia los datos al inicio de cada ejecución, pero otra persona puede cambiarlos mientras corren los tests. Si un colega marca el pedido 1005 como pagado en la misma tienda, el test encuentra `paid` donde espera `pending`.
 
 El mensaje por sí solo no demuestra la causa. Revisa en el trace el estado de la página y las llamadas de red antes de decidir si falló la aplicación, el test, los datos o el entorno.
+
+![El reporte y el trace conectan la expectativa incorrecta con el estado real del pedido.](/images/05-failure-evidence.es.svg)
 
 ## Práctica
 

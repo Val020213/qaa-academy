@@ -118,6 +118,21 @@ The owner asked for Excalidraw-style drawings to explain flows and processes. Us
 - Render the SVG and look at it before placing it (clipped edges and overlapping text are the usual faults), then write a caption that says what the drawing shows.
 - A diagram states facts too: everything in it must be true and must match the text beside it.
 
+## How much media, and which kind
+
+The owner asked for more media "to avoid boring". Every lesson of modules 1 to 5 has at least one image or clip that carries its main idea, most have two, none more than four. Media that only decorates is worse than none. In order of preference:
+
+1. A short real clip. For anything about types, the TypeScript Playground in headless Playwright is a real capture of the editor VS Code uses: red underlines, the error on hover, the inferred type. For modules 3 to 5, the practice page, the shop and Playwright's own tools.
+2. A diagram that moves: the same hand-drawn SVG with a CSS or SMIL animation that steps through a process (a loop visiting each item, a chain of conditions, a stack trace read from the top). A full cycle takes 8 to 16 seconds, it reads as a still picture too, and it stops under `prefers-reduced-motion`. No scripts inside the SVG.
+3. A still diagram.
+4. A drawing that makes a rule stick.
+
+Terminal clips are made only from a real PowerShell session; a simulated terminal is not a recording.
+
+## No private path in any media
+
+A tool that prints the absolute path of a file (Playwright's HTML report, Trace Viewer, a stack trace) puts the layout of the recording machine into the video. Record such clips from a copy of the project at `/tmp/qaa-academy`, as `scripts/clips/README.md` describes, and inspect one frame per second before publishing. The same goes for screenshots and for any text pasted into a lesson: no home folder, no user name, no machine-specific path. Never symlink `node_modules` into a copy: an agent destroyed the real one that way.
+
 ## Illustrations
 
 A drawing that makes a rule stick, like the camel for camelCase, is welcome where it helps the reader remember; the owner asked for them. Two ways to make one:

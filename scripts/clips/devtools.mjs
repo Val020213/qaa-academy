@@ -4,12 +4,12 @@ import { chromium } from "@playwright/test"
 import { spawn, execFileSync } from "node:child_process"
 import { mkdirSync, rmSync, writeFileSync, statSync } from "node:fs"
 import path from "node:path"
-import { ROOT, sleep, encode, helpers } from "./lib.mjs"
+import { ROOT, WORK, sleep, encode, helpers } from "./lib.mjs"
 
 export async function recordDevtools(name, { panel = "elements", dock = "right" }, fn) {
   const disp = process.env.DISPLAY
   if (!disp || disp === ":0" || disp === ":1") throw new Error("run me with xvfb-run (virtual display), DISPLAY=" + disp)
-  const tmp = path.join(ROOT, ".scratch/dt-" + name)
+  const tmp = path.join(WORK, "dt-" + name)
   rmSync(tmp, { recursive: true, force: true })
   mkdirSync(path.join(tmp, "profile/Default"), { recursive: true })
   writeFileSync(path.join(tmp, "profile/Default/Preferences"), JSON.stringify({
@@ -88,7 +88,7 @@ async function connectDevtools() {
       await sleep(400)
       await key("Enter", "Enter", 13, 0, "\r")
     },
-    async shot(n) { const r = await send("Page.captureScreenshot"); (await import("node:fs")).writeFileSync(ROOT + "/.scratch/clips-check/dbg-" + n + ".png", Buffer.from(r.result.data, "base64")) },
+    async shot(n) { const r = await send("Page.captureScreenshot"); (await import("node:fs")).writeFileSync(WORK + "/checks/dbg-" + n + ".png", Buffer.from(r.result.data, "base64")) },
     close: () => ws.close(),
   }
 }

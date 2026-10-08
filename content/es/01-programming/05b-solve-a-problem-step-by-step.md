@@ -24,6 +24,8 @@ Conoces las variables, los tipos, `if` y las funciones, pero abrir un archivo va
 
 Dividir un problema en pasos pequeños se llama **descomposición**. Cada movimiento de arriba es una forma de hacerlo.
 
+![El ejemplo del boleto pasa de la entrada y el cálculo a mano a los pasos, el código y la revisión de casos.](/images/01-solving-workflow.es.svg)
+
 ## Ejemplo 1: el precio de un boleto de cine
 
 **Movimiento 1: dilo.** Un cine vende boletos según la edad y el día. Los niños menores de 12 pagan 6. Las personas de 65 años o más pagan 7. Todos los demás pagan 10. Los martes cada boleto cuesta 2 menos.
@@ -78,6 +80,8 @@ Esto imprime `10`, `6` y `7`. Ahora el paso 3. Agrégalo antes del `return`:
 ```
 
 Ejecútalo con `ticketPrice(8, "Tuesday")`. Imprime `4`, el número de tu ejemplo.
+
+![TypeScript Playground: al agregar solo el descuento del martes, el boleto infantil pasa de 6 a 4; el adulto del lunes sigue en 10.](/clips/01-code-one-step.webm)
 
 **Movimiento 5: revisa.** Un **caso límite** (*edge case*) es un valor en el borde de una regla o fuera de lo usual. Prueba estos:
 

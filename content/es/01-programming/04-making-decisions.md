@@ -155,6 +155,8 @@ jacket
 
 Aquí `temperature < 0` es falso, así que Node.js pasa a la siguiente condición. Luego `temperature < 15` es verdadero, así que ejecuta ese bloque, imprime `jacket` y se salta el resto de la cadena. Nunca llega al `else`.
 
+![Con temperature en 12, Node.js prueba dos condiciones, imprime jacket y se salta el else.](/images/01-branch-selection.es.svg)
+
 Por eso el orden importa. Un videojuego da una medalla al final de un nivel: bronce desde 50 puntos, plata desde 70 y oro desde 90. Cada condición es correcta por sí sola, pero están en el orden equivocado:
 
 ```ts
@@ -256,6 +258,8 @@ Escribes la comparación completa a ambos lados. `day === "Saturday" || "Sunday"
 ## Valores límite
 
 Una regla de envío gratis desde 50 debe excluir 49 e incluir 50 y 51. Confundir `>` con `>=` cambia el resultado en 50. Un **valor límite** está en el borde de una regla; prueba justo por debajo, en el borde y por encima.
+
+![Las comparaciones >= y > coinciden en 49 y 51; en el límite 50 dan respuestas distintas.](/images/01-boundary-values.es.svg)
 
 ## Truthy y falsy
 

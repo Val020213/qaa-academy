@@ -77,6 +77,8 @@ SyntaxError: The requested module './_shapes.ts' does not provide an export name
 
 VS Code shows the problem earlier, as a red underline. What is not exported cannot be imported.
 
+![The exported names are available to use-shapes.ts; secret stays inside _shapes.ts.](/images/01b-module-exports.en.svg)
+
 ## Relative paths
 
 The text after `from` is the **path**. A path that starts with `./` points to a file next to the current file. A path that starts with `../` goes one folder up.

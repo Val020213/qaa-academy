@@ -130,6 +130,8 @@ test("confirming in the dialog removes the product", async ({ page, request }) =
 
 The test creates the product before opening the list. The assertion waits for its row to be visible; then the Page Object clicks Delete and confirms the dialog. The final two assertions check that the row disappeared and that the message contains the product's name.
 
+![The API response arrives before navigation starts the list request.](/images/04-prepare-before-navigation.en.svg)
+
 If the test finishes successfully, deletion itself cleans up the product. Other tests leave data that setup resets on the next run. In an environment that is never reset, or if that data affects a later count, you need to clean up the products you created.
 
 If the API changes and requires a new field, tests that use `createProduct` fail during preparation. Adding the default value in the helper updates that preparation in one place.

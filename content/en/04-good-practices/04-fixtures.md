@@ -113,6 +113,8 @@ The product is removed in both cases. If the delete were the last line of the te
 
 A fixture can ask for another fixture. The runner sets up the dependency first and tears it down after the fixture that uses it. This code shows the order with a product that depends on a user:
 
+![Setup follows dependencies; cleanup runs in reverse order.](/images/04-fixture-dependencies.en.svg)
+
 ```ts
 type Use<T> = (value: T) => Promise<void>
 

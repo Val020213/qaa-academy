@@ -113,6 +113,8 @@ true
 
 Found it. The JSON text has the numbers in quotes, so `points` is text. JavaScript compares strings from left to right by their UTF-16 codes; `"1"` comes before `"9"`, so `"10" > "9"` is `false`. `JSON.parse` returns `any`, and `as Score[]` only tells the checker which type to assume: it does not check or transform the data.
 
+![Leo does appear in the loop; the comparison and typeof lead to investigating points as strings.](/images/01b-debug-evidence.en.svg)
+
 **Fix one thing.** Convert the text to numbers when you read the data:
 
 ```ts
@@ -129,6 +131,8 @@ It now prints `Winner: Leo with 10 points`.
 **Rubber-duck explaining.** Explain the code, line by line, out loud, to a rubber duck or an empty chair. Say what each line does and what each variable holds. Often you hear yourself say something that is not true, and that is the bug.
 
 **Bisecting.** Halve the search area. If you know the correct state after each step and the error stays visible once it appears, inspect the state after step 4 of 8. If it is already wrong, search steps 1 to 4; if it is right, search steps 5 to 8. Repeat: you can locate the first failing step with three checks. A single value can hide an error in another piece of data.
+
+![The state after step 4 determines which half to search, if the error stays visible after it appears.](/images/01b-bisect.en.svg)
 
 ## The trap list
 

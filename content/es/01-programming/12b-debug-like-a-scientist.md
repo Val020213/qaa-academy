@@ -113,6 +113,8 @@ true
 
 Lo encontré. El texto JSON tiene los números entre comillas, así que `points` es texto. JavaScript compara texto de izquierda a derecha por sus códigos UTF-16; `"1"` va antes que `"9"`, por eso `"10" > "9"` es `false`. `JSON.parse` devuelve `any`, y `as Score[]` solo indica al verificador qué tipo asumir: no revisa ni transforma los datos.
 
+![Leo sí aparece en el bucle; la comparación y typeof llevan a investigar los puntos como texto.](/images/01b-debug-evidence.es.svg)
+
 **Arregla una sola cosa.** Convierte el texto en números cuando leas los datos:
 
 ```ts
@@ -129,6 +131,8 @@ Ahora imprime `Winner: Leo with 10 points`.
 **Explicar al patito de goma.** Explica el código, línea por línea, en voz alta, a un patito de goma o a una silla vacía. Di qué hace cada línea y qué guarda cada variable. Muchas veces te oyes decir algo que no es cierto, y ese es el *bug*.
 
 **Bisección.** Divide el área de búsqueda a la mitad. Si conoces el estado correcto después de cada paso y el error sigue visible una vez que aparece, revisa el estado después del paso 4 de 8. Si ya está mal, busca en los pasos 1 a 4; si está bien, busca en los pasos 5 a 8. Repite: puedes localizar el primer paso que falla con tres comprobaciones. Un solo valor puede ocultar un error en otro dato.
+
+![El estado tras el paso 4 determina en qué mitad buscar, si el error sigue visible después de aparecer.](/images/01b-bisect.es.svg)
 
 ## La lista de trampas
 

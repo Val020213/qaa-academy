@@ -130,6 +130,8 @@ pizzaPrice("Large")
 
 La llamada recibe un subrayado rojo: `Argument of type '"Large"' is not assignable to parameter of type 'Size'`. La unión permite detectar esta llamada incorrecta al verificar tipos; Node.js no la rechaza por su tipo.
 
+![El tipo Size rechaza "Large" y acepta "large" en el Playground.](/clips/01b-union-choice.webm)
+
 > **Nota:** Otros tutoriales usan `enum` para esto. En este curso, usa una unión de valores de texto. Se elimina al ejecutar el archivo con Node.js. Un `enum` necesita transformar código y Node.js no lo admite en su modo de eliminación de tipos.
 
 ## Estrechar con if
@@ -162,6 +164,8 @@ Mimi
 ```
 
 Después del `if` con `return`, TypeScript sabe que `nickname` es un `string`. Sin ese `if`, rechaza `dog.nickname.toUpperCase()` con el mensaje `'dog.nickname' is possibly 'undefined'`, y te protege del fallo que ocurriría con Mimi.
+
+![El if descarta undefined; el verificador muestra nickname como string después del return.](/clips/01b-nickname-guard.webm)
 
 ## Leer los tipos Array y Promise
 

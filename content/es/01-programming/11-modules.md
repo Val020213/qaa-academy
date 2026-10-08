@@ -77,6 +77,8 @@ SyntaxError: The requested module './_shapes.ts' does not provide an export name
 
 VS Code muestra el problema antes, como un subrayado rojo. Lo que no se exporta no se puede importar.
 
+![Los nombres con export están disponibles para use-shapes.ts; secret queda dentro de _shapes.ts.](/images/01b-module-exports.es.svg)
+
 ## Rutas relativas
 
 El texto después de `from` es la **ruta**. Una ruta que empieza con `./` apunta a un archivo junto al archivo actual. Una ruta que empieza con `../` sube una carpeta.

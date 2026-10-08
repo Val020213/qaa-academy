@@ -73,6 +73,8 @@ Each button gets the test id `${step.testId}-${order.id}`. The cancel button for
 
 After the click, the page sends the change to the server with PATCH and fetches the orders again with `load()`. The status the test checks comes from that new read.
 
+![Pending and paid orders can be cancelled; shipped and cancelled orders are final.](/images/05-order-transitions.en.svg)
+
 ## Choose the order
 
 An order status only moves forward. After marking it as paid, the API does not allow it to return to pending. Reserve a different order for each test that changes its status.
@@ -109,6 +111,8 @@ Write the test's pseudocode before adding it to the file.
 **Step 3.** Click `orders-cancel-1001`.
 
 **Step 4.** Check that the status is `cancelled` and both buttons are gone. The test should check the cancellation rule; the badge colour and table header are outside that behavior.
+
+![Cancelling order 1001 changes pending to cancelled and removes both action buttons.](/clips/05-order-cancel.webm)
 
 **Step 5.** Update the opening comment to reserve order 1001.
 

@@ -24,6 +24,8 @@ You know variables, types, `if` and functions, but an empty file does not tell y
 
 Breaking a problem into small steps is called **decomposition**. Each move above is a way to do it.
 
+![The ticket example moves from the input and hand calculation to steps, code and case checks.](/images/01-solving-workflow.en.svg)
+
 ## Example 1: the price of a cinema ticket
 
 **Move 1: say it.** A cinema sells tickets by age and day. Children under 12 pay 6. People of 65 and older pay 7. Everybody else pays 10. On Tuesday every ticket costs 2 less.
@@ -78,6 +80,8 @@ This prints `10`, `6` and `7`. Now step 3. Add it before the `return`:
 ```
 
 Run it with `ticketPrice(8, "Tuesday")`. It prints `4`, the number from your example.
+
+![TypeScript Playground: adding only the Tuesday discount changes the child ticket from 6 to 4; the Monday adult ticket stays at 10.](/clips/01-code-one-step.webm)
 
 **Move 5: check.** An **edge case** is a value at the border of a rule or outside the usual. Try these:
 

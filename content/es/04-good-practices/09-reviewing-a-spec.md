@@ -154,7 +154,11 @@ La última línea busca `product-row-` más el id. El test id real es `products-
 
 La comprobación inicial usa `products.row(product.id)`, pero la final usa otro locator. Comprueba que la fila estaba visible y que desaparece con el mismo locator, como en la versión corregida.
 
+![El mismo locator demuestra que el producto existía y después desapareció.](/images/04-review-same-locator.es.svg)
+
 Para probar que el test detecta el fallo, comenta la línea de borrar o cambia el valor esperado y ejecútalo. Si aún pasa, no detecta ese cambio. Esta es una versión pequeña y hecha a mano de las **pruebas de mutación** (*mutation testing*): cambias un poco el código y ves si los tests lo notan. Restaura el cambio después de la prueba.
+
+![Al omitir el borrado, el id de fila mal escrito pasa; el id correcto falla.](/clips/04-review-mutation.webm)
 
 ## Profundiza
 

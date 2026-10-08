@@ -176,6 +176,8 @@ This prints:
 
 Use `for...of` when you only need each item, because there is no counter to get wrong. Use the loop with an index when you need the position, as here to number the lines. The typical mistake with this form is to write `i <= dogs.length`: the loop makes one turn too many and `dogs[3]` is `undefined`.
 
+![The index visits 0, 1 and 2. When i reaches 3, i < dogs.length is false and the loop ends without reading dogs[3].](/images/01-loop-traversal.en.svg)
+
 ### A loop over a list that grows
 
 Here the loop adds a new item while it runs:

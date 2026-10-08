@@ -20,6 +20,8 @@ The pyramid proposes many unit tests, fewer integration tests and few E2E tests.
 - An **integration test** checks several pieces together. An **API test** sends a request to the server and checks the response.
 - An **E2E test** uses a browser to go through the application, like the tests you have already written with Playwright.
 
+![The pyramid distributes rule checks and browser journeys across different levels.](/images/04-test-pyramid.en.svg)
+
 ### The cost of repeating a check
 
 Suppose a unit test takes 2 milliseconds, an API test takes 40 milliseconds and a browser test takes 6 seconds. These are example times, not measurements from the shop.
@@ -69,6 +71,8 @@ For the rule “the price must be greater than 0,” consider three tests:
 - C submits the form in the browser and checks the error message.
 
 These tests cover different failures:
+
+![Each test level detects a different part of the price-validation path.](/images/04-layer-failures.en.svg)
 
 1. The function accepts 0: A, B and C fail.
 2. The function is correct, but the server does not call it: B and C fail.

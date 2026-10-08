@@ -68,6 +68,8 @@ console.log(area)
 
 Imprime `16`. La línea `const area = side * side` hace la cuenta una sola vez: lee `side`, que vale 4, calcula 16 y guarda el número 16. Después, `side = 5` cambia solo `side`, y `area` sigue con 16.
 
+![Se guarda el resultado de la cuenta. Cambiar side después deja area en 16.](/images/01-stored-result.es.svg)
+
 Si quieres el área nueva, debes calcularla de nuevo:
 
 ```ts

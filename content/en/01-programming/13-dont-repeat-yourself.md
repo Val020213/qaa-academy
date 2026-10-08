@@ -82,6 +82,8 @@ Passed: 0
 
 Next time the pass mark changes, you edit one line. That is the whole benefit of DRY.
 
+![describeStudent and countPassed use hasPassed; hasPassed reads the single PASS_MARK.](/images/01b-one-rule.en.svg)
+
 ## The tools you already have
 
 You know several ways to give knowledge a home. Each fits a different kind of repetition.
@@ -170,6 +172,8 @@ const LIMIT = 10
 ```
 
 Suppose the pizza shop allows 12 toppings next month. With one `LIMIT`, playlist titles also grow to 12 characters, and nobody asked for that. Two rules need two names: `MAX_TOPPINGS` and `MAX_TITLE_LENGTH`. The number is the same by chance. The knowledge is not.
+
+![MAX_TOPPINGS changes to 12; the independent MAX_TITLE_LENGTH rule stays at 10.](/images/01b-independent-limits.en.svg)
 
 ### Different text, same knowledge
 

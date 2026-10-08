@@ -77,6 +77,8 @@ pnpm exec playwright show-report
 
 The report lists each test with its result. Click a failed test to see the error, the code line, and the screenshot.
 
+![The real report shows the failed expectation: payed instead of the actual paid.](/clips/05-order-report.webm)
+
 Press `Ctrl+C` in the terminal to stop the report server. Then return to the root with `cd ../..`.
 
 ## Traces
@@ -134,6 +136,8 @@ Received: "paid"
 Setup resets the data at the start of each run, but someone else can change it while the tests run. If a colleague marks order 1005 as paid in the same shop, the test finds `paid` where it expects `pending`.
 
 The message alone does not prove the cause. Check the page state and network calls in the trace before deciding whether the failure comes from the app, the test, the data, or the environment.
+
+![The report and trace connect the incorrect expectation to the actual order status.](/images/05-failure-evidence.en.svg)
 
 ## Practice
 

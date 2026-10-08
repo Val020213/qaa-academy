@@ -92,6 +92,8 @@ The API helper `createProduct(request, overrides)` creates a product in one requ
 
 `uniqueName` and `uniqueSku`, in `e2e/lib/helpers.ts`, hold the logic for generating unique data. Tests call those functions instead of maintaining their own version.
 
+![Each shared concern has a home while the spec keeps its action and expectations.](/images/04-dry-knowledge.en.svg)
+
 ## One test body for several inputs
 
 A data table lets you share a test body when the inputs and expected result change. These four cases check field validation. The rules and messages are in `lib/validation.ts`; the error ids are in `components/product-form.tsx`.
@@ -260,6 +262,8 @@ A flag for a scenario you might test someday adds a condition that no test needs
 The message `"Price must be greater than 0."` appears in both the app and the test. The copy in the test states the text the user should see.
 
 If you import the message from the app, an accidental change alters both the displayed text and the expectation, and the test still passes. Keep the expectation separate from the code it checks.
+
+![An independent expectation detects an accidental message change.](/images/04-independent-expectations.en.svg)
 
 ## Practice
 
