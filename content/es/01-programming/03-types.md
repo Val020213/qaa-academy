@@ -27,9 +27,9 @@ El tipo decide qué puedes hacer con un valor. Puedes multiplicar números. No p
 Puedes preguntar el tipo con `typeof`.
 
 ```ts
-console.log(typeof "Rex");
-console.log(typeof 404);
-console.log(typeof true);
+console.log(typeof "Rex")
+console.log(typeof 404)
+console.log(typeof true)
 ```
 
 Esto imprime:
@@ -45,8 +45,8 @@ boolean
 `"5"` y `5` se ven iguales, pero no son lo mismo. El primero es un *string*. El segundo es un número.
 
 ```ts
-console.log("5" + "1");
-console.log(5 + 1);
+console.log("5" + "1")
+console.log(5 + 1)
 ```
 
 Esto imprime:
@@ -61,9 +61,9 @@ Con texto, `+` une las partes. Con números, `+` las suma.
 Para convertir texto en número, usa `Number()`. Para convertir un número en texto, usa `String()`.
 
 ```ts
-const ageFromForm = "5";
-console.log(Number(ageFromForm) + 1);
-console.log(String(404) + " error");
+const ageFromForm = "5"
+console.log(Number(ageFromForm) + 1)
+console.log(String(404) + " error")
 ```
 
 Esto imprime:
@@ -78,11 +78,11 @@ Esto imprime:
 Un refugio de mascotas guarda el número de gatos como texto, porque viene de un formulario, y el número de perros como un número de verdad.
 
 ```ts
-const cats = "3";
-const dogs = 4;
-console.log(cats + dogs);
-console.log(cats * dogs);
-console.log(cats - dogs);
+const cats = "3"
+const dogs = 4
+console.log(cats + dogs)
+console.log(cats * dogs)
+console.log(cats - dogs)
 ```
 
 Esto imprime:
@@ -104,9 +104,9 @@ TypeScript sí ve el problema. En VS Code, las líneas con `*` y `-` muestran un
 Una **anotación de tipo** le dice a TypeScript el tipo de una variable. Escribes dos puntos y el tipo después del nombre.
 
 ```ts
-const dogName: string = "Rex";
-const dogAge: number = 3;
-const isHungry: boolean = false;
+const dogName: string = "Rex"
+const dogAge: number = 3
+const isHungry: boolean = false
 ```
 
 Lee la primera línea: `dogName` es un *string*, y su valor es este texto.
@@ -116,7 +116,7 @@ Lee la primera línea: `dogName` es un *string*, y su valor es este texto.
 Muchas veces no necesitas escribir el tipo. TypeScript puede verlo a partir del valor. Esto se llama **inferencia de tipos** (*type inference*).
 
 ```ts
-const dogName = "Rex";
+const dogName = "Rex"
 ```
 
 TypeScript sabe que `dogName` es un *string*, porque el valor es texto.
@@ -130,7 +130,7 @@ El **verificador de tipos** (*type checker*) es una parte de TypeScript. Lee tu 
 Escribe esto en un archivo:
 
 ```ts
-const dogAge: number = "three";
+const dogAge: number = "three"
 ```
 
 El verificador de tipos reporta un error:
@@ -161,12 +161,12 @@ A veces falta un valor. TypeScript tiene dos valores especiales para esto.
 `null` significa: no hay valor, y es a propósito. Un perro del refugio que nadie ha adoptado no tiene dueño. Eso lo decides tú.
 
 ```ts
-let temperature: number | undefined;
-console.log(temperature);
-console.log(typeof temperature);
+let temperature: number | undefined
+console.log(temperature)
+console.log(typeof temperature)
 
-const owner: string | null = null;
-console.log(owner);
+const owner: string | null = null
+console.log(owner)
 ```
 
 Esto imprime:
@@ -190,9 +190,9 @@ TypeScript revisa tus tipos y luego los quita. Lo que Node.js ejecuta es JavaScr
 ### Number() siempre da un `number`, pero no siempre un número útil
 
 ```ts
-console.log(Number("abc"));
-console.log(Number(""));
-console.log(typeof Number("abc"));
+console.log(Number("abc"))
+console.log(Number(""))
+console.log(typeof Number("abc"))
 ```
 
 Esto imprime:
@@ -211,7 +211,7 @@ number
 2. Imprime el `typeof` de un texto, un número y `true`.
 3. Imprime `"2" + "3"` y `2 + 3`. Comprueba que los resultados son distintos.
 4. Convierte el texto `"10"` en número con `Number()`. Suma 5 e imprime el resultado.
-5. Escribe `const dogAge: number = "three";`. Mira la línea roja en VS Code. Lee el mensaje. Luego ejecuta `pnpm typecheck` en la terminal. Arregla la línea.
+5. Escribe `const dogAge: number = "three"`. Mira la línea roja en VS Code. Lee el mensaje. Luego ejecuta `pnpm typecheck` en la terminal. Arregla la línea.
 6. Abre `exercises/01-programming/03-types.ts` y ejecútalo:
 
 ```bash
@@ -240,7 +240,7 @@ Vas a necesitar algo que esta lección no enseñó: una forma de leer el número
 1. ¿Qué imprime esta línea y por qué?
 
 ```ts
-console.log("3" * "4", "3" + "4", "3" - 1, "3" + 1);
+console.log("3" * "4", "3" + "4", "3" - 1, "3" + 1)
 ```
 
 <details>
@@ -253,9 +253,9 @@ Imprime `12 34 2 31`. Los signos `*` y `-` solo pueden hacer matemáticas, así 
 2. Un programa de una piscina debe imprimir el promedio de dos lecturas, 20 y 30. Imprime un número extraño. Encuentra el bug.
 
 ```ts
-const morning = "20";
-const evening = "30";
-console.log((morning + evening) / 2);
+const morning = "20"
+const evening = "30"
+console.log((morning + evening) / 2)
 ```
 
 <details>

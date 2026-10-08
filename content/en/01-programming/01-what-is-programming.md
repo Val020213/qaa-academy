@@ -46,10 +46,10 @@ Open the project folder in VS Code. Create a new file at `exercises/01-programmi
 Type this one line:
 
 ```ts
-console.log("Hello, world!");
+console.log("Hello, world!")
 ```
 
-`console.log` is an instruction. It means: show this in the terminal. The text inside the quotes is what it shows. The `;` at the end marks where the instruction ends. TypeScript does not require it: the code works the same without it, and many projects leave it out.
+`console.log` shows the text between quotes in the terminal, and each instruction goes on its own line. TypeScript also accepts a `;` at the end of an instruction, so you will see it in other people's code, but this course leaves it out.
 
 Now open the terminal in VS Code (Terminal > New Terminal). Run the file:
 
@@ -68,9 +68,9 @@ Hello, world!
 This file is a music playlist:
 
 ```ts
-console.log("Now playing: Blue Monday");
-console.log("Now playing: Yesterday");
-console.log("Now playing: Hey Jude");
+console.log("Now playing: Blue Monday")
+console.log("Now playing: Yesterday")
+console.log("Now playing: Hey Jude")
 ```
 
 The songs come out in the same order as the lines:
@@ -91,8 +91,8 @@ A **comment** is a note for people. The parser discards it: it does not reach th
 
 ```ts
 // A short routine for a pet shelter
-console.log("Fill the water bowls");
-console.log("Feed the cats"); // the dogs eat later
+console.log("Fill the water bowls")
+console.log("Feed the cats") // the dogs eat later
 ```
 
 The terminal prints only this:
@@ -117,14 +117,14 @@ Node.js reads the whole file before it runs a single line. If a line breaks the 
 Change line 1 of `hello.ts` so that it forgets the closing quote:
 
 ```ts
-console.log("Hello, world!);
+console.log("Hello, world!)
 ```
 
 Save the file and run it. The first lines of the error look like this:
 
 ```text
 C:/Users/you/project/exercises/01-programming/hello.ts:1
-console.log("Hello, world!);
+console.log("Hello, world!)
 
 SyntaxError [ERR_INVALID_TYPESCRIPT_SYNTAX]: Expected ',', got '<eof>'
 ```
@@ -142,11 +142,11 @@ The message is not always easy to understand. Here it says the line ended too ea
 Other errors only appear when Node.js reaches the line that causes them. Here is a recipe, one step per line:
 
 ```ts
-console.log("1. Boil the water");
-console.log("2. Add the pasta");
-console.log("3. Drain the water");
-console.log("4. Add the sauce");
-console.log("5. Serve");
+console.log("1. Boil the water")
+console.log("2. Add the pasta")
+console.log("3. Drain the water")
+console.log("4. Add the sauce")
+console.log("5. Serve")
 ```
 
 If you type `console.Log` with a capital L on line 4, the file follows the syntax rules and starts to run. It prints steps 1, 2 and 3, then stops with `TypeError: console.Log is not a function`. Steps 4 and 5 are never printed.
@@ -181,9 +181,9 @@ You will need something this lesson did not teach: how to print a blank line, an
 1. What does this file print?
 
 ```ts
-console.log("Rinse the rice"); // console.log("Add salt");
-// console.log("Boil the rice");
-console.log("Serve");
+console.log("Rinse the rice") // console.log("Add salt")
+// console.log("Boil the rice")
+console.log("Serve")
 ```
 
 <details>
@@ -196,9 +196,9 @@ It prints `Rinse the rice` and then `Serve`. On line 1 the second `console.log` 
 2. A friend writes a bakery program. It runs with no error, but the cake is a disaster. Find the bug.
 
 ```ts
-console.log("Put the cake in the oven");
-console.log("Heat the oven to 180 degrees");
-console.log("Wait 30 minutes");
+console.log("Put the cake in the oven")
+console.log("Heat the oven to 180 degrees")
+console.log("Wait 30 minutes")
 ```
 
 <details>

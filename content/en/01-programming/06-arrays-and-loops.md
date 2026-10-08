@@ -17,8 +17,8 @@ In this lesson you keep many values in a list and repeat an action for each one 
 An **array** is a list of values in order. You write it with square brackets, and the values are separated by commas.
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
-console.log(dogs);
+const dogs = ["Rex", "Mimi", "Luna"]
+console.log(dogs)
 ```
 
 This prints:
@@ -32,7 +32,7 @@ Each value in the array is an **item**. Node shows text with single quotes; it i
 An array can hold numbers too:
 
 ```ts
-const laps = [62, 58, 61];
+const laps = [62, 58, 61]
 ```
 
 Keep one type in each array: a list of text, or a list of numbers.
@@ -42,9 +42,9 @@ Keep one type in each array: a list of text, or a list of numbers.
 The **index** is the position of an item. Counting starts at 0, not at 1.
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
-console.log(dogs[0]);
-console.log(dogs[2]);
+const dogs = ["Rex", "Mimi", "Luna"]
+console.log(dogs[0])
+console.log(dogs[2])
 ```
 
 This prints:
@@ -65,8 +65,8 @@ The addresses in the drawing are examples. Languages such as C work exactly this
 If you ask for an index that does not exist, there is no error:
 
 ```ts
-console.log(dogs[3]);
-console.log(dogs[-1]);
+console.log(dogs[3])
+console.log(dogs[-1])
 ```
 
 It prints `undefined` twice. The program does not tell you the index is wrong; it gives you "no value" and goes on. This is why a wrong index is dangerous: the mistake shows up later, far from where it began.
@@ -74,9 +74,9 @@ It prints `undefined` twice. The program does not tell you the index is wrong; i
 In this project, the type checker is strict. It treats `dogs[0]` as "a string or `undefined`". You can print it, but to use it as a string you must check it first with an `if`.
 
 ```ts
-const first = dogs[0];
+const first = dogs[0]
 if (first !== undefined) {
-  console.log(first.toUpperCase());
+  console.log(first.toUpperCase())
 }
 ```
 
@@ -93,10 +93,10 @@ REX
 The **length** of an array is the number of items.
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
-console.log(dogs.length);
-console.log(dogs[dogs.length - 1]);
-console.log(dogs.at(-1));
+const dogs = ["Rex", "Mimi", "Luna"]
+console.log(dogs.length)
+console.log(dogs[dogs.length - 1])
+console.log(dogs.at(-1))
 ```
 
 This prints:
@@ -114,10 +114,10 @@ The last index is always `length - 1`. The `at` function is a shorter way to say
 **push** adds an item to the end of the array.
 
 ```ts
-const playlist = ["Blue"];
-playlist.push("Sunday");
-playlist.push("Echo");
-console.log(playlist);
+const playlist = ["Blue"]
+playlist.push("Sunday")
+playlist.push("Echo")
+console.log(playlist)
 ```
 
 This prints:
@@ -133,10 +133,10 @@ The array is a `const` and still changes: a `const` stops you from giving the na
 A **loop** repeats code. Use it when you need to do the same thing for each item. The `for...of` loop takes one item at a time.
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
+const dogs = ["Rex", "Mimi", "Luna"]
 
 for (const dog of dogs) {
-  console.log(`Walking ${dog}`);
+  console.log(`Walking ${dog}`)
 }
 ```
 
@@ -152,13 +152,13 @@ Read it like this: for each `dog` in `dogs`, run the code in the braces. In the 
 
 ### The for loop with an index
 
-There is an older way to write a loop, where you keep the index yourself. Three parts go between the parentheses, separated by `;`:
+There is an older way to write a loop, where you keep the index yourself. Three parts go between the parentheses, separated by `;`, the one place in this module where you type a semicolon:
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
+const dogs = ["Rex", "Mimi", "Luna"]
 
 for (let i = 0; i < dogs.length; i++) {
-  console.log(`${i}: Walking ${dogs[i]}`);
+  console.log(`${i}: Walking ${dogs[i]}`)
 }
 ```
 
@@ -181,12 +181,12 @@ Use `for...of` when you only need each item, because there is no counter to get 
 Here the loop adds a new item while it runs:
 
 ```ts
-const queue = ["a", "b"];
+const queue = ["a", "b"]
 
 for (const item of queue) {
-  console.log(item);
+  console.log(item)
   if (item === "a") {
-    queue.push("c");
+    queue.push("c")
   }
 }
 ```
@@ -198,16 +198,16 @@ It prints `a`, `b` and `c`. The loop does not take a photo of the list at the st
 Use a `let` variable as a counter and change it inside the loop.
 
 ```ts
-const weather = ["rain", "sun", "rain", "rain", "cloud"];
-let rainyDays = 0;
+const weather = ["rain", "sun", "rain", "rain", "cloud"]
+let rainyDays = 0
 
 for (const day of weather) {
   if (day === "rain") {
-    rainyDays = rainyDays + 1;
+    rainyDays = rainyDays + 1
   }
 }
 
-console.log(`Rainy days: ${rainyDays}`);
+console.log(`Rainy days: ${rainyDays}`)
 ```
 
 This prints:
@@ -223,14 +223,14 @@ Rainy days: 3
 The same idea adds numbers. Start at 0 and add each number.
 
 ```ts
-const prices = [2.5, 1.2, 4];
-let total = 0;
+const prices = [2.5, 1.2, 4]
+let total = 0
 
 for (const price of prices) {
-  total = total + price;
+  total = total + price
 }
 
-console.log(total);
+console.log(total)
 ```
 
 This prints:
@@ -246,16 +246,16 @@ You start at 0 because adding 0 changes nothing. The start value must be one tha
 For a counter and a sum, 0 is a good start. For a smallest value it is not. A running club writes down three lap times, in seconds, and wants the best lap, which is the smallest number:
 
 ```ts
-const laps = [62, 58, 61];
-let best = 0;
+const laps = [62, 58, 61]
+let best = 0
 
 for (const lap of laps) {
   if (lap < best) {
-    best = lap;
+    best = lap
   }
 }
 
-console.log(best);
+console.log(best)
 ```
 
 It prints `0`, with no error message. `best` starts at 0, no lap is smaller than 0, so the `if` is never true and `best` stays 0. The program does not fail; it only gives a wrong answer.
@@ -265,16 +265,16 @@ The rule is that the start value must lose against every real item. For "the sma
 To find a bug like this, shrink the failing case and change one thing at a time. With a list of one lap, `[62]`, the program also prints 0, so the list is not the problem. Then change only the line with the start value:
 
 ```ts
-const laps = [62, 58, 61];
-let best = Infinity;
+const laps = [62, 58, 61]
+let best = Infinity
 
 for (const lap of laps) {
   if (lap < best) {
-    best = lap;
+    best = lap
   }
 }
 
-console.log(best);
+console.log(best)
 ```
 
 This prints `58`. `Infinity` is a number bigger than every other number. Another good start is the first item of the list.
@@ -284,9 +284,9 @@ This prints `58`. `Infinity` is a number bigger than every other number. Another
 **includes** asks if a value is in the array. The answer is `true` or `false`.
 
 ```ts
-const likedSongs = ["Blue", "Echo"];
-console.log(likedSongs.includes("Echo"));
-console.log(likedSongs.includes("Sunday"));
+const likedSongs = ["Blue", "Echo"]
+console.log(likedSongs.includes("Echo"))
+console.log(likedSongs.includes("Sunday"))
 ```
 
 This prints:
@@ -300,7 +300,7 @@ Use it with `if` to decide what to do:
 
 ```ts
 if (likedSongs.includes("Echo")) {
-  console.log("Add Echo to the party playlist");
+  console.log("Add Echo to the party playlist")
 }
 ```
 
@@ -319,10 +319,10 @@ Capital letters count: `likedSongs.includes("echo")` gives `false`.
 When you copy a variable that holds a number or text, you get two separate values. With arrays it is different: an array is one object in memory and the name points to it. When you write `const b = a`, both names point to the same list.
 
 ```ts
-const a = ["x"];
-const b = a;
-b.push("y");
-console.log(a);
+const a = ["x"]
+const b = a
+b.push("y")
+console.log(a)
 ```
 
 This prints:
@@ -336,9 +336,9 @@ You changed `b`, but `a` changed too. To make a real copy, use `slice()`.
 ![Two names that point to the same list.](/images/shared-array.en.svg)
 
 ```ts
-const c = a.slice();
-c.push("z");
-console.log(a, c);
+const c = a.slice()
+c.push("z")
+console.log(a, c)
 ```
 
 This prints:
@@ -384,14 +384,14 @@ You will need something this lesson did not teach: how to show a number with a f
 1. Predict the output and say why.
 
 ```ts
-const scores = [10, 20];
-let total = 0;
+const scores = [10, 20]
+let total = 0
 
 for (const score of scores) {
-  total = score;
+  total = score
 }
 
-console.log(total);
+console.log(total)
 ```
 
 <details>
@@ -404,36 +404,36 @@ It prints `20`. The line `total = score` replaces the total in every round; it d
 2. This code should count the rainy days. It prints 0 although two days were rainy. Find the bug.
 
 ```ts
-const week = ["rain", "rain", "sun"];
-let rainy = 0;
+const week = ["rain", "rain", "sun"]
+let rainy = 0
 
 for (const day of week) {
-  rainy = 0;
+  rainy = 0
   if (day === "rain") {
-    rainy = rainy + 1;
+    rainy = rainy + 1
   }
 }
-console.log(rainy);
+console.log(rainy)
 ```
 
 <details>
 <summary>Answer</summary>
 
-The line `rainy = 0;` is inside the loop and resets the counter in every round. The last day is `sun`, so the counter ends at 0. Keep the start value, `let rainy = 0;`, before the loop only, and delete the reset. A good way to find it is to print `rainy` at the end of each round and watch it fall back to 0.
+The line `rainy = 0` is inside the loop and resets the counter in every round. The last day is `sun`, so the counter ends at 0. Keep the start value, `let rainy = 0`, before the loop only, and delete the reset. A good way to find it is to print `rainy` at the end of each round and watch it fall back to 0.
 
 </details>
 
 3. What happens with this code when the list is empty? What would you want to happen instead?
 
 ```ts
-const lapTimes: number[] = [];
-let total = 0;
+const lapTimes: number[] = []
+let total = 0
 
 for (const lap of lapTimes) {
-  total = total + lap;
+  total = total + lap
 }
 
-console.log(total / lapTimes.length);
+console.log(total / lapTimes.length)
 ```
 
 <details>

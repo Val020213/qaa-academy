@@ -17,8 +17,8 @@ En esta lección guardas muchos valores en una lista y repites una acción para 
 Un **array** (arreglo) es una lista de valores en orden. Se escribe con corchetes, y los valores se separan con comas.
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
-console.log(dogs);
+const dogs = ["Rex", "Mimi", "Luna"]
+console.log(dogs)
 ```
 
 Esto imprime:
@@ -32,7 +32,7 @@ Cada valor del array es un **elemento**. Node muestra los textos con comillas si
 Un array también puede guardar números:
 
 ```ts
-const laps = [62, 58, 61];
+const laps = [62, 58, 61]
 ```
 
 Usa un solo tipo en cada array: una lista de textos, o una lista de números.
@@ -42,9 +42,9 @@ Usa un solo tipo en cada array: una lista de textos, o una lista de números.
 El **índice** es la posición de un elemento. La cuenta empieza en 0, no en 1.
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
-console.log(dogs[0]);
-console.log(dogs[2]);
+const dogs = ["Rex", "Mimi", "Luna"]
+console.log(dogs[0])
+console.log(dogs[2])
 ```
 
 Esto imprime:
@@ -65,8 +65,8 @@ Las direcciones del dibujo son de ejemplo. Lenguajes como C trabajan exactamente
 Si pides un índice que no existe, no hay error:
 
 ```ts
-console.log(dogs[3]);
-console.log(dogs[-1]);
+console.log(dogs[3])
+console.log(dogs[-1])
 ```
 
 Imprime `undefined` dos veces. El programa no te avisa que el índice está mal; te da "ningún valor" y sigue. Por eso un índice incorrecto es peligroso: el error aparece más tarde, lejos de donde empezó.
@@ -74,9 +74,9 @@ Imprime `undefined` dos veces. El programa no te avisa que el índice está mal;
 En este proyecto, el verificador de tipos es estricto. Trata `dogs[0]` como "un string o `undefined`". Puedes imprimirlo, pero para usarlo como string primero debes comprobarlo con un `if`.
 
 ```ts
-const first = dogs[0];
+const first = dogs[0]
 if (first !== undefined) {
-  console.log(first.toUpperCase());
+  console.log(first.toUpperCase())
 }
 ```
 
@@ -93,10 +93,10 @@ REX
 La **longitud** (*length*) de un array es el número de elementos.
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
-console.log(dogs.length);
-console.log(dogs[dogs.length - 1]);
-console.log(dogs.at(-1));
+const dogs = ["Rex", "Mimi", "Luna"]
+console.log(dogs.length)
+console.log(dogs[dogs.length - 1])
+console.log(dogs.at(-1))
 ```
 
 Esto imprime:
@@ -114,10 +114,10 @@ El último índice siempre es `length - 1`. La función `at` es una forma más c
 **push** agrega un elemento al final del array.
 
 ```ts
-const playlist = ["Blue"];
-playlist.push("Sunday");
-playlist.push("Echo");
-console.log(playlist);
+const playlist = ["Blue"]
+playlist.push("Sunday")
+playlist.push("Echo")
+console.log(playlist)
 ```
 
 Esto imprime:
@@ -133,10 +133,10 @@ El array es una `const` y aun así cambia: una `const` te impide darle al nombre
 Un **bucle** repite código. Úsalo cuando necesites hacer lo mismo con cada elemento. El bucle `for...of` toma un elemento a la vez.
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
+const dogs = ["Rex", "Mimi", "Luna"]
 
 for (const dog of dogs) {
-  console.log(`Walking ${dog}`);
+  console.log(`Walking ${dog}`)
 }
 ```
 
@@ -152,13 +152,13 @@ Léelo así: para cada `dog` en `dogs`, ejecuta el código entre llaves. En la p
 
 ### El bucle for con índice
 
-Hay una forma más antigua de escribir un bucle, en la que tú llevas el índice. Entre los paréntesis van tres partes separadas por `;`:
+Hay una forma más antigua de escribir un bucle, en la que tú llevas el índice. Entre los paréntesis van tres partes separadas por `;`, el único lugar de este módulo donde escribes punto y coma:
 
 ```ts
-const dogs = ["Rex", "Mimi", "Luna"];
+const dogs = ["Rex", "Mimi", "Luna"]
 
 for (let i = 0; i < dogs.length; i++) {
-  console.log(`${i}: Walking ${dogs[i]}`);
+  console.log(`${i}: Walking ${dogs[i]}`)
 }
 ```
 
@@ -181,12 +181,12 @@ Usa `for...of` cuando solo necesitas cada elemento, porque no hay contador que p
 Aquí el bucle agrega un elemento nuevo mientras se ejecuta:
 
 ```ts
-const queue = ["a", "b"];
+const queue = ["a", "b"]
 
 for (const item of queue) {
-  console.log(item);
+  console.log(item)
   if (item === "a") {
-    queue.push("c");
+    queue.push("c")
   }
 }
 ```
@@ -198,16 +198,16 @@ Imprime `a`, `b` y `c`. El bucle no toma una foto de la lista al inicio: la mira
 Usa una variable `let` como contador y cámbiala dentro del bucle.
 
 ```ts
-const weather = ["rain", "sun", "rain", "rain", "cloud"];
-let rainyDays = 0;
+const weather = ["rain", "sun", "rain", "rain", "cloud"]
+let rainyDays = 0
 
 for (const day of weather) {
   if (day === "rain") {
-    rainyDays = rainyDays + 1;
+    rainyDays = rainyDays + 1
   }
 }
 
-console.log(`Rainy days: ${rainyDays}`);
+console.log(`Rainy days: ${rainyDays}`)
 ```
 
 Esto imprime:
@@ -223,14 +223,14 @@ Rainy days: 3
 La misma idea suma números. Empieza en 0 y suma cada número.
 
 ```ts
-const prices = [2.5, 1.2, 4];
-let total = 0;
+const prices = [2.5, 1.2, 4]
+let total = 0
 
 for (const price of prices) {
-  total = total + price;
+  total = total + price
 }
 
-console.log(total);
+console.log(total)
 ```
 
 Esto imprime:
@@ -246,16 +246,16 @@ Se empieza en 0 porque sumar 0 no cambia nada. El valor inicial debe ser uno que
 Para un contador y una suma, 0 es un buen inicio. Para un valor mínimo no lo es. Un club de corredores anota tres tiempos de vuelta, en segundos, y quiere la mejor vuelta, que es el número más pequeño:
 
 ```ts
-const laps = [62, 58, 61];
-let best = 0;
+const laps = [62, 58, 61]
+let best = 0
 
 for (const lap of laps) {
   if (lap < best) {
-    best = lap;
+    best = lap
   }
 }
 
-console.log(best);
+console.log(best)
 ```
 
 Imprime `0`, sin ningún mensaje de error. `best` empieza en 0, ninguna vuelta es menor que 0, así que el `if` nunca es verdadero y `best` se queda en 0. El programa no falla: solo da una respuesta incorrecta.
@@ -265,16 +265,16 @@ La regla es que el valor inicial debe perder contra todos los elementos reales. 
 Para encontrar un bug así, reduce el caso que falla y cambia una sola cosa a la vez. Con una lista de una sola vuelta, `[62]`, el programa también imprime 0, así que la lista no es el problema. Entonces cambia solo la línea del valor inicial:
 
 ```ts
-const laps = [62, 58, 61];
-let best = Infinity;
+const laps = [62, 58, 61]
+let best = Infinity
 
 for (const lap of laps) {
   if (lap < best) {
-    best = lap;
+    best = lap
   }
 }
 
-console.log(best);
+console.log(best)
 ```
 
 Esto imprime `58`. `Infinity` es un número mayor que cualquier otro. Otro buen inicio es el primer elemento de la lista.
@@ -284,9 +284,9 @@ Esto imprime `58`. `Infinity` es un número mayor que cualquier otro. Otro buen 
 **includes** pregunta si un valor está en el array. La respuesta es `true` o `false`.
 
 ```ts
-const likedSongs = ["Blue", "Echo"];
-console.log(likedSongs.includes("Echo"));
-console.log(likedSongs.includes("Sunday"));
+const likedSongs = ["Blue", "Echo"]
+console.log(likedSongs.includes("Echo"))
+console.log(likedSongs.includes("Sunday"))
 ```
 
 Esto imprime:
@@ -300,7 +300,7 @@ false
 
 ```ts
 if (likedSongs.includes("Echo")) {
-  console.log("Add Echo to the party playlist");
+  console.log("Add Echo to the party playlist")
 }
 ```
 
@@ -319,10 +319,10 @@ Las mayúsculas cuentan: `likedSongs.includes("echo")` da `false`.
 Al copiar una variable que guarda un número o un texto, obtienes dos valores separados. Con los arrays es distinto: un array es un solo objeto en la memoria y el nombre apunta a él. Cuando escribes `const b = a`, los dos nombres apuntan a la misma lista.
 
 ```ts
-const a = ["x"];
-const b = a;
-b.push("y");
-console.log(a);
+const a = ["x"]
+const b = a
+b.push("y")
+console.log(a)
 ```
 
 Esto imprime:
@@ -336,9 +336,9 @@ Cambiaste `b`, pero `a` también cambió. Para hacer una copia real, usa `slice(
 ![Dos nombres que apuntan a la misma lista.](/images/shared-array.es.svg)
 
 ```ts
-const c = a.slice();
-c.push("z");
-console.log(a, c);
+const c = a.slice()
+c.push("z")
+console.log(a, c)
 ```
 
 Esto imprime:
@@ -384,14 +384,14 @@ Vas a necesitar algo que esta lección no enseñó: cómo mostrar un número con
 1. Predice la salida y explica por qué.
 
 ```ts
-const scores = [10, 20];
-let total = 0;
+const scores = [10, 20]
+let total = 0
 
 for (const score of scores) {
-  total = score;
+  total = score
 }
 
-console.log(total);
+console.log(total)
 ```
 
 <details>
@@ -404,36 +404,36 @@ Imprime `20`. La línea `total = score` reemplaza el total en cada vuelta; no su
 2. Este código debería contar los días de lluvia. Imprime 0 aunque dos días fueron de lluvia. Encuentra el bug.
 
 ```ts
-const week = ["rain", "rain", "sun"];
-let rainy = 0;
+const week = ["rain", "rain", "sun"]
+let rainy = 0
 
 for (const day of week) {
-  rainy = 0;
+  rainy = 0
   if (day === "rain") {
-    rainy = rainy + 1;
+    rainy = rainy + 1
   }
 }
-console.log(rainy);
+console.log(rainy)
 ```
 
 <details>
 <summary>Respuesta</summary>
 
-La línea `rainy = 0;` está dentro del bucle y reinicia el contador en cada vuelta. El último día es `sun`, así que el contador termina en 0. Deja el valor inicial, `let rainy = 0;`, solo antes del bucle, y borra el reinicio. Una buena forma de encontrarlo es imprimir `rainy` al final de cada vuelta y ver cómo vuelve a 0.
+La línea `rainy = 0` está dentro del bucle y reinicia el contador en cada vuelta. El último día es `sun`, así que el contador termina en 0. Deja el valor inicial, `let rainy = 0`, solo antes del bucle, y borra el reinicio. Una buena forma de encontrarlo es imprimir `rainy` al final de cada vuelta y ver cómo vuelve a 0.
 
 </details>
 
 3. ¿Qué pasa con este código cuando la lista está vacía? ¿Qué querrías que pasara en su lugar?
 
 ```ts
-const lapTimes: number[] = [];
-let total = 0;
+const lapTimes: number[] = []
+let total = 0
 
 for (const lap of lapTimes) {
-  total = total + lap;
+  total = total + lap
 }
 
-console.log(total / lapTimes.length);
+console.log(total / lapTimes.length)
 ```
 
 <details>

@@ -223,7 +223,7 @@ It is done when:
 - The total from `/api/products` is the same before and after saving.
 - `pnpm shop:e2e challenges/duplicate-sku.spec.ts --repeat-each=3` passes all three repetitions.
 
-Search for: `playwright repeat-each`, `playwright hydration fill input erased react`. Read the comment in `products.spec.ts` about `newButton.click()` to check when the form is ready for typing.
+Search for: `playwright repeat-each`, `playwright hydration fill input erased react`. Read the comment in `products.spec.ts` about `newButton.click()`: the click alone does not establish that the destination form is ready for typing.
 
 ## Think it through
 

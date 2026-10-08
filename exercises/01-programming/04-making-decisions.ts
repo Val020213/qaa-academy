@@ -10,14 +10,14 @@
 // - Save the file and run it again. Make every line say OK.
 
 // This line makes the file a module. Leave it as it is.
-export {};
+export {}
 
 // Exercise 1
 // Return "pass" if status is exactly "passed". Otherwise return "fail".
 // Example: verdict("passed") returns "pass"
 function verdict(status: string): string {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // Exercise 2
@@ -26,7 +26,7 @@ function verdict(status: string): string {
 // Example: severityLabel(3) returns "minor"
 function severityLabel(openBugs: number): string {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // Exercise 3
@@ -35,7 +35,7 @@ function severityLabel(openBugs: number): string {
 // Example: canLogin("ana", "secret") returns "allowed"
 function canLogin(username: string, password: string): string {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // Exercise 4
@@ -44,7 +44,7 @@ function canLogin(username: string, password: string): string {
 // Example: shippingCost(60) returns 0
 function shippingCost(total: number): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // Exercise 5
@@ -53,33 +53,33 @@ function shippingCost(total: number): number {
 // Example: needsReview("blocked") returns "yes"
 function needsReview(status: string): string {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // ---------------------------------------------------------------
 // Checker. Do not edit below this line.
 // ---------------------------------------------------------------
-let failures = 0;
+let failures = 0
 
 function check(name: string, actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) === JSON.stringify(expected)) {
-    console.log(`OK    ${name}`);
+    console.log(`OK    ${name}`)
   } else {
-    failures += 1;
-    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
+    failures += 1
+    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`)
   }
 }
 
-check("1 verdict passed", verdict("passed"), "pass");
-check("1 verdict failed", verdict("failed"), "fail");
-check("2 severity 0", severityLabel(0), "clean");
-check("2 severity 3", severityLabel(3), "minor");
-check("2 severity 5", severityLabel(5), "critical");
-check("3 login ok", canLogin("ana", "secret"), "allowed");
-check("3 login no password", canLogin("ana", ""), "denied");
-check("4 shipping 60", shippingCost(60), 0);
-check("4 shipping 20", shippingCost(20), 5);
-check("5 review blocked", needsReview("blocked"), "yes");
-check("5 review passed", needsReview("passed"), "no");
+check("1 verdict passed", verdict("passed"), "pass")
+check("1 verdict failed", verdict("failed"), "fail")
+check("2 severity 0", severityLabel(0), "clean")
+check("2 severity 3", severityLabel(3), "minor")
+check("2 severity 5", severityLabel(5), "critical")
+check("3 login ok", canLogin("ana", "secret"), "allowed")
+check("3 login no password", canLogin("ana", ""), "denied")
+check("4 shipping 60", shippingCost(60), 0)
+check("4 shipping 20", shippingCost(20), 5)
+check("5 review blocked", needsReview("blocked"), "yes")
+check("5 review passed", needsReview("passed"), "no")
 
-console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`);
+console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`)

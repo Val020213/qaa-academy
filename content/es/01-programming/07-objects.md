@@ -17,28 +17,28 @@ En esta lección agrupas valores relacionados en un objeto, guardas muchos objet
 Un perro tiene un nombre, una edad y un peso. Podrías usar tres variables separadas:
 
 ```ts
-const dogName = "Rex";
-const dogAge = 3;
-const dogWeight = 12.5;
+const dogName = "Rex"
+const dogAge = 3
+const dogWeight = 12.5
 ```
 
 Con diez perros esto se vuelve un desorden. Un **objeto** es un solo valor que guarda varios valores con nombre.
 
 ## Crear un objeto
 
-Un objeto se escribe con llaves `{ }`. Adentro escribes pares `nombre: valor`, separados por comas.
+Un objeto se escribe con llaves `{ }`. Adentro escribes pares `name: value`, separados por comas.
 
 ```ts
 const dog = {
   name: "Rex",
   age: 3,
   weight: 12.5,
-};
+}
 
-console.log(dog);
+console.log(dog)
 ```
 
-Una **propiedad** es un par `nombre: valor` dentro de un objeto. Este objeto tiene tres propiedades: `name`, `age` y `weight`.
+Una **propiedad** es un par `name: value` dentro de un objeto. Este objeto tiene tres propiedades: `name`, `age` y `weight`.
 
 El programa imprime:
 
@@ -51,10 +51,10 @@ El programa imprime:
 Escribe el nombre del objeto, un punto y el nombre de la propiedad.
 
 ```ts
-const square = { side: 4, color: "red" };
+const square = { side: 4, color: "red" }
 
-console.log(square.side);
-console.log(square.side * square.side);
+console.log(square.side)
+console.log(square.side * square.side)
 ```
 
 El programa imprime:
@@ -73,10 +73,10 @@ La propiedad `size` no existe en `square`. Si escribes `console.log(square.size)
 Puedes asignar un valor nuevo a una propiedad con `=`.
 
 ```ts
-const dog = { name: "Rex", age: 3 };
+const dog = { name: "Rex", age: 3 }
 
-dog.age = 4;
-console.log(dog.age);
+dog.age = 4
+console.log(dog.age)
 ```
 
 El programa imprime:
@@ -97,10 +97,10 @@ const recipe = {
   servings: 4,
   ingredients: ["flour", "milk", "egg"],
   oven: { needed: false, minutes: 0 },
-};
+}
 
-console.log(recipe.oven.needed);
-console.log(recipe.ingredients.length);
+console.log(recipe.oven.needed)
+console.log(recipe.ingredients.length)
 ```
 
 El programa imprime:
@@ -117,11 +117,11 @@ Lee `recipe.oven.needed` de izquierda a derecha: la receta, luego su horno, lueg
 A veces conoces el nombre de la propiedad solo mientras el programa se ejecuta. Los corchetes te dejan usar un valor de texto como nombre.
 
 ```ts
-const rectangle = { width: 3, height: 5, color: "red" };
-const wanted = "height";
+const rectangle = { width: 3, height: 5, color: "red" }
+const wanted = "height"
 
-console.log(rectangle["width"]);
-console.log(rectangle[wanted]);
+console.log(rectangle["width"])
+console.log(rectangle[wanted])
 ```
 
 El programa imprime:
@@ -142,16 +142,16 @@ const playlist = [
   { title: "Blue", artist: "Mia", seconds: 215 },
   { title: "Rain Dance", artist: "Tomas", seconds: 180 },
   { title: "Sunday", artist: "Mia", seconds: 245 },
-];
+]
 
-let totalSeconds = 0;
+let totalSeconds = 0
 
 for (const song of playlist) {
-  console.log(`${song.title} by ${song.artist}`);
-  totalSeconds += song.seconds;
+  console.log(`${song.title} by ${song.artist}`)
+  totalSeconds += song.seconds
 }
 
-console.log(`Total: ${totalSeconds} seconds`);
+console.log(`Total: ${totalSeconds} seconds`)
 ```
 
 El bucle te da un objeto a la vez en la variable `song`. El programa imprime:
@@ -170,11 +170,11 @@ Un array de objetos es una forma muy común de organizar datos: cada elemento es
 La **desestructuración** saca propiedades de un objeto y las pone en variables, en una sola línea.
 
 ```ts
-const song = { title: "Blue", artist: "Mia", seconds: 215 };
+const song = { title: "Blue", artist: "Mia", seconds: 215 }
 
-const { title, seconds } = song;
+const { title, seconds } = song
 
-console.log(`${title} lasts ${seconds} seconds`);
+console.log(`${title} lasts ${seconds} seconds`)
 ```
 
 El programa imprime:
@@ -186,11 +186,11 @@ Blue lasts 215 seconds
 Los nombres dentro de `{ }` deben coincidir con los nombres de las propiedades. También puedes usarla en el parámetro de una función:
 
 ```ts
-function describe({ title, artist }: { title: string; artist: string }): string {
-  return `${title} by ${artist}`;
+function describe({ title, artist }: { title: string, artist: string }): string {
+  return `${title} by ${artist}`
 }
 
-console.log(describe({ title: "Blue", artist: "Mia" }));
+console.log(describe({ title: "Blue", artist: "Mia" }))
 ```
 
 Esto imprime `Blue by Mia`. El texto después de los dos puntos es el tipo del objeto.
@@ -201,37 +201,37 @@ Dos funciones suman un año a una edad. Una recibe un número. La otra recibe un
 
 ```ts
 function birthdayAge(age: number): void {
-  age = age + 1;
+  age = age + 1
 }
 
-function birthdayDog(dog: { name: string; age: number }): void {
-  dog.age = dog.age + 1;
+function birthdayDog(dog: { name: string, age: number }): void {
+  dog.age = dog.age + 1
 }
 
-let age = 3;
-const dog = { name: "Rex", age: 3 };
+let age = 3
+const dog = { name: "Rex", age: 3 }
 
-birthdayAge(age);
-birthdayDog(dog);
+birthdayAge(age)
+birthdayDog(dog)
 
-console.log(age, dog.age);
+console.log(age, dog.age)
 ```
 
 El programa imprime `3 4`. La edad del número no cambió, pero la del perro sí.
 
 Un número se pasa por valor: la función recibe su propia copia de `3`, le suma 1 a la copia, y la copia desaparece. Un objeto no. Una variable no guarda el objeto mismo, guarda un enlace hacia él, y ese enlace se llama **referencia**. La función recibe el mismo enlace, así que `dog.age = ...` cambia al único perro al que apuntan los dos nombres.
 
-Lo mismo pasa con una asignación. Cuando escribes `const same = original;`, copias el enlace, no el objeto, y dos nombres apuntan a un solo objeto. Los tres puntos de `{ ...original }` crean un objeto nuevo con las mismas propiedades.
+Lo mismo pasa con una asignación. Cuando escribes `const same = original`, copias el enlace, no el objeto, y dos nombres apuntan a un solo objeto. Los tres puntos de `{ ...original }` crean un objeto nuevo con las mismas propiedades.
 
 ```ts
-const original = { id: 1, status: "failed" };
-const same = original;
-same.status = "passed";
-console.log(original.status);
+const original = { id: 1, status: "failed" }
+const same = original
+same.status = "passed"
+console.log(original.status)
 
-const copy = { ...original };
-copy.status = "skipped";
-console.log(original.status, copy.status);
+const copy = { ...original }
+copy.status = "skipped"
+console.log(original.status, copy.status)
 ```
 
 El programa imprime:
@@ -248,15 +248,15 @@ El primer cambio pasó por `same` y cambió el único objeto compartido. El segu
 Cuando una función necesita "cambiar" un objeto, tiene dos opciones. Puede cambiar el objeto que le diste, como `birthdayDog`. O puede dejar ese objeto en paz y devolver uno nuevo:
 
 ```ts
-function withBirthday(dog: { name: string; age: number }): { name: string; age: number } {
-  return { ...dog, age: dog.age + 1 };
+function withBirthday(dog: { name: string, age: number }): { name: string, age: number } {
+  return { ...dog, age: dog.age + 1 }
 }
 
-const rex = { name: "Rex", age: 3 };
-const olderRex = withBirthday(rex);
+const rex = { name: "Rex", age: 3 }
+const olderRex = withBirthday(rex)
 
-console.log(rex);
-console.log(olderRex);
+console.log(rex)
+console.log(olderRex)
 ```
 
 El programa imprime:
@@ -275,10 +275,10 @@ Los tres puntos `...dog` ponen todas las propiedades de `dog` en el objeto nuevo
 `{ ...rex }` copia cada propiedad tal como es. Si una propiedad guarda otro objeto, se copia el enlace y ese objeto interior sigue compartido.
 
 ```ts
-const rex = { name: "Rex", owner: { city: "Lima" } };
-const copyOfRex = { ...rex };
-copyOfRex.owner.city = "Cusco";
-console.log(rex.owner.city);
+const rex = { name: "Rex", owner: { city: "Lima" } }
+const copyOfRex = { ...rex }
+copyOfRex.owner.city = "Cusco"
+console.log(rex.owner.city)
 ```
 
 Imprime `Cusco`. La copia tiene su propio `name`, pero su `owner` es el mismo objeto. Para copiar también todo lo de adentro, usa `structuredClone(rex)`.
@@ -290,11 +290,11 @@ Imprime `Cusco`. La copia tiene su propio `name`, pero su `owner` es el mismo ob
 Dos objetos son iguales con `===` solo cuando son el mismo objeto, no cuando tienen el mismo contenido.
 
 ```ts
-const a = { id: 1 };
-const b = { id: 1 };
-console.log(a === b);
-console.log(a === a);
-console.log(JSON.stringify(a) === JSON.stringify(b));
+const a = { id: 1 }
+const b = { id: 1 }
+console.log(a === b)
+console.log(a === a)
+console.log(JSON.stringify(a) === JSON.stringify(b))
 ```
 
 Imprime `false`, `true` y `true`. El verificador al final de cada archivo de ejercicios compara el texto creado por `JSON.stringify`, por esta razón.
@@ -336,13 +336,13 @@ Vas a necesitar algo que esta lección no enseñó: cómo listar los nombres y l
 1. La canción está en la lista, pero el programa dice que no. Encuentra el bug.
 
 ```ts
-const favourite = { title: "Blue", artist: "Mia" };
+const favourite = { title: "Blue", artist: "Mia" }
 const songs = [
   { title: "Blue", artist: "Mia" },
   { title: "Echo", artist: "Lena" },
-];
+]
 
-console.log(songs.includes(favourite));
+console.log(songs.includes(favourite))
 ```
 
 <details>
@@ -355,8 +355,8 @@ Imprime `false`. `includes` compara objetos con la misma regla que `===`: pregun
 2. ¿Qué se rompe si alguien renombra la propiedad `seconds` a `duration` en los datos, pero no en el código que la lee?
 
 ```ts
-const song = { title: "Blue", duration: 215 };
-console.log(`${song.title} lasts ${song.seconds} seconds`);
+const song = { title: "Blue", duration: 215 }
+console.log(`${song.title} lasts ${song.seconds} seconds`)
 ```
 
 <details>
@@ -369,9 +369,9 @@ TypeScript muestra un subrayado rojo: la propiedad `seconds` no existe. Si lo ig
 3. ¿Qué pasa aquí cuando ninguna canción tiene el título "Nope"? ¿Cómo harías el código seguro?
 
 ```ts
-const songs = [{ title: "Blue", artist: "Mia" }];
-const found = songs.find((song) => song.title === "Nope");
-const { title } = found;
+const songs = [{ title: "Blue", artist: "Mia" }]
+const found = songs.find((song) => song.title === "Nope")
+const { title } = found
 ```
 
 <details>

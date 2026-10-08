@@ -25,17 +25,17 @@ Pon la palabra `export` antes de lo que quieres compartir.
 Crea el archivo `exercises/01-programming/_shapes.ts`:
 
 ```ts
-export const unit = "cm";
+export const unit = "cm"
 
 export function squareArea(side: number): number {
-  return side * side;
+  return side * side
 }
 
 export function circleArea(radius: number): number {
-  return Math.PI * radius * radius;
+  return Math.PI * radius * radius
 }
 
-const secret = "not shared";
+const secret = "not shared"
 ```
 
 El archivo comparte `unit`, `squareArea` y `circleArea`. La variable `secret` no tiene `export`, así que queda privada.
@@ -47,10 +47,10 @@ Usa `import` al principio de otro archivo. Escribe los nombres entre llaves y lu
 Crea el archivo `exercises/01-programming/use-shapes.ts`:
 
 ```ts
-import { unit, squareArea, circleArea } from "./_shapes.ts";
+import { unit, squareArea, circleArea } from "./_shapes.ts"
 
-console.log(`${squareArea(3)} square ${unit}`);
-console.log(circleArea(1));
+console.log(`${squareArea(3)} square ${unit}`)
+console.log(circleArea(1))
 ```
 
 Ejecútalo con `node exercises/01-programming/use-shapes.ts`. El programa imprime:
@@ -65,8 +65,8 @@ Los nombres dentro de `{ }` deben coincidir exactamente con los nombres exportad
 Si un archivo intenta importar el `secret` privado:
 
 ```ts
-import { secret } from "./_shapes.ts";
-console.log(secret);
+import { secret } from "./_shapes.ts"
+console.log(secret)
 ```
 
 el programa se detiene con:
@@ -99,18 +99,18 @@ Un tipo existe solo mientras TypeScript revisa tu código. Desaparece cuando el 
 Crea `exercises/01-programming/_weather.ts`:
 
 ```ts
-export type Weather = "sunny" | "rainy" | "snowy";
+export type Weather = "sunny" | "rainy" | "snowy"
 
-export const city = "Lima";
+export const city = "Lima"
 ```
 
 Úsalo en otro archivo:
 
 ```ts
-import type { Weather } from "./_weather.ts";
+import type { Weather } from "./_weather.ts"
 
-const today: Weather = "rainy";
-console.log(today);
+const today: Weather = "rainy"
+console.log(today)
 ```
 
 El programa imprime `rainy`.
@@ -118,8 +118,8 @@ El programa imprime `rainy`.
 Puedes importar valores y tipos del mismo archivo con dos líneas:
 
 ```ts
-import type { Weather } from "./_weather.ts";
-import { city } from "./_weather.ts";
+import type { Weather } from "./_weather.ts"
+import { city } from "./_weather.ts"
 ```
 
 ## Un módulo se ejecuta una sola vez
@@ -129,45 +129,45 @@ Una panadería tiene una máquina de turnos. Vive en `_tickets.ts` y tiene un co
 `exercises/01-programming/_tickets.ts`:
 
 ```ts
-console.log("ticket machine loaded");
+console.log("ticket machine loaded")
 
-let count = 0;
+let count = 0
 
 export function nextTicket(): number {
-  count += 1;
-  return count;
+  count += 1
+  return count
 }
 ```
 
 `exercises/01-programming/_till.ts`:
 
 ```ts
-import { nextTicket } from "./_tickets.ts";
+import { nextTicket } from "./_tickets.ts"
 
 export function serveCustomer(): number {
-  return nextTicket();
+  return nextTicket()
 }
 ```
 
 `exercises/01-programming/_screen.ts`:
 
 ```ts
-import { nextTicket } from "./_tickets.ts";
+import { nextTicket } from "./_tickets.ts"
 
 export function showNextTicket(): number {
-  return nextTicket();
+  return nextTicket()
 }
 ```
 
 `exercises/01-programming/bakery.ts`:
 
 ```ts
-import { serveCustomer } from "./_till.ts";
-import { showNextTicket } from "./_screen.ts";
+import { serveCustomer } from "./_till.ts"
+import { showNextTicket } from "./_screen.ts"
 
-serveCustomer();
-serveCustomer();
-console.log(showNextTicket());
+serveCustomer()
+serveCustomer()
+console.log(showNextTicket())
 ```
 
 Ejecuta `node exercises/01-programming/bakery.ts`. El programa imprime:
@@ -188,8 +188,8 @@ No todos los imports apuntan a tus propios archivos. Otras personas publican có
 Compara dos imports:
 
 ```ts
-import { squareArea } from "./_shapes.ts";
-import { marked } from "marked";
+import { squareArea } from "./_shapes.ts"
+import { marked } from "marked"
 ```
 
 - Una ruta que empieza con `./` o `../` es un archivo tuyo.
@@ -202,28 +202,28 @@ import { marked } from "marked";
 Crea `exercises/01-programming/_dog.ts`:
 
 ```ts
-export let age = 3;
+export let age = 3
 
 export function birthday(): void {
-  age += 1;
+  age += 1
 }
 ```
 
 El archivo que importa puede leer `age`, pero no asignarle un valor.
 
 ```ts
-import { age, birthday } from "./_dog.ts";
+import { age, birthday } from "./_dog.ts"
 
-birthday();
-console.log(age);
+birthday()
+console.log(age)
 ```
 
 Esto imprime `4`. El import es una vista viva de la variable, no una copia del número. Pero este programa se detiene con `TypeError: Assignment to constant variable.`:
 
 ```ts
-import { age } from "./_dog.ts";
+import { age } from "./_dog.ts"
 
-age = 10;
+age = 10
 ```
 
 Solo el módulo dueño de una variable puede cambiarla. El módulo ofrece una función, aquí `birthday`, para todos los demás. TypeScript lo reporta antes de ejecutar como "Cannot assign to 'age' because it is an import".
@@ -269,13 +269,13 @@ Vas a necesitar algo que esta lección no enseñó: un archivo que toma nombres 
 1. Este módulo funciona, pero da una respuesta incorrecta en la segunda llamada. Encuentra el *bug*.
 
 ```ts
-const songs: string[] = [];
+const songs: string[] = []
 
 export function makePlaylist(...titles: string[]): string[] {
   for (const title of titles) {
-    songs.push(title);
+    songs.push(title)
   }
-  return songs;
+  return songs
 }
 ```
 

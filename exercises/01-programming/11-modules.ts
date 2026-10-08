@@ -7,8 +7,8 @@
 //
 // Replace each "TODO" with real code. Do not edit the checker at the bottom.
 
-import type { Status, TestCase } from "./_test-cases.ts";
-import { testCases, countByStatus } from "./_test-cases.ts";
+import type { Status, TestCase } from "./_test-cases.ts"
+import { testCases, countByStatus } from "./_test-cases.ts"
 
 // ---------------------------------------------------------------
 // Exercise 1
@@ -17,7 +17,7 @@ import { testCases, countByStatus } from "./_test-cases.ts";
 // Example: totalFailed() returns 2
 function totalFailed(): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // ---------------------------------------------------------------
@@ -26,7 +26,7 @@ function totalFailed(): number {
 // Example: titlesWithStatus("skipped") returns ["Order history shows last 10 orders"]
 function titlesWithStatus(status: Status): string[] {
   // TODO
-  return ["TODO"];
+  return ["TODO"]
 }
 
 // ---------------------------------------------------------------
@@ -35,7 +35,7 @@ function titlesWithStatus(status: Status): string[] {
 // Example: hasTestCase(1) returns true, hasTestCase(99) returns false
 function hasTestCase(id: number): boolean {
   // TODO
-  return false;
+  return false
 }
 
 // ---------------------------------------------------------------
@@ -45,7 +45,7 @@ function hasTestCase(id: number): boolean {
 // Example: makeReport() returns "2 passed, 2 failed, 1 skipped"
 function makeReport(): string {
   // TODO
-  return "";
+  return ""
 }
 
 // ---------------------------------------------------------------
@@ -56,27 +56,27 @@ function makeReport(): string {
 //   returns { id: 6, title: "Profile can be edited", status: "skipped" }
 function newTestCase(id: number, title: string): TestCase {
   // TODO
-  return { id: 0, title: "", status: "passed" };
+  return { id: 0, title: "", status: "passed" }
 }
 
 // ===============================================================
 // Checker. Do not edit below this line.
 // ===============================================================
-let failures = 0;
+let failures = 0
 
 function check(name: string, actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) === JSON.stringify(expected)) {
-    console.log(`OK    ${name}`);
+    console.log(`OK    ${name}`)
   } else {
-    failures += 1;
-    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
+    failures += 1
+    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`)
   }
 }
 
-check("1 totalFailed", totalFailed(), 2);
-check("2 titlesWithStatus", titlesWithStatus("failed"), ["Checkout applies discount code", "Logout clears the session"]);
-check("3 hasTestCase", [hasTestCase(1), hasTestCase(99)], [true, false]);
-check("4 makeReport", makeReport(), "2 passed, 2 failed, 1 skipped");
-check("5 newTestCase", newTestCase(6, "Profile can be edited"), { id: 6, title: "Profile can be edited", status: "skipped" });
+check("1 totalFailed", totalFailed(), 2)
+check("2 titlesWithStatus", titlesWithStatus("failed"), ["Checkout applies discount code", "Logout clears the session"])
+check("3 hasTestCase", [hasTestCase(1), hasTestCase(99)], [true, false])
+check("4 makeReport", makeReport(), "2 passed, 2 failed, 1 skipped")
+check("5 newTestCase", newTestCase(6, "Profile can be edited"), { id: 6, title: "Profile can be edited", status: "skipped" })
 
-console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`);
+console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`)

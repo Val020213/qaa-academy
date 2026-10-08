@@ -18,12 +18,12 @@ Una **función** es un bloque de código con nombre. Escribes los pasos una vez 
 
 ```ts
 function barkTwice() {
-  console.log("Woof!");
-  console.log("Woof!");
+  console.log("Woof!")
+  console.log("Woof!")
 }
 
-barkTwice();
-barkTwice();
+barkTwice()
+barkTwice()
 ```
 
 Esto imprime:
@@ -37,7 +37,7 @@ Woof!
 
 Las primeras cuatro líneas **definen** la función. Empieza con la palabra `function`, luego el nombre, luego `()`, luego los pasos entre `{ }`. Definir no la ejecuta.
 
-Las líneas `barkTwice();` **llaman** a la función. Una llamada ejecuta los pasos. Aquí los ejecuta dos veces.
+Las líneas `barkTwice()` **llaman** a la función. Una llamada ejecuta los pasos. Aquí los ejecuta dos veces.
 
 ## Parámetros
 
@@ -45,11 +45,11 @@ Un **parámetro** es una entrada de una función: una variable que recibe su val
 
 ```ts
 function greet(name: string) {
-  console.log(`Hello, ${name}!`);
+  console.log(`Hello, ${name}!`)
 }
 
-greet("Ana");
-greet("Luis");
+greet("Ana")
+greet("Luis")
 ```
 
 Esto imprime:
@@ -69,11 +69,11 @@ Una función puede devolver un resultado con la palabra `return`. Ese resultado 
 
 ```ts
 function areaOfRectangle(width: number, height: number): number {
-  return width * height;
+  return width * height
 }
 
-const gardenArea = areaOfRectangle(4, 5);
-console.log(gardenArea);
+const gardenArea = areaOfRectangle(4, 5)
+console.log(gardenArea)
 ```
 
 Esto imprime:
@@ -94,12 +94,12 @@ Esta función calcula el área de un cuadrado, pero solo la imprime. Se llama do
 
 ```ts
 function areaOfSquare(side: number) {
-  const area = side * side;
-  console.log(area);
+  const area = side * side
+  console.log(area)
 }
 
-const total = areaOfSquare(3) + areaOfSquare(4);
-console.log(total);
+const total = areaOfSquare(3) + areaOfSquare(4)
+console.log(total)
 ```
 
 Como no tiene `return`, cada llamada devuelve `undefined`, que significa "nada". La tercera línea suma `undefined + undefined`, y la terminal muestra:
@@ -116,11 +116,11 @@ La solución es devolver el número e imprimir solo al final:
 
 ```ts
 function areaOfSquare(side: number): number {
-  return side * side;
+  return side * side
 }
 
-const total = areaOfSquare(3) + areaOfSquare(4);
-console.log(total);
+const total = areaOfSquare(3) + areaOfSquare(4)
+console.log(total)
 ```
 
 Esto imprime `25`. Una función que devuelve un valor se puede usar en cuentas, guardar, comparar y probar. Una función que solo imprime solo la puede leer una persona.
@@ -129,11 +129,11 @@ Lo mismo pasa con cualquier función sin `return`:
 
 ```ts
 function printGreeting() {
-  console.log("Hello");
+  console.log("Hello")
 }
 
-const result = printGreeting();
-console.log(result);
+const result = printGreeting()
+console.log(result)
 ```
 
 Esto imprime:
@@ -152,13 +152,13 @@ Una función puede usar lo que aprendiste en la lección 04. Esta convierte la e
 ```ts
 function lifeStage(dogAge: number): string {
   if (dogAge < 2) {
-    return "puppy";
+    return "puppy"
   }
-  return "adult";
+  return "adult"
 }
 
-console.log(lifeStage(1));
-console.log(lifeStage(6));
+console.log(lifeStage(1))
+console.log(lifeStage(6))
 ```
 
 Esto imprime:
@@ -181,7 +181,7 @@ Si olvidas ese último `return`, el caso en que el `if` es falso devuelve `undef
 ```ts
 function isHungry(mood: string): boolean {
   if (mood === "hungry") {
-    return true;
+    return true
   }
 }
 ```
@@ -194,10 +194,10 @@ Hay una forma más corta de escribir una función: la **función flecha** (*arro
 
 ```ts
 const multiply = (a: number, b: number): number => {
-  return a * b;
-};
+  return a * b
+}
 
-console.log(multiply(4, 5));
+console.log(multiply(4, 5))
 ```
 
 Esto imprime:
@@ -214,11 +214,11 @@ Un **parámetro con valor por defecto** tiene un valor que se usa cuando no das 
 
 ```ts
 function describeSong(title: string, minutes: number = 3): string {
-  return `${title} lasts ${minutes} minutes`;
+  return `${title} lasts ${minutes} minutes`
 }
 
-console.log(describeSong("Yesterday", 2));
-console.log(describeSong("Hey Jude"));
+console.log(describeSong("Yesterday", 2))
+console.log(describeSong("Hey Jude"))
 ```
 
 Esto imprime:
@@ -232,11 +232,11 @@ Un valor por defecto incluso puede usar un parámetro que viene antes:
 
 ```ts
 function total(price: number, tip: number = price / 10): number {
-  return price + tip;
+  return price + tip
 }
 
-console.log(total(50));
-console.log(total(50, 0));
+console.log(total(50))
+console.log(total(50, 0))
 ```
 
 Esto imprime:
@@ -252,14 +252,14 @@ Dale a cada función un solo trabajo y un nombre claro. Esta idea se llama **res
 
 ```ts
 function tax(amount: number): number {
-  return amount / 10;
+  return amount / 10
 }
 
 function totalWithTax(amount: number): number {
-  return amount + tax(amount);
+  return amount + tax(amount)
 }
 
-console.log(totalWithTax(100));
+console.log(totalWithTax(100))
 ```
 
 Esto imprime:
@@ -280,12 +280,12 @@ Las variables creadas dentro de una función existen solo mientras la función s
 
 ```ts
 function secretDemo() {
-  const secret = 1;
-  return secret;
+  const secret = 1
+  return secret
 }
 
-secretDemo();
-console.log(secret);
+secretDemo()
+console.log(secret)
 ```
 
 La última línea falla con `ReferenceError: secret is not defined`. Gracias a esto, dos funciones pueden usar el mismo nombre sin chocar.
@@ -294,13 +294,13 @@ Un parámetro también es una copia del valor. Cambiarlo no cambia la variable q
 
 ```ts
 function addOne(n: number): number {
-  n = n + 1;
-  return n;
+  n = n + 1
+  return n
 }
 
-let x = 5;
-console.log(addOne(x));
-console.log(x);
+let x = 5
+console.log(addOne(x))
+console.log(x)
 ```
 
 Esto imprime:
@@ -351,10 +351,10 @@ Vas a necesitar algo que esta lección no enseñó: cómo hallar las horas compl
 
 ```ts
 function f(a: number, b: number = a * 2): number {
-  return a + b;
+  return a + b
 }
 
-console.log(f(1), f(1, 1));
+console.log(f(1), f(1, 1))
 ```
 
 <details>

@@ -18,21 +18,21 @@ A teacher says: "The pass mark was 50. From today it is 60." Three functions use
 
 ```ts
 function hasPassed(score: number): boolean {
-  return score >= 60;
+  return score >= 60
 }
 
 function describeStudent(name: string, score: number): string {
-  return score >= 60 ? `${name} passed` : `${name} failed`;
+  return score >= 60 ? `${name} passed` : `${name} failed`
 }
 
 function countPassed(scores: number[]): number {
-  let count = 0;
+  let count = 0
   for (const score of scores) {
     if (score >= 50) {
-      count += 1;
+      count += 1
     }
   }
-  return count;
+  return count
 }
 ```
 
@@ -47,29 +47,29 @@ The key word is **knowledge**: a rule, a value or a format. DRY is not about tex
 To fix the example, name the number once and let one function own the rule. The other functions ask that function.
 
 ```ts
-const PASS_MARK = 60;
+const PASS_MARK = 60
 
 function hasPassed(score: number): boolean {
-  return score >= PASS_MARK;
+  return score >= PASS_MARK
 }
 
 function describeStudent(name: string, score: number): string {
-  return hasPassed(score) ? `${name} passed` : `${name} failed`;
+  return hasPassed(score) ? `${name} passed` : `${name} failed`
 }
 
 function countPassed(scores: number[]): number {
-  let count = 0;
+  let count = 0
   for (const score of scores) {
     if (hasPassed(score)) {
-      count += 1;
+      count += 1
     }
   }
-  return count;
+  return count
 }
 
-console.log(hasPassed(55));
-console.log(describeStudent("Mia", 55));
-console.log(`Passed: ${countPassed([55, 40])}`);
+console.log(hasPassed(55))
+console.log(describeStudent("Mia", 55))
+console.log(`Passed: ${countPassed([55, 40])}`)
 ```
 
 This prints:
@@ -99,10 +99,10 @@ A music app prints a song line in many places. The format is the knowledge. The 
 
 ```ts
 function songLine(title: string, minutes: number): string {
-  return `${title} (${minutes} min)`;
+  return `${title} (${minutes} min)`
 }
 
-console.log(songLine("Yellow", 4));
+console.log(songLine("Yellow", 4))
 ```
 
 This prints `Yellow (4 min)`. If the app later shows `4:00` instead, you change one function.
@@ -112,41 +112,41 @@ This prints `Yellow (4 min)`. If the app later shows `4:00` instead, you change 
 You build the sign-up form of a pet shelter. Three fields must not be empty. In this version, each field has its own `if` block.
 
 ```ts
-const pet = { name: "Rex", species: "", age: "" };
-const errors: string[] = [];
+const pet = { name: "Rex", species: "", age: "" }
+const errors: string[] = []
 
 if (pet.name === "") {
-  errors.push("Name is required");
+  errors.push("Name is required")
 }
 if (pet.species === "") {
-  errors.push("Species is required");
+  errors.push("Species is required")
 }
 if (pet.age === "") {
-  errors.push("Age is required");
+  errors.push("Age is required")
 }
 
-console.log(errors);
+console.log(errors)
 ```
 
 If the shelter adds a fourth field, `color`, you must write another whole block. In the next version the fields are data:
 
 ```ts
-const pet: Record<string, string> = { name: "Rex", species: "", age: "" };
-const errors: string[] = [];
+const pet: Record<string, string> = { name: "Rex", species: "", age: "" }
+const errors: string[] = []
 
 const required = [
   { field: "name", label: "Name" },
   { field: "species", label: "Species" },
   { field: "age", label: "Age" },
-];
+]
 
 for (const item of required) {
   if (pet[item.field] === "") {
-    errors.push(`${item.label} is required`);
+    errors.push(`${item.label} is required`)
   }
 }
 
-console.log(errors);
+console.log(errors)
 ```
 
 Both versions print the same result:
@@ -166,7 +166,7 @@ A shared piece of code ties its users together: when you change it, every user c
 A pizza may have at most 10 toppings. A playlist title may have at most 10 characters. Both rules say `10`, and it is tempting to use one constant:
 
 ```ts
-const LIMIT = 10;
+const LIMIT = 10
 ```
 
 Suppose the pizza shop allows 12 toppings next month. With one `LIMIT`, playlist titles also grow to 12 characters, and nobody asked for that. Two rules need two names: `MAX_TOPPINGS` and `MAX_TITLE_LENGTH`. The number is the same by chance. The knowledge is not.
@@ -177,15 +177,15 @@ Now the opposite. One function finds the area of a circle with `3.14 * radius * 
 
 ```ts
 function circleArea(radius: number): number {
-  return 3.14 * radius * radius;
+  return 3.14 * radius * radius
 }
 
 function circleLength(radius: number): number {
-  return 2 * 3.1416 * radius;
+  return 2 * 3.1416 * radius
 }
 
-console.log(circleArea(10));
-console.log(circleLength(10));
+console.log(circleArea(10))
+console.log(circleLength(10))
 ```
 
 It prints `314` and `62.832`. The two functions hold one fact, the value of pi, but they hold two different guesses of it. The text does not match, so a search for the full number `3.1416` would miss the first one. Use `Math.PI` in both. Then `circleArea(10)` gives `314.1592653589793`, and the two functions agree.
@@ -208,17 +208,17 @@ function formatSong(
   brackets: boolean,
   star: boolean,
 ): string {
-  let text = upper ? title.toUpperCase() : title;
+  let text = upper ? title.toUpperCase() : title
   if (brackets) {
-    text = `[${text}]`;
+    text = `[${text}]`
   }
   if (star) {
-    text = `* ${text}`;
+    text = `* ${text}`
   }
-  return `${text} (${minutes} min)`;
+  return `${text} (${minutes} min)`
 }
 
-console.log(formatSong("Yellow", 4, true, false, true));
+console.log(formatSong("Yellow", 4, true, false, true))
 ```
 
 It prints `* YELLOW (4 min)`. But at the call you cannot tell what `true, false, true` mean: you must open the function to know, and each new need adds a flag. Two small functions with clear names are easier to read and to change.
@@ -264,14 +264,14 @@ The two rules look the same but change for different reasons, so they are differ
 2. Find the bug. A teammate says: "Good, the tax rate has a constant." But one rule is still copied. What is the problem, and what would you check before changing it?
 
 ```ts
-const TAX_RATE = 0.2;
+const TAX_RATE = 0.2
 
 function priceWithTax(price: number): number {
-  return price * (1 + TAX_RATE);
+  return price * (1 + TAX_RATE)
 }
 
 function tip(price: number): number {
-  return price * 0.2;
+  return price * 0.2
 }
 ```
 

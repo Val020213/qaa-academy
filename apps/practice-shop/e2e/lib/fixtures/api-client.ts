@@ -30,7 +30,7 @@ export async function loginViaApi(
   expect(response.ok()).toBeTruthy()
 }
 
-/** Creates a product with unique name and SKU. Pass overrides to change any field. */
+/** Creates a product with a generated name and SKU. Pass overrides to change any field. */
 export async function createProduct(
   request: APIRequestContext,
   overrides: Partial<Omit<Product, "id">> = {}

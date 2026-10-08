@@ -26,7 +26,7 @@ export default defineConfig({
     // Keep the trace and the screenshot only when a test fails.
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
-    // Every test starts already signed in as admin (saved by the setup project).
+    // Tests using this default start signed in as admin (saved by setup).
     storageState: "e2e/.auth/admin.json",
   },
 

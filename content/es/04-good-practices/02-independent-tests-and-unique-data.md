@@ -223,7 +223,7 @@ Está terminado cuando:
 - El total de `/api/products` es el mismo antes y después de guardar.
 - `pnpm shop:e2e challenges/duplicate-sku.spec.ts --repeat-each=3` pasa las tres repeticiones.
 
-Busca: `playwright repeat-each`, `playwright hydration fill input erased react`. Lee el comentario en `products.spec.ts` sobre `newButton.click()` para revisar cuándo el formulario está listo para escribir.
+Busca: `playwright repeat-each`, `playwright hydration fill input erased react`. Lee el comentario en `products.spec.ts` sobre `newButton.click()`: ese clic por sí solo no demuestra que el formulario de destino esté listo para escribir.
 
 ## Piénsalo bien
 

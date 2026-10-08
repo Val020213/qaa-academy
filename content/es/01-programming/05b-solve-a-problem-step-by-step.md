@@ -45,35 +45,35 @@ Ejemplo: una persona de 8 años en martes paga 4.
 
 ```ts
 function ticketPrice(age: number, day: string): number {
-  return 10;
+  return 10
 }
 
-console.log(ticketPrice(30, "Monday"));
+console.log(ticketPrice(30, "Monday"))
 ```
 
 Esto imprime `10`. Ahora el paso 2:
 
 ```ts
 function ticketPrice(age: number, day: string): number {
-  let price = 10;
+  let price = 10
   if (age < 12) {
-    price = 6;
+    price = 6
   } else if (age >= 65) {
-    price = 7;
+    price = 7
   }
-  return price;
+  return price
 }
 
-console.log(ticketPrice(30, "Monday"));
-console.log(ticketPrice(8, "Monday"));
-console.log(ticketPrice(70, "Monday"));
+console.log(ticketPrice(30, "Monday"))
+console.log(ticketPrice(8, "Monday"))
+console.log(ticketPrice(70, "Monday"))
 ```
 
 Esto imprime `10`, `6` y `7`. Ahora el paso 3. Agrégalo antes del `return`:
 
 ```ts
   if (day === "Tuesday") {
-    price = price - 2;
+    price = price - 2
   }
 ```
 
@@ -82,10 +82,10 @@ Ejecútalo con `ticketPrice(8, "Tuesday")`. Imprime `4`, el número de tu ejempl
 **Movimiento 5: revisa.** Un **caso límite** (*edge case*) es un valor en el borde de una regla o fuera de lo usual. Prueba estos:
 
 ```ts
-console.log(ticketPrice(11, "Monday"), ticketPrice(12, "Monday"));
-console.log(ticketPrice(64, "Monday"), ticketPrice(65, "Monday"));
-console.log(ticketPrice(30, "tuesday"));
-console.log(ticketPrice(-1, "Monday"));
+console.log(ticketPrice(11, "Monday"), ticketPrice(12, "Monday"))
+console.log(ticketPrice(64, "Monday"), ticketPrice(65, "Monday"))
+console.log(ticketPrice(30, "tuesday"))
+console.log(ticketPrice(-1, "Monday"))
 ```
 
 Imprime:
@@ -97,13 +97,13 @@ Imprime:
 6
 ```
 
-Los bordes funcionan: 11 paga 6 y 12 paga 10, 64 paga 10 y 65 paga 7. Pero encontraste dos problemas. El texto `"tuesday"` con t minúscula no recibe descuento. Y una edad de -1 paga 6, porque -1 es menor que 12. Una persona real no puede tener -1 años.
+Los bordes funcionan: 11 paga 6 y 12 paga 10, 64 paga 10 y 65 paga 7. Pero encontraste dos problemas. El texto `"tuesday"` con `t` minúscula no recibe descuento. Y una edad de -1 paga 6, porque -1 es menor que 12. Una persona real no puede tener -1 años.
 
 Agrega una regla al principio. Decide qué hace la función con una edad incorrecta. Aquí devuelve -1 y lo explicas en un comentario. Lecciones posteriores muestran mejores formas.
 
 ```ts
   if (age < 0) {
-    return -1; // -1 means "wrong age"
+    return -1 // -1 means "wrong age"
   }
 ```
 
@@ -128,7 +128,7 @@ Una regla que muchas personas recuerdan es «un año bisiesto llega cada cuatro 
 
 ```ts
 function isLeapYear(year: number): boolean {
-  return year % 4 === 0;
+  return year % 4 === 0
 }
 ```
 
@@ -149,15 +149,15 @@ La regla completa: un año divisible entre 400 es bisiesto. Si no, un año divis
 ```ts
 function isLeapYear(year: number): boolean {
   if (year % 400 === 0) {
-    return true;
+    return true
   }
   if (year % 100 === 0) {
-    return false;
+    return false
   }
-  return year % 4 === 0;
+  return year % 4 === 0
 }
 
-console.log(isLeapYear(2000), isLeapYear(1900), isLeapYear(2024), isLeapYear(2023));
+console.log(isLeapYear(2000), isLeapYear(1900), isLeapYear(2024), isLeapYear(2023))
 ```
 
 Esto imprime `true false true false`. Son los cuatro años de tu tabla hecha a mano. El **movimiento 5** pasó con los mismos cuatro valores. Agrega casos límite: 2100, 1600 y el año 0.
@@ -213,7 +213,7 @@ Vas a necesitar algo que esta lección no enseñó: cómo saber cuántas veces c
 1. ¿Qué imprime esto? Usa la versión final de `ticketPrice`.
 
 ```ts
-console.log(ticketPrice(65, "Tuesday"), ticketPrice(64, "Tuesday"));
+console.log(ticketPrice(65, "Tuesday"), ticketPrice(64, "Tuesday"))
 ```
 
 <details>
@@ -228,15 +228,15 @@ Imprime `5 8`. Una persona de 65 años es adulta mayor, así que el precio base 
 ```ts
 function isLeapYear(year: number): boolean {
   if (year % 4 === 0) {
-    return true;
+    return true
   }
   if (year % 100 === 0) {
-    return false;
+    return false
   }
   if (year % 400 === 0) {
-    return true;
+    return true
   }
-  return false;
+  return false
 }
 ```
 

@@ -27,9 +27,9 @@ The type decides what you can do with a value. You can multiply numbers. You can
 You can ask for the type with `typeof`.
 
 ```ts
-console.log(typeof "Rex");
-console.log(typeof 404);
-console.log(typeof true);
+console.log(typeof "Rex")
+console.log(typeof 404)
+console.log(typeof true)
 ```
 
 This prints:
@@ -45,8 +45,8 @@ boolean
 `"5"` and `5` look the same, but they are not the same. The first is a string. The second is a number.
 
 ```ts
-console.log("5" + "1");
-console.log(5 + 1);
+console.log("5" + "1")
+console.log(5 + 1)
 ```
 
 This prints:
@@ -61,9 +61,9 @@ With text, `+` joins the parts. With numbers, `+` adds them.
 To change text to a number, use `Number()`. To change a number to text, use `String()`.
 
 ```ts
-const ageFromForm = "5";
-console.log(Number(ageFromForm) + 1);
-console.log(String(404) + " error");
+const ageFromForm = "5"
+console.log(Number(ageFromForm) + 1)
+console.log(String(404) + " error")
 ```
 
 This prints:
@@ -78,11 +78,11 @@ This prints:
 A pet shelter keeps the number of cats as text, because it comes from a form, and the number of dogs as a real number.
 
 ```ts
-const cats = "3";
-const dogs = 4;
-console.log(cats + dogs);
-console.log(cats * dogs);
-console.log(cats - dogs);
+const cats = "3"
+const dogs = 4
+console.log(cats + dogs)
+console.log(cats * dogs)
+console.log(cats - dogs)
 ```
 
 This prints:
@@ -104,9 +104,9 @@ TypeScript does see the problem. In VS Code, the lines with `*` and `-` show a r
 A **type annotation** tells TypeScript the type of a variable. You write a colon and the type after the name.
 
 ```ts
-const dogName: string = "Rex";
-const dogAge: number = 3;
-const isHungry: boolean = false;
+const dogName: string = "Rex"
+const dogAge: number = 3
+const isHungry: boolean = false
 ```
 
 Read the first line: `dogName` is a string, and its value is this text.
@@ -116,7 +116,7 @@ Read the first line: `dogName` is a string, and its value is this text.
 You often do not need to write the type. TypeScript can see it from the value. This is called **type inference**.
 
 ```ts
-const dogName = "Rex";
+const dogName = "Rex"
 ```
 
 TypeScript knows that `dogName` is a string, because the value is text.
@@ -130,7 +130,7 @@ The **type checker** is a part of TypeScript. It reads your code and looks for m
 Write this in a file:
 
 ```ts
-const dogAge: number = "three";
+const dogAge: number = "three"
 ```
 
 The type checker reports an error:
@@ -161,12 +161,12 @@ Sometimes a value is missing. TypeScript has two special values for this.
 `null` means: there is no value, and this is on purpose. A dog in a shelter that nobody has adopted has no owner. You set that yourself.
 
 ```ts
-let temperature: number | undefined;
-console.log(temperature);
-console.log(typeof temperature);
+let temperature: number | undefined
+console.log(temperature)
+console.log(typeof temperature)
 
-const owner: string | null = null;
-console.log(owner);
+const owner: string | null = null
+console.log(owner)
 ```
 
 This prints:
@@ -190,9 +190,9 @@ TypeScript checks your types, and then it removes them. What Node.js runs is pla
 ### Number() always gives a `number`, but not always a useful one
 
 ```ts
-console.log(Number("abc"));
-console.log(Number(""));
-console.log(typeof Number("abc"));
+console.log(Number("abc"))
+console.log(Number(""))
+console.log(typeof Number("abc"))
 ```
 
 This prints:
@@ -211,7 +211,7 @@ number
 2. Print the `typeof` of a text, a number and `true`.
 3. Print `"2" + "3"` and `2 + 3`. Check that the results are different.
 4. Turn the text `"10"` into a number with `Number()`. Add 5 and print the result.
-5. Write `const dogAge: number = "three";`. Look at the red line in VS Code. Read the message. Then run `pnpm typecheck` in the terminal. Fix the line.
+5. Write `const dogAge: number = "three"`. Look at the red line in VS Code. Read the message. Then run `pnpm typecheck` in the terminal. Fix the line.
 6. Open `exercises/01-programming/03-types.ts` and run it:
 
 ```bash
@@ -240,7 +240,7 @@ You will need something this lesson did not teach: a way to read the number at t
 1. What does this line print, and why?
 
 ```ts
-console.log("3" * "4", "3" + "4", "3" - 1, "3" + 1);
+console.log("3" * "4", "3" + "4", "3" - 1, "3" + 1)
 ```
 
 <details>
@@ -253,9 +253,9 @@ It prints `12 34 2 31`. The signs `*` and `-` can only do maths, so JavaScript t
 2. A swimming pool program should print the average of two readings, 20 and 30. It prints a strange number. Find the bug.
 
 ```ts
-const morning = "20";
-const evening = "30";
-console.log((morning + evening) / 2);
+const morning = "20"
+const evening = "30"
+console.log((morning + evening) / 2)
 ```
 
 <details>

@@ -5,19 +5,19 @@ const TEXT = {
     title: "A shallow copy shares the nested object",
     separate: "two separate objects",
     shared: "one shared object",
-    state: 'after copyOfRex.owner.city = "Cusco";',
+    state: 'after copyOfRex.owner.city = "Cusco"',
     caption: "Both owner properties point to the same object.",
     original: "rex", copy: "copyOfRex", name: 'name: "Rex"', owner: "owner",
-    city: 'city: "Cusco"', assignment: "const copyOfRex = { ...rex };",
+    city: 'city: "Cusco"', assignment: "const copyOfRex = { ...rex }",
   },
   es: {
     title: "Una copia superficial comparte el objeto interior",
     separate: "dos objetos separados",
     shared: "un objeto compartido",
-    state: 'después de copyOfRex.owner.city = "Cusco";',
+    state: 'después de copyOfRex.owner.city = "Cusco"',
     caption: "Las dos propiedades owner apuntan al mismo objeto.",
     original: "rex", copy: "copyOfRex", name: 'name: "Rex"', owner: "owner",
-    city: 'city: "Cusco"', assignment: "const copyOfRex = { ...rex };",
+    city: 'city: "Cusco"', assignment: "const copyOfRex = { ...rex }",
   },
 }
 

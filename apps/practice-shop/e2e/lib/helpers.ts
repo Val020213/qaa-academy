@@ -1,13 +1,13 @@
-// Small helpers that make test data unique.
+// Helpers for generated test names and SKUs.
 
-/** A name that no other test uses, e.g. "Mouse 3fa9c1d2". */
+/** A name with a random suffix, e.g. "Mouse 3fa9c1d2". */
 export function uniqueName(prefix: string): string {
   return `${prefix} ${crypto.randomUUID().slice(0, 8)}`
 }
 
 // The seed uses SKU-0001 to SKU-0024, so we start at 1000.
-// We start at a random place and count up, so two tests never get the
-// same SKU, and two runs rarely do.
+// Each process starts at a random place and counts up, wrapping after 9999.
+// Values can repeat across processes or after 9000 calls.
 const FIRST = 1000
 const LAST = 9999
 let nextSku = FIRST + Math.floor(Math.random() * (LAST - FIRST))

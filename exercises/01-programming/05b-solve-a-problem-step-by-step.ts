@@ -11,7 +11,7 @@
 // - Some problems need a tool this course has not shown yet. Search for it. The hint tells you what to look for.
 
 // This line makes the file a module. Leave it as it is.
-export {};
+export {}
 
 // Exercise 1 (a pizza party)
 // Every person eats 3 slices. One pizza has 8 slices.
@@ -21,7 +21,7 @@ export {};
 // Hint: search for "javascript Math.ceil".
 function pizzasNeeded(people: number): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // Exercise 2 (a dog walker)
@@ -32,7 +32,7 @@ function pizzasNeeded(people: number): number {
 // Hint: search for "javascript Math.ceil".
 function walkPrice(minutes: number): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // Exercise 3 (what to wear)
@@ -45,7 +45,7 @@ function walkPrice(minutes: number): number {
 // Example: clothingAdvice(12, true) returns "jacket and umbrella"
 function clothingAdvice(degrees: number, isRaining: boolean): string {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // Exercise 4 (a library fine)
@@ -56,7 +56,7 @@ function clothingAdvice(degrees: number, isRaining: boolean): string {
 // Hint: search for "javascript Math.min".
 function libraryFine(daysKept: number): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // Exercise 5 (shapes)
@@ -69,46 +69,46 @@ function libraryFine(daysKept: number): number {
 // Example: triangleKind(3, 4, 5) returns "scalene"
 function triangleKind(a: number, b: number, c: number): string {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // ---------------------------------------------------------------
 // Checker. Do not edit below this line.
 // ---------------------------------------------------------------
-let failures = 0;
+let failures = 0
 
 function check(name: string, actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) === JSON.stringify(expected)) {
-    console.log(`OK    ${name}`);
+    console.log(`OK    ${name}`)
   } else {
-    failures += 1;
-    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
+    failures += 1
+    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`)
   }
 }
 
-check("1 pizzas for 10 people", pizzasNeeded(10), 4);
-check("1 pizzas, exact fit (8 people)", pizzasNeeded(8), 3);
-check("1 pizzas for 1 person", pizzasNeeded(1), 1);
-check("1 pizzas for nobody", pizzasNeeded(0), 0);
-check("2 walk 20 minutes", walkPrice(20), 10);
-check("2 walk 30 minutes", walkPrice(30), 10);
-check("2 walk 31 minutes", walkPrice(31), 14);
-check("2 walk 45 minutes", walkPrice(45), 14);
-check("2 walk 46 minutes", walkPrice(46), 18);
-check("3 cold and dry", clothingAdvice(2, false), "coat");
-check("3 mild and rainy", clothingAdvice(12, true), "jacket and umbrella");
-check("3 border at 5", clothingAdvice(5, false), "jacket");
-check("3 decimal value", clothingAdvice(19.5, false), "jacket");
-check("3 border at 20", clothingAdvice(20, true), "t-shirt and umbrella");
-check("4 no fine on day 14", libraryFine(14), 0);
-check("4 fine for 20 days", libraryFine(20), 3);
-check("4 fine has a limit", libraryFine(100), 10);
-check("5 equilateral", triangleKind(3, 3, 3), "equilateral");
-check("5 isosceles", triangleKind(3, 3, 5), "isosceles");
-check("5 scalene", triangleKind(3, 4, 5), "scalene");
-check("5 flat triangle", triangleKind(1, 2, 3), "invalid");
-check("5 zero side", triangleKind(0, 4, 4), "invalid");
-check("5 too short", triangleKind(2, 2, 5), "invalid");
-check("5 longest side first", triangleKind(7, 3, 3), "invalid");
+check("1 pizzas for 10 people", pizzasNeeded(10), 4)
+check("1 pizzas, exact fit (8 people)", pizzasNeeded(8), 3)
+check("1 pizzas for 1 person", pizzasNeeded(1), 1)
+check("1 pizzas for nobody", pizzasNeeded(0), 0)
+check("2 walk 20 minutes", walkPrice(20), 10)
+check("2 walk 30 minutes", walkPrice(30), 10)
+check("2 walk 31 minutes", walkPrice(31), 14)
+check("2 walk 45 minutes", walkPrice(45), 14)
+check("2 walk 46 minutes", walkPrice(46), 18)
+check("3 cold and dry", clothingAdvice(2, false), "coat")
+check("3 mild and rainy", clothingAdvice(12, true), "jacket and umbrella")
+check("3 border at 5", clothingAdvice(5, false), "jacket")
+check("3 decimal value", clothingAdvice(19.5, false), "jacket")
+check("3 border at 20", clothingAdvice(20, true), "t-shirt and umbrella")
+check("4 no fine on day 14", libraryFine(14), 0)
+check("4 fine for 20 days", libraryFine(20), 3)
+check("4 fine has a limit", libraryFine(100), 10)
+check("5 equilateral", triangleKind(3, 3, 3), "equilateral")
+check("5 isosceles", triangleKind(3, 3, 5), "isosceles")
+check("5 scalene", triangleKind(3, 4, 5), "scalene")
+check("5 flat triangle", triangleKind(1, 2, 3), "invalid")
+check("5 zero side", triangleKind(0, 4, 4), "invalid")
+check("5 too short", triangleKind(2, 2, 5), "invalid")
+check("5 longest side first", triangleKind(7, 3, 3), "invalid")
 
-console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`);
+console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`)

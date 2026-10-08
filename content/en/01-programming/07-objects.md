@@ -17,9 +17,9 @@ In this lesson you group related values in an object, keep many objects in an ar
 A dog has a name, an age and a weight. You could use three separate variables:
 
 ```ts
-const dogName = "Rex";
-const dogAge = 3;
-const dogWeight = 12.5;
+const dogName = "Rex"
+const dogAge = 3
+const dogWeight = 12.5
 ```
 
 With ten dogs this gets messy. An **object** is one value that holds several named values.
@@ -33,9 +33,9 @@ const dog = {
   name: "Rex",
   age: 3,
   weight: 12.5,
-};
+}
 
-console.log(dog);
+console.log(dog)
 ```
 
 A **property** is one `name: value` pair inside an object. This object has three properties: `name`, `age` and `weight`.
@@ -51,10 +51,10 @@ The program prints:
 Write the object name, a dot, and the property name.
 
 ```ts
-const square = { side: 4, color: "red" };
+const square = { side: 4, color: "red" }
 
-console.log(square.side);
-console.log(square.side * square.side);
+console.log(square.side)
+console.log(square.side * square.side)
 ```
 
 The program prints:
@@ -73,10 +73,10 @@ The property `size` does not exist on `square`. If you write `console.log(square
 You can assign a new value to a property with `=`.
 
 ```ts
-const dog = { name: "Rex", age: 3 };
+const dog = { name: "Rex", age: 3 }
 
-dog.age = 4;
-console.log(dog.age);
+dog.age = 4
+console.log(dog.age)
 ```
 
 The program prints:
@@ -97,10 +97,10 @@ const recipe = {
   servings: 4,
   ingredients: ["flour", "milk", "egg"],
   oven: { needed: false, minutes: 0 },
-};
+}
 
-console.log(recipe.oven.needed);
-console.log(recipe.ingredients.length);
+console.log(recipe.oven.needed)
+console.log(recipe.ingredients.length)
 ```
 
 The program prints:
@@ -117,11 +117,11 @@ Read `recipe.oven.needed` from left to right: the recipe, then its oven, then wh
 Sometimes you know the property name only while the program runs. Square brackets let you use a text value as the name.
 
 ```ts
-const rectangle = { width: 3, height: 5, color: "red" };
-const wanted = "height";
+const rectangle = { width: 3, height: 5, color: "red" }
+const wanted = "height"
 
-console.log(rectangle["width"]);
-console.log(rectangle[wanted]);
+console.log(rectangle["width"])
+console.log(rectangle[wanted])
 ```
 
 The program prints:
@@ -142,16 +142,16 @@ const playlist = [
   { title: "Blue", artist: "Mia", seconds: 215 },
   { title: "Rain Dance", artist: "Tomas", seconds: 180 },
   { title: "Sunday", artist: "Mia", seconds: 245 },
-];
+]
 
-let totalSeconds = 0;
+let totalSeconds = 0
 
 for (const song of playlist) {
-  console.log(`${song.title} by ${song.artist}`);
-  totalSeconds += song.seconds;
+  console.log(`${song.title} by ${song.artist}`)
+  totalSeconds += song.seconds
 }
 
-console.log(`Total: ${totalSeconds} seconds`);
+console.log(`Total: ${totalSeconds} seconds`)
 ```
 
 The loop gives you one object at a time in the variable `song`. The program prints:
@@ -170,11 +170,11 @@ An array of objects is a very common way to organize data: each element is an ob
 **Destructuring** takes properties out of an object and puts them in variables, in one line.
 
 ```ts
-const song = { title: "Blue", artist: "Mia", seconds: 215 };
+const song = { title: "Blue", artist: "Mia", seconds: 215 }
 
-const { title, seconds } = song;
+const { title, seconds } = song
 
-console.log(`${title} lasts ${seconds} seconds`);
+console.log(`${title} lasts ${seconds} seconds`)
 ```
 
 The program prints:
@@ -186,11 +186,11 @@ Blue lasts 215 seconds
 The names inside `{ }` must match the property names. You can also use it in a function parameter:
 
 ```ts
-function describe({ title, artist }: { title: string; artist: string }): string {
-  return `${title} by ${artist}`;
+function describe({ title, artist }: { title: string, artist: string }): string {
+  return `${title} by ${artist}`
 }
 
-console.log(describe({ title: "Blue", artist: "Mia" }));
+console.log(describe({ title: "Blue", artist: "Mia" }))
 ```
 
 This prints `Blue by Mia`. The text after the colon is the type of the object.
@@ -201,37 +201,37 @@ Two functions add one year to an age. One gets a number. The other gets a dog, w
 
 ```ts
 function birthdayAge(age: number): void {
-  age = age + 1;
+  age = age + 1
 }
 
-function birthdayDog(dog: { name: string; age: number }): void {
-  dog.age = dog.age + 1;
+function birthdayDog(dog: { name: string, age: number }): void {
+  dog.age = dog.age + 1
 }
 
-let age = 3;
-const dog = { name: "Rex", age: 3 };
+let age = 3
+const dog = { name: "Rex", age: 3 }
 
-birthdayAge(age);
-birthdayDog(dog);
+birthdayAge(age)
+birthdayDog(dog)
 
-console.log(age, dog.age);
+console.log(age, dog.age)
 ```
 
 The program prints `3 4`. The number's age did not change, but the dog's did.
 
 A number is passed by value: the function receives its own copy of `3`, adds 1 to the copy, and the copy disappears. An object is different. A variable does not hold the object itself, it holds a link to it, and that link is called a **reference**. The function receives the same link, so `dog.age = ...` changes the one dog that both names point to.
 
-The same happens with an assignment. When you write `const same = original;`, you copy the link, not the object, and two names point to one object. The three dots in `{ ...original }` make a new object with the same properties.
+The same happens with an assignment. When you write `const same = original`, you copy the link, not the object, and two names point to one object. The three dots in `{ ...original }` make a new object with the same properties.
 
 ```ts
-const original = { id: 1, status: "failed" };
-const same = original;
-same.status = "passed";
-console.log(original.status);
+const original = { id: 1, status: "failed" }
+const same = original
+same.status = "passed"
+console.log(original.status)
 
-const copy = { ...original };
-copy.status = "skipped";
-console.log(original.status, copy.status);
+const copy = { ...original }
+copy.status = "skipped"
+console.log(original.status, copy.status)
 ```
 
 The program prints:
@@ -248,15 +248,15 @@ The first change went through `same` and changed the one shared object. The seco
 When a function needs to "change" an object, it has two options. It can change the object you gave it, like `birthdayDog`. Or it can leave that object alone and return a new one:
 
 ```ts
-function withBirthday(dog: { name: string; age: number }): { name: string; age: number } {
-  return { ...dog, age: dog.age + 1 };
+function withBirthday(dog: { name: string, age: number }): { name: string, age: number } {
+  return { ...dog, age: dog.age + 1 }
 }
 
-const rex = { name: "Rex", age: 3 };
-const olderRex = withBirthday(rex);
+const rex = { name: "Rex", age: 3 }
+const olderRex = withBirthday(rex)
 
-console.log(rex);
-console.log(olderRex);
+console.log(rex)
+console.log(olderRex)
 ```
 
 The program prints:
@@ -275,10 +275,10 @@ The three dots `...dog` put all properties of `dog` into the new object. Then `a
 `{ ...rex }` copies each property as it is. If a property holds another object, the link is copied and that inner object is still shared.
 
 ```ts
-const rex = { name: "Rex", owner: { city: "Lima" } };
-const copyOfRex = { ...rex };
-copyOfRex.owner.city = "Cusco";
-console.log(rex.owner.city);
+const rex = { name: "Rex", owner: { city: "Lima" } }
+const copyOfRex = { ...rex }
+copyOfRex.owner.city = "Cusco"
+console.log(rex.owner.city)
 ```
 
 It prints `Cusco`. The copy has its own `name`, but its `owner` is the same object. To copy everything inside too, use `structuredClone(rex)`.
@@ -290,11 +290,11 @@ It prints `Cusco`. The copy has its own `name`, but its `owner` is the same obje
 Two objects are equal with `===` only when they are the same object, not when they have the same content.
 
 ```ts
-const a = { id: 1 };
-const b = { id: 1 };
-console.log(a === b);
-console.log(a === a);
-console.log(JSON.stringify(a) === JSON.stringify(b));
+const a = { id: 1 }
+const b = { id: 1 }
+console.log(a === b)
+console.log(a === a)
+console.log(JSON.stringify(a) === JSON.stringify(b))
 ```
 
 It prints `false`, `true` and `true`. The checker at the bottom of every exercise file compares the text made by `JSON.stringify`, for this reason.
@@ -336,13 +336,13 @@ You will need something this lesson did not teach: how to list the names and val
 1. The song is in the list, but the program says it is not. Find the bug.
 
 ```ts
-const favourite = { title: "Blue", artist: "Mia" };
+const favourite = { title: "Blue", artist: "Mia" }
 const songs = [
   { title: "Blue", artist: "Mia" },
   { title: "Echo", artist: "Lena" },
-];
+]
 
-console.log(songs.includes(favourite));
+console.log(songs.includes(favourite))
 ```
 
 <details>
@@ -355,8 +355,8 @@ It prints `false`. `includes` compares objects with the same rule as `===`: it a
 2. What breaks if someone renames the property `seconds` to `duration` in the data, but not in the code that reads it?
 
 ```ts
-const song = { title: "Blue", duration: 215 };
-console.log(`${song.title} lasts ${song.seconds} seconds`);
+const song = { title: "Blue", duration: 215 }
+console.log(`${song.title} lasts ${song.seconds} seconds`)
 ```
 
 <details>
@@ -369,9 +369,9 @@ TypeScript shows a red underline: the property `seconds` does not exist. If you 
 3. What happens here when no song has the title "Nope"? How would you make the code safe?
 
 ```ts
-const songs = [{ title: "Blue", artist: "Mia" }];
-const found = songs.find((song) => song.title === "Nope");
-const { title } = found;
+const songs = [{ title: "Blue", artist: "Mia" }]
+const found = songs.find((song) => song.title === "Nope")
+const { title } = found
 ```
 
 <details>

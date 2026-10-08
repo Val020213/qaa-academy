@@ -9,14 +9,14 @@
 // - Save the file and run it again. Make every line say OK.
 
 // This line makes the file a module. Leave it as it is.
-export {};
+export {}
 
 // Exercise 1
 // Return the type name of the value 42. Use typeof.
 // Expected result: "number"
 function exercise1(): string {
   // TODO
-  return "";
+  return ""
 }
 
 // Exercise 2
@@ -25,7 +25,7 @@ function exercise1(): string {
 // Expected result: 4
 function exercise2(): number {
   // TODO
-  return 0;
+  return 0
 }
 
 // Exercise 3
@@ -33,16 +33,16 @@ function exercise2(): number {
 // Expected result: "404 error"
 function exercise3(): string {
   // TODO
-  return "";
+  return ""
 }
 
 // Exercise 4
 // The variable assignee has no value yet. Return its type name with typeof.
 // Expected result: "undefined"
 function exercise4(): string {
-  let assignee: string | undefined;
+  let assignee: string | undefined
   // TODO
-  return "";
+  return ""
 }
 
 // Exercise 5
@@ -51,27 +51,27 @@ function exercise4(): string {
 // Expected result: null
 function exercise5(): string | null {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // ---------------------------------------------------------------
 // Checker. Do not edit below this line.
 // ---------------------------------------------------------------
-let failures = 0;
+let failures = 0
 
 function check(name: string, actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) === JSON.stringify(expected)) {
-    console.log(`OK    ${name}`);
+    console.log(`OK    ${name}`)
   } else {
-    failures += 1;
-    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
+    failures += 1
+    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`)
   }
 }
 
-check("1 typeof 42", exercise1(), "number");
-check("2 text to number", exercise2(), 4);
-check("3 number to text", exercise3(), "404 error");
-check("4 typeof undefined", exercise4(), "undefined");
-check("5 no value on purpose", exercise5(), null);
+check("1 typeof 42", exercise1(), "number")
+check("2 text to number", exercise2(), 4)
+check("3 number to text", exercise3(), "404 error")
+check("4 typeof undefined", exercise4(), "undefined")
+check("5 no value on purpose", exercise5(), null)
 
-console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`);
+console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`)

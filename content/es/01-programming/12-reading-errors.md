@@ -26,7 +26,7 @@ Un tercer tipo es el **bug de lógica**. El programa corre sin error pero da una
 Este código tiene un error de tipo:
 
 ```ts
-const count: number = "five";
+const count: number = "five"
 ```
 
 TypeScript reporta:
@@ -50,18 +50,18 @@ Aquí hay un error en tiempo de ejecución. La función lee el nombre del dueño
 
 ```ts
 function getDogName(jsonText: string): string {
-  const dog = JSON.parse(jsonText);
-  return dog.owner.name;
+  const dog = JSON.parse(jsonText)
+  return dog.owner.name
 }
 
-console.log(getDogName('{"name":"Rex"}'));
+console.log(getDogName('{"name":"Rex"}'))
 ```
 
 Node imprime algo como esto:
 
 ```text
-return dog.owner.name;
-                 ^
+  return dog.owner.name
+                   ^
 
 TypeError: Cannot read properties of undefined (reading 'name')
     at getDogName (file:///C:/qaa/exercises/01-programming/demo.ts:3:20)
@@ -118,19 +118,19 @@ Olvidaste `await`. Agrégalo. Mira la lección 10.
 La línea que señala el mensaje es donde el programa se rompió, y no siempre es la que tiene el error. Mira este programa:
 
 ```ts
-type Dog = { id: number; name: string };
-const dogs: Dog[] = [{ id: 1, name: "Rex" }];
+type Dog = { id: number, name: string }
+const dogs: Dog[] = [{ id: 1, name: "Rex" }]
 
 function getName(id: number): string {
-  const found = dogs.find((dog) => dog.id === id) as Dog;
-  return found.name;
+  const found = dogs.find((dog) => dog.id === id) as Dog
+  return found.name
 }
 
 function printName(id: number): void {
-  console.log(getName(id));
+  console.log(getName(id))
 }
 
-printName(2);
+printName(2)
 ```
 
 La salida real, con los nombres largos de carpetas acortados:
@@ -139,7 +139,7 @@ La salida real, con los nombres largos de carpetas acortados:
 TypeError: Cannot read properties of undefined (reading 'name')
     at getName (demo.ts:6:16)
     at printName (demo.ts:10:15)
-    at Object.<anonymous> (demo.ts:13:1)
+    at demo.ts:13:1
 ```
 
 Node señala la línea 6, y la línea 6 está bien. El error es que nadie tiene un perro con id 2, y la línea 13 lo pidió. El texto `as Dog` le dijo a TypeScript que confiara en ti, así que escondió el `undefined`.
@@ -153,16 +153,16 @@ Las líneas `at` te dicen cómo llegar de la caída al origen. Node guarda la li
 Un programa puede fallar con ruido, con una caída y un mensaje. O puede fallar en silencio e imprimir algo incorrecto. Con ruido suele ser mejor, porque lo ves. Este refugio de perros guarda un dueño opcional por perro:
 
 ```ts
-type Dog = { name: string; owner?: { name: string } };
+type Dog = { name: string, owner?: { name: string } }
 
 function ownerName(dog: Dog): string {
-  return (dog.owner as { name: string }).name;
+  return (dog.owner as { name: string }).name
 }
 
-const dogs: Dog[] = [{ name: "Rex", owner: { name: "Ana" } }, { name: "Mimi" }];
+const dogs: Dog[] = [{ name: "Rex", owner: { name: "Ana" } }, { name: "Mimi" }]
 
 for (const dog of dogs) {
-  console.log(ownerName(dog));
+  console.log(ownerName(dog))
 }
 ```
 
@@ -171,7 +171,7 @@ Imprime `Ana` y luego se rompe en la línea 4, pero la línea 4 no es el error. 
 Compara la caída con esta "solución" para Mimi:
 
 ```ts
-console.log(`${dog.name} belongs to ${dog.owner?.name}`);
+console.log(`${dog.name} belongs to ${dog.owner?.name}`)
 ```
 
 El `?.` significa "si falta el dueño, da `undefined`". El programa imprime `Mimi belongs to undefined` y no se rompe. El error desapareció, pero el problema sigue ahí.
@@ -182,19 +182,19 @@ Un error es un mensaje del código, y no debes esconderlo. Este es un error com�
 
 ```ts
 async function checkWelcome(): Promise<void> {
-  throw new Error("Expected the welcome text");
+  throw new Error("Expected the welcome text")
 }
 
 async function main(): Promise<void> {
   try {
-    await checkWelcome();
+    await checkWelcome()
   } catch {
     // ignore
   }
-  console.log("test passed");
+  console.log("test passed")
 }
 
-main();
+main()
 ```
 
 Imprime `test passed`, aunque la comprobación falló. El `catch` vacío se tragó el error. Un *test* así nunca puede fallar. Usa `catch` solo cuando puedas hacer algo útil. Si solo quieres registrar el error, escribe `throw error` al final del bloque `catch` para pasar el error hacia arriba.
@@ -202,7 +202,7 @@ Imprime `test passed`, aunque la comprobación falló. El `catch` vacío se trag
 ## Práctica
 
 1. Crea el archivo `exercises/01-programming/errors-practice.ts`.
-2. Escribe `const count: number = "five";`. Lee el subrayado rojo. Luego ejecuta `pnpm typecheck` y encuentra el mismo mensaje. Nombra el archivo, la línea, la columna y el código.
+2. Escribe `const count: number = "five"`. Lee el subrayado rojo. Luego ejecuta `pnpm typecheck` y encuentra el mismo mensaje. Nombra el archivo, la línea, la columna y el código.
 3. Arréglalo, para que el error desaparezca.
 4. Escribe una llamada a `getDogName` como en esta lección y ejecútala con `node`. Encuentra la primera línea `at` de tu propio archivo.
 5. Abre `exercises/01-programming/12-reading-errors.ts`. Tiene cinco funciones con un *bug* cada una.
@@ -234,8 +234,8 @@ Vas a necesitar algo que esta lección no enseñó: una forma de decirle a Node.
 1. ¿Qué imprime este programa y por qué?
 
 ```ts
-const area = Number("5cm") * 5;
-console.log(area, area === area);
+const area = Number("5cm") * 5
+console.log(area, area === area)
 ```
 
 <details><summary>Respuesta</summary>

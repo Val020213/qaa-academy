@@ -17,9 +17,9 @@ In this lesson you make your program choose what to do based on a value, and you
 A **comparison** asks a question about two values. The answer is always a boolean: `true` or `false`.
 
 ```ts
-console.log(5 > 3);
-console.log("rain" === "rain");
-console.log("rain" === "sun");
+console.log(5 > 3)
+console.log("rain" === "rain")
+console.log("rain" === "sun")
 ```
 
 This prints:
@@ -46,12 +46,12 @@ These are the comparison signs:
 If you mix the signs up, the program does not warn you:
 
 ```ts
-let lightColor = "green";
+let lightColor = "green"
 
 if (lightColor = "red") {
-  console.log("stop");
+  console.log("stop")
 }
-console.log(lightColor);
+console.log(lightColor)
 ```
 
 This prints:
@@ -66,8 +66,8 @@ The light was green. The program says "stop", and now the light is red. The line
 Text is compared letter by letter, even when it looks like a number.
 
 ```ts
-console.log(10 > 9);
-console.log("10" > "9");
+console.log(10 > 9)
+console.log("10" > "9")
 ```
 
 This prints:
@@ -82,7 +82,7 @@ The text `"10"` starts with `1`, and `"9"` starts with `9`. The first letter dec
 Capital letters count too:
 
 ```ts
-console.log("Passed" === "passed");
+console.log("Passed" === "passed")
 ```
 
 This prints `false`.
@@ -92,12 +92,12 @@ This prints `false`.
 An **if** statement runs some code only when a condition is `true`. The code goes inside curly brackets `{ }`.
 
 ```ts
-const isRaining = true;
+const isRaining = true
 
 if (isRaining) {
-  console.log("Take an umbrella");
+  console.log("Take an umbrella")
 }
-console.log("Leave the house");
+console.log("Leave the house")
 ```
 
 This prints:
@@ -114,12 +114,12 @@ If `isRaining` was `false`, the first message would not print. Only `Leave the h
 Use **else** to run code when the condition is `false`.
 
 ```ts
-const temperature = 28;
+const temperature = 28
 
 if (temperature > 25) {
-  console.log("Go to the beach");
+  console.log("Go to the beach")
 } else {
-  console.log("Stay at home");
+  console.log("Stay at home")
 }
 ```
 
@@ -134,14 +134,14 @@ Go to the beach
 Use **else if** when you have more than two choices. Node.js evaluates the conditions from the top, runs the block of the first one that is true, and skips the rest of the chain.
 
 ```ts
-const temperature = 12;
+const temperature = 12
 
 if (temperature < 0) {
-  console.log("coat and gloves");
+  console.log("coat and gloves")
 } else if (temperature < 15) {
-  console.log("jacket");
+  console.log("jacket")
 } else {
-  console.log("t-shirt");
+  console.log("t-shirt")
 }
 ```
 
@@ -156,14 +156,14 @@ Here `temperature < 0` is false, so Node.js moves on to the next condition. Then
 This is why the order matters. A video game gives a medal at the end of a level: bronze from 50 points, silver from 70 and gold from 90. Each condition is correct on its own, but they are in the wrong order:
 
 ```ts
-const points = 95;
+const points = 95
 
 if (points >= 50) {
-  console.log("bronze medal");
+  console.log("bronze medal")
 } else if (points >= 70) {
-  console.log("silver medal");
+  console.log("silver medal")
 } else if (points >= 90) {
-  console.log("gold medal");
+  console.log("gold medal")
 }
 ```
 
@@ -172,14 +172,14 @@ This prints `bronze medal`. A score of 95 is 50 or more, so the first condition 
 The fix is to put the most demanding condition first:
 
 ```ts
-const points = 95;
+const points = 95
 
 if (points >= 90) {
-  console.log("gold medal");
+  console.log("gold medal")
 } else if (points >= 70) {
-  console.log("silver medal");
+  console.log("silver medal")
 } else if (points >= 50) {
-  console.log("bronze medal");
+  console.log("bronze medal")
 }
 ```
 
@@ -196,12 +196,12 @@ You can join conditions with three **logical operators**.
 `!` means NOT. It turns `true` into `false` and `false` into `true`.
 
 ```ts
-const hasTicket = true;
-const hasPassport = false;
+const hasTicket = true
+const hasPassport = false
 
-console.log(hasTicket && hasPassport);
-console.log(hasTicket || hasPassport);
-console.log(!hasPassport);
+console.log(hasTicket && hasPassport)
+console.log(hasTicket || hasPassport)
+console.log(!hasPassport)
 ```
 
 This prints:
@@ -215,15 +215,15 @@ true
 Here is a weather plan that uses `&&` and `!`:
 
 ```ts
-const temperature = 25;
-const isRaining = true;
+const temperature = 25
+const isRaining = true
 
 if (temperature > 20 && !isRaining) {
-  console.log("beach");
+  console.log("beach")
 } else if (temperature > 20) {
-  console.log("cafe");
+  console.log("cafe")
 } else {
-  console.log("home");
+  console.log("home")
 }
 ```
 
@@ -236,10 +236,10 @@ cafe
 And one with `||`:
 
 ```ts
-const day = "Saturday";
+const day = "Saturday"
 
 if (day === "Saturday" || day === "Sunday") {
-  console.log("weekend");
+  console.log("weekend")
 }
 ```
 
@@ -262,12 +262,12 @@ JavaScript lets you write `if (name)` without a comparison. It treats some value
 This can surprise you with a puppy that is 0 years old:
 
 ```ts
-const age = 0;
+const age = 0
 
 if (age) {
-  console.log("age is known");
+  console.log("age is known")
 } else {
-  console.log("no age given");
+  console.log("no age given")
 }
 ```
 
@@ -282,12 +282,12 @@ This prints `no age given`. The age is known, and it is 0. The number `0` is fal
 JavaScript evaluates `a && b` from left to right. If `a` is false, the answer is already false. So it does not evaluate `b`. This is called **short-circuit** evaluation.
 
 ```ts
-const userName: string | undefined = undefined;
+const userName: string | undefined = undefined
 
 if (userName !== undefined && userName.length > 0) {
-  console.log("has name");
+  console.log("has name")
 } else {
-  console.log("no name");
+  console.log("no name")
 }
 ```
 
@@ -304,10 +304,10 @@ no name
 `===` has higher precedence than `||`, so the parser builds the expression as `(day === "Saturday") || "Sunday"`: two expressions joined by `||`. The second one is just the text `"Sunday"`, and a text that is not empty is truthy, so the condition is always true.
 
 ```ts
-const day = "Monday";
+const day = "Monday"
 
 if (day === "Saturday" || "Sunday") {
-  console.log("weekend");
+  console.log("weekend")
 }
 ```
 
@@ -347,15 +347,15 @@ You will need something this lesson did not teach: a way to ask "does this numbe
 1. What does this print, and why?
 
 ```ts
-const temperature = 20;
-const isRaining = false;
+const temperature = 20
+const isRaining = false
 
 if (temperature > 20 && !isRaining) {
-  console.log("beach");
+  console.log("beach")
 } else if (temperature > 20) {
-  console.log("cafe");
+  console.log("cafe")
 } else {
-  console.log("home");
+  console.log("home")
 }
 ```
 
@@ -369,10 +369,10 @@ It prints `home`. There is no rain, but `20 > 20` is false, because 20 is not gr
 2. This game should print `custom level` only when the level is neither `easy` nor `hard`. It prints it for `easy` too. Find the bug.
 
 ```ts
-const level = "easy";
+const level = "easy"
 
 if (level !== "easy" || level !== "hard") {
-  console.log("custom level");
+  console.log("custom level")
 }
 ```
 

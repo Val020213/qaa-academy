@@ -8,7 +8,7 @@
 // - Save the file and run it again. Make every line say OK.
 
 // This line makes the file a module. Leave it as it is.
-export {};
+export {}
 
 // Exercise 1
 // Return the last item of the list.
@@ -16,7 +16,7 @@ export {};
 // Tip: the last index is length minus 1. The result can be undefined.
 function lastItem(items: string[]): string | undefined {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // Exercise 2
@@ -25,7 +25,7 @@ function lastItem(items: string[]): string | undefined {
 // Example: countFailed(["passed", "failed", "failed"]) returns 2
 function countFailed(statuses: string[]): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // Exercise 3
@@ -33,7 +33,7 @@ function countFailed(statuses: string[]): number {
 // Example: totalSeconds([10, 20, 5]) returns 35
 function totalSeconds(durations: number[]): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // Exercise 4
@@ -41,7 +41,7 @@ function totalSeconds(durations: number[]): number {
 // Example: addTest(["login"], "search") returns ["login", "search"]
 function addTest(tests: string[], name: string): string[] {
   // TODO
-  return ["TODO"];
+  return ["TODO"]
 }
 
 // Exercise 5
@@ -50,7 +50,7 @@ function addTest(tests: string[], name: string): string[] {
 // Example: hasBlocked(["passed", "blocked"]) returns "yes"
 function hasBlocked(statuses: string[]): string {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // Exercise 6
@@ -59,31 +59,31 @@ function hasBlocked(statuses: string[]): string {
 // Example: slowest([12, 40, 7]) returns 40
 function slowest(durations: number[]): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // ---------------------------------------------------------------
 // Checker. Do not edit below this line.
 // ---------------------------------------------------------------
-let failures = 0;
+let failures = 0
 
 function check(name: string, actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) === JSON.stringify(expected)) {
-    console.log(`OK    ${name}`);
+    console.log(`OK    ${name}`)
   } else {
-    failures += 1;
-    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
+    failures += 1
+    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`)
   }
 }
 
-check("1 last item", lastItem(["login", "search", "checkout"]), "checkout");
-check("2 count failed", countFailed(["passed", "failed", "failed"]), 2);
-check("2 count failed, none", countFailed(["passed"]), 0);
-check("3 total seconds", totalSeconds([10, 20, 5]), 35);
-check("3 total, empty list", totalSeconds([]), 0);
-check("4 add test", addTest(["login"], "search"), ["login", "search"]);
-check("5 has blocked", hasBlocked(["passed", "blocked"]), "yes");
-check("5 no blocked", hasBlocked(["passed", "failed"]), "no");
-check("6 slowest", slowest([12, 40, 7]), 40);
+check("1 last item", lastItem(["login", "search", "checkout"]), "checkout")
+check("2 count failed", countFailed(["passed", "failed", "failed"]), 2)
+check("2 count failed, none", countFailed(["passed"]), 0)
+check("3 total seconds", totalSeconds([10, 20, 5]), 35)
+check("3 total, empty list", totalSeconds([]), 0)
+check("4 add test", addTest(["login"], "search"), ["login", "search"])
+check("5 has blocked", hasBlocked(["passed", "blocked"]), "yes")
+check("5 no blocked", hasBlocked(["passed", "failed"]), "no")
+check("6 slowest", slowest([12, 40, 7]), 40)
 
-console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`);
+console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`)

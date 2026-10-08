@@ -139,8 +139,8 @@ If the API changes and requires a new field, tests that use `createProduct` fail
 Look at `apps/practice-shop/app/api/test/reset/route.ts`:
 
 ```ts
-// Test-only endpoint: puts the data back to its first state.
-// A real project would never ship this to production, so it answers 404 there.
+// Restores the seed products and orders; keeps existing sessions.
+// In production it answers 404 unless ENABLE_TEST_API is a nonempty string.
 export async function POST() {
   if (process.env.NODE_ENV === "production" && !process.env.ENABLE_TEST_API) {
     return new NextResponse(null, { status: 404 })
@@ -152,7 +152,7 @@ export async function POST() {
 
 The test in `global.setup.ts` calls this endpoint at the start of each run to restore the seed data.
 
-It is a test tool. In production it returns `404` if `ENABLE_TEST_API` is missing or empty; any nonempty text, even `"false"`, enables reset. The comment states the intent, but the condition allows that exception. An endpoint that erases all data would be dangerous in a real system. In a real project, ask the developers for such a tool for your test environment only.
+It is a test tool. In production it returns `404` if `ENABLE_TEST_API` is missing or empty; any nonempty text, even `"false"`, enables reset. An endpoint that erases all data would be dangerous in a real system. In a real project, ask the developers for such a tool for your test environment only.
 
 > **Careful:** Never point your tests at a real production system. Use a test environment you can reset.
 

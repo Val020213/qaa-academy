@@ -18,18 +18,18 @@ All examples in this lesson use a music playlist. Copy it to the top of your pra
 
 ```ts
 type Song = {
-  title: string;
-  artist: string;
-  seconds: number;
-  liked: boolean;
-};
+  title: string
+  artist: string
+  seconds: number
+  liked: boolean
+}
 
 const playlist: Song[] = [
   { title: "Blue", artist: "Mia", seconds: 215, liked: true },
   { title: "Rain Dance", artist: "Tomas", seconds: 180, liked: false },
   { title: "Sunday", artist: "Mia", seconds: 245, liked: true },
   { title: "Echo", artist: "Lena", seconds: 120, liked: false },
-];
+]
 ```
 
 ## Callback functions
@@ -41,8 +41,8 @@ The methods in this lesson take a function as an input. That function is called 
 `map` makes a new array. It runs your callback on each item and collects the results.
 
 ```ts
-const titles = playlist.map((song) => song.title);
-console.log(titles);
+const titles = playlist.map((song) => song.title)
+console.log(titles)
 ```
 
 The program prints:
@@ -54,8 +54,8 @@ The program prints:
 The new array has the same length as the old one, and the old one is not changed. Each item can become something different, for example a number:
 
 ```ts
-const minutes = playlist.map((song) => Math.round(song.seconds / 60));
-console.log(minutes);
+const minutes = playlist.map((song) => Math.round(song.seconds / 60))
+console.log(minutes)
 ```
 
 This prints:
@@ -64,15 +64,15 @@ This prints:
 [ 4, 3, 4, 2 ]
 ```
 
-> **Careful:** If you use curly braces in the callback, you must write `return`. Without it, the callback gives `undefined` for every item. `[10, 20].map((p) => { p * 1.2; })` gives `[ undefined, undefined ]`. No error appears. You do not need curly braces for a one-line callback.
+> **Careful:** If you use curly braces in the callback, you must write `return`. Without it, the callback gives `undefined` for every item. `[10, 20].map((p) => { p * 1.2 })` gives `[ undefined, undefined ]`. No error appears. You do not need curly braces for a one-line callback.
 
 ## filter: keep some items
 
 `filter` makes a new array with only the items for which your callback returns `true`.
 
 ```ts
-const liked = playlist.filter((song) => song.liked);
-console.log(liked.length);
+const liked = playlist.filter((song) => song.liked)
+console.log(liked.length)
 ```
 
 The program prints `2`.
@@ -82,9 +82,9 @@ You can chain the two methods. Get the titles of the songs by Mia:
 ```ts
 const miaTitles = playlist
   .filter((song) => song.artist === "Mia")
-  .map((song) => song.title);
+  .map((song) => song.title)
 
-console.log(miaTitles);
+console.log(miaTitles)
 ```
 
 The program prints:
@@ -100,11 +100,11 @@ A chain reads from top to bottom like a sentence: "from the playlist, keep the s
 `find` returns the first item for which your callback returns `true`. If nothing matches, it returns `undefined`.
 
 ```ts
-const found = playlist.find((song) => song.artist === "Tomas");
-console.log(found?.title);
+const found = playlist.find((song) => song.artist === "Tomas")
+console.log(found?.title)
 
-const missing = playlist.find((song) => song.artist === "Zed");
-console.log(missing);
+const missing = playlist.find((song) => song.artist === "Zed")
+console.log(missing)
 ```
 
 The program prints:
@@ -123,11 +123,11 @@ The result type is `Song | undefined`, so you must handle the `undefined` case. 
 `some` returns `true` if at least one item matches. `every` returns `true` if all items match.
 
 ```ts
-const hasLongSong = playlist.some((song) => song.seconds > 240);
-const allLiked = playlist.every((song) => song.liked);
+const hasLongSong = playlist.some((song) => song.seconds > 240)
+const allLiked = playlist.every((song) => song.liked)
 
-console.log(hasLongSong);
-console.log(allLiked);
+console.log(hasLongSong)
+console.log(allLiked)
 ```
 
 The program prints:
@@ -140,9 +140,9 @@ false
 For a list with no songs, `some` gives `false` because no song matches, and `every` gives `true` because no song breaks the rule.
 
 ```ts
-const empty: Song[] = [];
-console.log(empty.some((song) => song.liked));
-console.log(empty.every((song) => song.liked));
+const empty: Song[] = []
+console.log(empty.some((song) => song.liked))
+console.log(empty.every((song) => song.liked))
 ```
 
 The program prints:
@@ -162,10 +162,10 @@ Three dots `...` before an array mean **spread**. It puts all items of the array
 const extended: Song[] = [
   ...playlist,
   { title: "Moon", artist: "Zed", seconds: 99, liked: false },
-];
+]
 
-console.log(playlist.length);
-console.log(extended.length);
+console.log(playlist.length)
+console.log(extended.length)
 ```
 
 The program prints:
@@ -182,11 +182,11 @@ The original list still has 4 items. You made a new list with 5 items.
 `sort` has two traps. Look at this code:
 
 ```ts
-const scores = [9, 100, 25];
-const sorted = scores.sort();
+const scores = [9, 100, 25]
+const sorted = scores.sort()
 
-console.log(sorted);
-console.log(scores);
+console.log(sorted)
+console.log(scores)
 ```
 
 It prints `[ 100, 25, 9 ]` two times. First, `sort` without a callback sorts items as text. As text, `"100"` comes before `"25"`, because the first character `1` is smaller than `2`, and `"25"` comes before `"9"`. Second, `sort` changes the original list and returns that same list. So `sorted` and `scores` are one list with two names, as you saw in lesson 06.
@@ -194,10 +194,10 @@ It prints `[ 100, 25, 9 ]` two times. First, `sort` without a callback sorts ite
 To sort numbers, `toSorted` takes a callback that says how to compare two items. The callback gets `a` and `b`, and returns a negative number if `a` goes first, or a positive number if `b` goes first.
 
 ```ts
-const scores = [9, 100, 25];
+const scores = [9, 100, 25]
 
-console.log(scores.toSorted((a, b) => a - b));
-console.log(scores);
+console.log(scores.toSorted((a, b) => a - b))
+console.log(scores)
 ```
 
 The program prints:
@@ -224,14 +224,14 @@ There is no magic in `map`. It is a loop that someone wrote for you. This functi
 
 ```ts
 function myMap(items: Song[], callback: (song: Song) => number): number[] {
-  const result: number[] = [];
+  const result: number[] = []
   for (const item of items) {
-    result.push(callback(item));
+    result.push(callback(item))
   }
-  return result;
+  return result
 }
 
-console.log(myMap(playlist, (song) => song.seconds));
+console.log(myMap(playlist, (song) => song.seconds))
 ```
 
 The text `(song: Song) => number` is the type of a callback. It says: a function that takes a song and returns a number. The program prints:
@@ -279,11 +279,11 @@ You will need something this lesson did not teach: how to take only the first fe
 1. Predict the output and say why.
 
 ```ts
-const numbers = [1, 2, 3, 4];
-const big = numbers.filter((n) => n > 2);
-big.push(99);
+const numbers = [1, 2, 3, 4]
+const big = numbers.filter((n) => n > 2)
+big.push(99)
 
-console.log(numbers, big);
+console.log(numbers, big)
 ```
 
 <details>
@@ -296,12 +296,12 @@ It prints `[ 1, 2, 3, 4 ] [ 3, 4, 99 ]`. `filter` makes a new array, so `big` is
 2. The shop wants prices with 20 percent tax. The code runs without an error, but the answer is useless. Find the bug.
 
 ```ts
-const prices = [10, 20];
+const prices = [10, 20]
 const withTax = prices.map((price) => {
-  price * 1.2;
-});
+  price * 1.2
+})
 
-console.log(withTax);
+console.log(withTax)
 ```
 
 <details>
@@ -314,7 +314,7 @@ It prints `[ undefined, undefined ]`. The callback has curly braces, so it needs
 3. A rule says: "a playlist is ready when every song is shorter than 5 minutes." A new requirement arrives: users can now create playlists with no songs yet. What breaks?
 
 ```ts
-const isReady = playlist.every((song) => song.seconds < 300);
+const isReady = playlist.every((song) => song.seconds < 300)
 ```
 
 <details>

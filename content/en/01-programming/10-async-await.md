@@ -25,9 +25,9 @@ JavaScript does one thing at a time. When it meets slow work, such as a timer or
 `setTimeout` runs a function after a time in milliseconds. A millisecond is one thousandth of a second. See what happens with a time of 0:
 
 ```ts
-console.log("Put the kettle on");
-setTimeout(() => console.log("Kettle is ready"), 0);
-console.log("Get a cup");
+console.log("Put the kettle on")
+setTimeout(() => console.log("Kettle is ready"), 0)
+console.log("Get a cup")
 ```
 
 The output is:
@@ -50,7 +50,7 @@ Here is a helper that simulates slow work. It waits some milliseconds:
 
 ```ts
 function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 ```
 
@@ -64,21 +64,21 @@ You can use `await` inside a function marked with `async`. You can also use it a
 
 ```ts
 function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function loadForecast(): Promise<string> {
-  await wait(500);
-  return "sunny";
+  await wait(500)
+  return "sunny"
 }
 
 async function main(): Promise<void> {
-  console.log("Asking for the forecast...");
-  const forecast = await loadForecast();
-  console.log(`Forecast: ${forecast}`);
+  console.log("Asking for the forecast...")
+  const forecast = await loadForecast()
+  console.log(`Forecast: ${forecast}`)
 }
 
-main();
+main()
 ```
 
 The program prints `Asking for the forecast...`. After half a second it prints:
@@ -95,20 +95,20 @@ Look at the same program without the `await` before `loadForecast()`:
 
 ```ts
 function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function loadForecast(): Promise<string> {
-  await wait(500);
-  return "sunny";
+  await wait(500)
+  return "sunny"
 }
 
 async function main(): Promise<void> {
-  const forecast = loadForecast();
-  console.log(`Forecast: ${forecast}`);
+  const forecast = loadForecast()
+  console.log(`Forecast: ${forecast}`)
 }
 
-main();
+main()
 ```
 
 The program prints:
@@ -125,20 +125,20 @@ Without `await`, the function does run. You just do not wait for it. `await` pau
 
 ```ts
 function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function slowLog(): Promise<void> {
-  await wait(100);
-  console.log("pasta is ready");
+  await wait(100)
+  console.log("pasta is ready")
 }
 
 async function main(): Promise<void> {
-  slowLog();
-  console.log("table is set");
+  slowLog()
+  console.log("table is set")
 }
 
-main();
+main()
 ```
 
 The result is:
@@ -150,33 +150,33 @@ pasta is ready
 
 ## try and catch
 
-A Promise can fail. A server may be down. A song may not exist. When an awaited Promise fails, it throws an error.
+A Promise can fail. A server may be down. A song may not exist. When a Promise with `await` fails, it throws an error.
 
 Use `try` and `catch` to handle the error. The code in `try` runs first. If it throws, the code in `catch` runs.
 
 ```ts
 function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function loadSong(id: number): Promise<string> {
-  await wait(100);
+  await wait(100)
   if (id !== 1) {
-    throw new Error(`Song ${id} not found`);
+    throw new Error(`Song ${id} not found`)
   }
-  return "Blue in Green";
+  return "Blue in Green"
 }
 
 async function main(): Promise<void> {
   try {
-    const title = await loadSong(2);
-    console.log(title);
+    const title = await loadSong(2)
+    console.log(title)
   } catch (error) {
-    console.log("Something went wrong:", error instanceof Error ? error.message : error);
+    console.log("Something went wrong:", error instanceof Error ? error.message : error)
   }
 }
 
-main();
+main()
 ```
 
 The program prints:
@@ -193,18 +193,18 @@ You can use `await` inside a `for...of` loop. Each step finishes before the next
 
 ```ts
 function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function main(): Promise<void> {
-  const songs = ["Intro", "Chorus", "Outro"];
+  const songs = ["Intro", "Chorus", "Outro"]
   for (const song of songs) {
-    await wait(100);
-    console.log(`${song} loaded`);
+    await wait(100)
+    console.log(`${song} loaded`)
   }
 }
 
-main();
+main()
 ```
 
 The program prints three lines, one every 100 milliseconds.
@@ -215,18 +215,18 @@ Each `await` in a row waits for the one before. Three songs of 100 ms each need 
 
 ```ts
 async function main(): Promise<void> {
-  const startOne = Date.now();
-  await wait(100);
-  await wait(100);
-  await wait(100);
-  console.log(`One by one: ${Date.now() - startOne} ms`);
+  const startOne = Date.now()
+  await wait(100)
+  await wait(100)
+  await wait(100)
+  console.log(`One by one: ${Date.now() - startOne} ms`)
 
-  const startAll = Date.now();
-  await Promise.all([wait(100), wait(100), wait(100)]);
-  console.log(`Together: ${Date.now() - startAll} ms`);
+  const startAll = Date.now()
+  await Promise.all([wait(100), wait(100), wait(100)])
+  console.log(`Together: ${Date.now() - startAll} ms`)
 }
 
-main();
+main()
 ```
 
 The first line is about 300 ms and the second is about 100 ms (in a real run: 302 ms and 101 ms). Together is faster, but only when the tasks do not depend on each other.
@@ -272,15 +272,15 @@ You will need something this lesson did not teach: a way to wait for many Promis
 
 ```ts
 async function main(): Promise<void> {
-  const ids = [1, 2, 3];
+  const ids = [1, 2, 3]
   ids.forEach(async (id) => {
-    await wait(100);
-    console.log(`done ${id}`);
-  });
-  console.log("finished");
+    await wait(100)
+    console.log(`done ${id}`)
+  })
+  console.log("finished")
 }
 
-main();
+main()
 ```
 
 Use the `wait` function from this lesson.
@@ -295,19 +295,19 @@ It prints `finished` first. Then it prints `done 1`, `done 2` and `done 3`, abou
 
 ```ts
 async function isLoaded(): Promise<boolean> {
-  await wait(100);
-  return false;
+  await wait(100)
+  return false
 }
 
 async function main(): Promise<void> {
   if (isLoaded()) {
-    console.log("loaded");
+    console.log("loaded")
   } else {
-    console.log("not loaded");
+    console.log("not loaded")
   }
 }
 
-main();
+main()
 ```
 
 <details><summary>Answer</summary>
@@ -321,15 +321,15 @@ The `await` is missing before `isLoaded()`. The `if` gets a Promise, and a Promi
 ```ts
 async function main(): Promise<void> {
   try {
-    const title = loadSong(2);
-    console.log(title);
+    const title = loadSong(2)
+    console.log(title)
   } catch (error) {
-    console.log("Something went wrong");
+    console.log("Something went wrong")
   }
-  console.log("end of main");
+  console.log("end of main")
 }
 
-main();
+main()
 ```
 
 Use `loadSong` from the "try and catch" section.

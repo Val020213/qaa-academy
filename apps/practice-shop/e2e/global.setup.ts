@@ -4,15 +4,15 @@ import { ADMIN } from "./lib/fixtures/api-client"
 const AUTH_FILE = "e2e/.auth/admin.json"
 
 test("sign in as admin", async ({ page, request }) => {
-  // Fresh data for every run, so a dirty server never breaks the suite.
+  // Reset products and orders to the seed data before this run.
   const reset = await request.post("/api/test/reset")
   expect(reset.ok()).toBeTruthy()
 
   await page.goto("/login")
 
-  // The page is rendered on the server first, and React needs a moment to
-  // "wake up" (hydrate). Text typed before that can be erased. So we type,
-  // check the value, and try again until it sticks.
+  // React hydrates the server-rendered form. Earlier input can be erased.
+  // toPass retries filling and checking until both values match once;
+  // it does not check whether hydration clears them later.
   await expect(async () => {
     await page.getByTestId("login-email").fill(ADMIN.email)
     await page.getByTestId("login-password").fill(ADMIN.password)
@@ -23,6 +23,6 @@ test("sign in as admin", async ({ page, request }) => {
   await page.getByTestId("login-submit").click()
   await expect(page).toHaveURL(/\/dashboard/)
 
-  // Save the cookies. Every other test starts with this session.
+  // Save the cookies for tests that keep the default storageState.
   await page.context().storageState({ path: AUTH_FILE })
 })

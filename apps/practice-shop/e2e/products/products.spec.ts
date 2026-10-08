@@ -54,7 +54,8 @@ test.describe("Create product", () => {
     await products.goto()
     await expect(products.table).toBeVisible()
 
-    // We arrive by clicking, not by typing the address, so React is ready.
+    // Open the form through the New product link. This click alone does not
+    // establish that the destination form is ready for typing.
     await products.newButton.click()
     await page.getByTestId("product-name").fill(name)
     await page.getByTestId("product-sku").fill(uniqueSku())

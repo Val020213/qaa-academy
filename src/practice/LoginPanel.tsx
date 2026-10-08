@@ -88,7 +88,7 @@ export function LoginPanel() {
           </Button>
         </form>
 
-        {/* Alert already has role="alert": screen readers read the error at once. */}
+        {/* Alert has role="alert": it requests a high-priority screen reader announcement. */}
         <Alert variant="destructive" hidden={!error} data-testid="login-error">
           {error}
         </Alert>

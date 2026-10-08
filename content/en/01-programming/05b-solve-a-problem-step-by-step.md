@@ -45,35 +45,35 @@ Example: a person of 8 on Tuesday pays 4.
 
 ```ts
 function ticketPrice(age: number, day: string): number {
-  return 10;
+  return 10
 }
 
-console.log(ticketPrice(30, "Monday"));
+console.log(ticketPrice(30, "Monday"))
 ```
 
 This prints `10`. Now step 2:
 
 ```ts
 function ticketPrice(age: number, day: string): number {
-  let price = 10;
+  let price = 10
   if (age < 12) {
-    price = 6;
+    price = 6
   } else if (age >= 65) {
-    price = 7;
+    price = 7
   }
-  return price;
+  return price
 }
 
-console.log(ticketPrice(30, "Monday"));
-console.log(ticketPrice(8, "Monday"));
-console.log(ticketPrice(70, "Monday"));
+console.log(ticketPrice(30, "Monday"))
+console.log(ticketPrice(8, "Monday"))
+console.log(ticketPrice(70, "Monday"))
 ```
 
 This prints `10`, `6` and `7`. Now step 3. Add it before the `return`:
 
 ```ts
   if (day === "Tuesday") {
-    price = price - 2;
+    price = price - 2
   }
 ```
 
@@ -82,10 +82,10 @@ Run it with `ticketPrice(8, "Tuesday")`. It prints `4`, the number from your exa
 **Move 5: check.** An **edge case** is a value at the border of a rule or outside the usual. Try these:
 
 ```ts
-console.log(ticketPrice(11, "Monday"), ticketPrice(12, "Monday"));
-console.log(ticketPrice(64, "Monday"), ticketPrice(65, "Monday"));
-console.log(ticketPrice(30, "tuesday"));
-console.log(ticketPrice(-1, "Monday"));
+console.log(ticketPrice(11, "Monday"), ticketPrice(12, "Monday"))
+console.log(ticketPrice(64, "Monday"), ticketPrice(65, "Monday"))
+console.log(ticketPrice(30, "tuesday"))
+console.log(ticketPrice(-1, "Monday"))
 ```
 
 It prints:
@@ -103,7 +103,7 @@ Add a rule at the top. Decide what the function does for a wrong age. Here it re
 
 ```ts
   if (age < 0) {
-    return -1; // -1 means "wrong age"
+    return -1 // -1 means "wrong age"
   }
 ```
 
@@ -128,7 +128,7 @@ A rule many people remember is "a leap year comes every four years". In code it 
 
 ```ts
 function isLeapYear(year: number): boolean {
-  return year % 4 === 0;
+  return year % 4 === 0
 }
 ```
 
@@ -149,15 +149,15 @@ The full rule: a year divisible by 400 is a leap year. Otherwise, a year divisib
 ```ts
 function isLeapYear(year: number): boolean {
   if (year % 400 === 0) {
-    return true;
+    return true
   }
   if (year % 100 === 0) {
-    return false;
+    return false
   }
-  return year % 4 === 0;
+  return year % 4 === 0
 }
 
-console.log(isLeapYear(2000), isLeapYear(1900), isLeapYear(2024), isLeapYear(2023));
+console.log(isLeapYear(2000), isLeapYear(1900), isLeapYear(2024), isLeapYear(2023))
 ```
 
 This prints `true false true false`. These are the four years from your hand table. **Move 5** passed with the same four values. Add edge cases: 2100, 1600, and the year 0.
@@ -213,7 +213,7 @@ You will need something this lesson did not teach: how to find how many times on
 1. What does this print? Use the final `ticketPrice`.
 
 ```ts
-console.log(ticketPrice(65, "Tuesday"), ticketPrice(64, "Tuesday"));
+console.log(ticketPrice(65, "Tuesday"), ticketPrice(64, "Tuesday"))
 ```
 
 <details>
@@ -228,15 +228,15 @@ It prints `5 8`. A person of 65 is a senior, so the base price is 7, and Tuesday
 ```ts
 function isLeapYear(year: number): boolean {
   if (year % 4 === 0) {
-    return true;
+    return true
   }
   if (year % 100 === 0) {
-    return false;
+    return false
   }
   if (year % 400 === 0) {
-    return true;
+    return true
   }
-  return false;
+  return false
 }
 ```
 

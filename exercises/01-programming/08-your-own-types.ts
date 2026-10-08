@@ -7,14 +7,14 @@
 //
 // Replace each "TODO" with real code. Do not edit the checker at the bottom.
 
-type Status = "passed" | "failed" | "skipped";
+type Status = "passed" | "failed" | "skipped"
 
 type TestCase = {
-  id: number;
-  title: string;
-  status: Status;
-  owner?: string; // optional: some test cases have no owner
-};
+  id: number
+  title: string
+  status: Status
+  owner?: string // optional: some test cases have no owner
+}
 
 // ---------------------------------------------------------------
 // Exercise 1
@@ -23,7 +23,7 @@ type TestCase = {
 // Example: statusLabel("failed") returns "FAIL"
 function statusLabel(status: Status): string {
   // TODO
-  return "";
+  return ""
 }
 
 // ---------------------------------------------------------------
@@ -32,7 +32,7 @@ function statusLabel(status: Status): string {
 // Example: isFinished("passed") returns true, isFinished("skipped") returns false
 function isFinished(status: Status): boolean {
   // TODO
-  return false;
+  return false
 }
 
 // ---------------------------------------------------------------
@@ -44,7 +44,7 @@ function isFinished(status: Status): boolean {
 //   returns "Login (owner: Ana)"
 function describeOwner(testCase: TestCase): string {
   // TODO
-  return "";
+  return ""
 }
 
 // ---------------------------------------------------------------
@@ -53,7 +53,7 @@ function describeOwner(testCase: TestCase): string {
 // Example: with two failed test cases in the list, countByStatus(list, "failed") returns 2
 function countByStatus(testCases: TestCase[], status: Status): number {
   // TODO
-  return -1;
+  return -1
 }
 
 // ---------------------------------------------------------------
@@ -64,20 +64,20 @@ function countByStatus(testCases: TestCase[], status: Status): number {
 //   returns "Checkout applies discount"
 function firstFailedTitle(testCases: TestCase[]): string | undefined {
   // TODO
-  return "TODO";
+  return "TODO"
 }
 
 // ===============================================================
 // Checker. Do not edit below this line.
 // ===============================================================
-let failures = 0;
+let failures = 0
 
 function check(name: string, actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) === JSON.stringify(expected)) {
-    console.log(`OK    ${name}`);
+    console.log(`OK    ${name}`)
   } else {
-    failures += 1;
-    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
+    failures += 1
+    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`)
   }
 }
 
@@ -86,12 +86,12 @@ const sampleList: TestCase[] = [
   { id: 2, title: "Checkout applies discount", status: "failed" },
   { id: 3, title: "Logout clears session", status: "failed" },
   { id: 4, title: "Order history", status: "skipped" },
-];
+]
 
-const allPassed: TestCase[] = [{ id: 1, title: "Login works", status: "passed" }];
+const allPassed: TestCase[] = [{ id: 1, title: "Login works", status: "passed" }]
 
-check("1 statusLabel", [statusLabel("passed"), statusLabel("failed"), statusLabel("skipped")], ["PASS", "FAIL", "SKIP"]);
-check("2 isFinished", [isFinished("passed"), isFinished("failed"), isFinished("skipped")], [true, true, false]);
+check("1 statusLabel", [statusLabel("passed"), statusLabel("failed"), statusLabel("skipped")], ["PASS", "FAIL", "SKIP"])
+check("2 isFinished", [isFinished("passed"), isFinished("failed"), isFinished("skipped")], [true, true, false])
 check(
   "3 describeOwner",
   [
@@ -99,8 +99,8 @@ check(
     describeOwner({ id: 2, title: "Logout", status: "passed" }),
   ],
   ["Login (owner: Ana)", "Logout (no owner)"],
-);
-check("4 countByStatus", [countByStatus(sampleList, "failed"), countByStatus(sampleList, "skipped")], [2, 1]);
-check("5 firstFailedTitle", [firstFailedTitle(sampleList), firstFailedTitle(allPassed)], ["Checkout applies discount", undefined]);
+)
+check("4 countByStatus", [countByStatus(sampleList, "failed"), countByStatus(sampleList, "skipped")], [2, 1])
+check("5 firstFailedTitle", [firstFailedTitle(sampleList), firstFailedTitle(allPassed)], ["Checkout applies discount", undefined])
 
-console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`);
+console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`)

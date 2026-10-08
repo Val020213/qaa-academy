@@ -20,16 +20,16 @@ A **type alias** gives a name to a type. You write it once and use it everywhere
 
 ```ts
 type Dog = {
-  name: string;
-  age: number;
-};
+  name: string
+  age: number
+}
 
 const rex: Dog = {
   name: "Rex",
   age: 3,
-};
+}
 
-console.log(rex.name);
+console.log(rex.name)
 ```
 
 The program prints `Rex`.
@@ -37,13 +37,13 @@ The program prints `Rex`.
 By convention, type names start with a capital letter. Now TypeScript checks that every `Dog` has the right properties:
 
 ```ts
-type Dog = { name: string; age: number };
+type Dog = { name: string, age: number }
 
 // Error: Property 'age' is missing
-const missing: Dog = { name: "Mimi" };
+const missing: Dog = { name: "Mimi" }
 
 // Error: Type 'string' is not assignable to type 'number'
-const wrong: Dog = { name: "Luna", age: "three" };
+const wrong: Dog = { name: "Luna", age: "three" }
 ```
 
 Both lines get a red underline. You find the mistake while you type, without waiting for the program to run.
@@ -54,16 +54,16 @@ Some values are not always there. A dog may have a nickname, or not. Put `?` aft
 
 ```ts
 type Dog = {
-  name: string;
-  age: number;
-  nickname?: string;
-};
+  name: string
+  age: number
+  nickname?: string
+}
 
-const withNickname: Dog = { name: "Rex", age: 3, nickname: "Rexy" };
-const withoutNickname: Dog = { name: "Mimi", age: 5 };
+const withNickname: Dog = { name: "Rex", age: 3, nickname: "Rexy" }
+const withoutNickname: Dog = { name: "Mimi", age: 5 }
 
-console.log(withNickname.nickname);
-console.log(withoutNickname.nickname);
+console.log(withNickname.nickname)
+console.log(withoutNickname.nickname)
 ```
 
 The program prints:
@@ -82,15 +82,15 @@ A pizza shop has a function that gives the price for a size. If the parameter is
 ```ts
 function pizzaPrice(size: string): number {
   if (size === "small") {
-    return 8;
+    return 8
   }
   if (size === "large") {
-    return 12;
+    return 12
   }
-  return 0;
+  return 0
 }
 
-console.log(pizzaPrice("Large"));
+console.log(pizzaPrice("Large"))
 ```
 
 The program prints `0`. `"Large"` is not equal to `"large"`, so both `if` lines are skipped and the last line returns 0: the customer gets a free pizza. TypeScript could not warn you, because `"Large"` is a valid `string`.
@@ -98,24 +98,24 @@ The program prints `0`. `"Large"` is not equal to `"large"`, so both `if` lines 
 A pizza size should only be `"small"`, `"medium"` or `"large"`. You can make a type from exact text values, joined with `|`. This is called a **union**.
 
 ```ts
-type Size = "small" | "medium" | "large";
+type Size = "small" | "medium" | "large"
 
 type Pizza = {
-  flavour: string;
-  size: Size;
-};
+  flavour: string
+  size: Size
+}
 
-const order: Pizza = { flavour: "Margherita", size: "large" };
-console.log(order.size);
+const order: Pizza = { flavour: "Margherita", size: "large" }
+console.log(order.size)
 ```
 
 The program prints `large`. A value outside the list is a mistake:
 
 ```ts
-type Size = "small" | "medium" | "large";
+type Size = "small" | "medium" | "large"
 
 // Error: Type '"Large"' is not assignable to type 'Size'
-const size: Size = "Large";
+const size: Size = "Large"
 ```
 
 TypeScript catches the spelling mistake before you run anything. If you change the parameter type of `pizzaPrice` to `Size`, the call with `"Large"` fails too:
@@ -125,7 +125,7 @@ function pizzaPrice(size: Size): number {
   // ...
 }
 
-pizzaPrice("Large");
+pizzaPrice("Large")
 ```
 
 The call gets a red underline: `Argument of type '"Large"' is not assignable to parameter of type 'Size'`. A union turns a silent wrong answer into a loud, early error. A mistake you see while typing costs seconds; one that reaches a customer costs much more.
@@ -138,20 +138,20 @@ Sometimes a value can be one of several types. Inside an `if`, TypeScript learns
 
 ```ts
 type Dog = {
-  name: string;
-  age: number;
-  nickname?: string;
-};
+  name: string
+  age: number
+  nickname?: string
+}
 
 function callName(dog: Dog): string {
   if (dog.nickname === undefined) {
-    return dog.name;
+    return dog.name
   }
-  return dog.nickname.toUpperCase();
+  return dog.nickname.toUpperCase()
 }
 
-console.log(callName({ name: "Rex", age: 3, nickname: "Rexy" }));
-console.log(callName({ name: "Mimi", age: 5 }));
+console.log(callName({ name: "Rex", age: 3, nickname: "Rexy" }))
+console.log(callName({ name: "Mimi", age: 5 }))
 ```
 
 The program prints:
@@ -177,10 +177,10 @@ Sometimes you see types with `<` and `>`. You only need to read them, not write 
 TypeScript removes all types before the program runs. Node only sees plain JavaScript, so a type cannot check data that arrives while the program runs.
 
 ```ts
-type Dog = { name: string; age: number };
+type Dog = { name: string, age: number }
 
-const parsed: Dog = JSON.parse('{"name":"Rex","age":"abc"}');
-console.log(parsed.age + 1);
+const parsed: Dog = JSON.parse('{"name":"Rex","age":"abc"}')
+console.log(parsed.age + 1)
 ```
 
 TypeScript shows no error. The program prints:
@@ -196,7 +196,7 @@ The type says `age` is a number, but the real data has text. `JSON.parse` return
 Do not write a type for everything. This line needs none:
 
 ```ts
-const count = 3;
+const count = 3
 ```
 
 TypeScript already knows that `count` is a number. Write types for function parameters, for shapes that many places share, and for fixed choices. Extra types make the code longer and do not make it safer. The idea here is **KISS**: keep it simple. A related idea is **YAGNI**, "You Aren't Gonna Need It": do not build for needs that you only imagine, such as a type with ten optional properties because "maybe we will need them".
@@ -239,10 +239,10 @@ You will need something this lesson did not teach: how to give each kind a label
 1. Predict the output and say why.
 
 ```ts
-type Dog = { name: string; age: number; nickname?: string };
+type Dog = { name: string, age: number, nickname?: string }
 
-const rex: Dog = { name: "Rex", age: 3 };
-console.log(`Nickname: ${rex.nickname}`);
+const rex: Dog = { name: "Rex", age: 3 }
+console.log(`Nickname: ${rex.nickname}`)
 ```
 
 <details>
@@ -255,13 +255,13 @@ It prints `Nickname: undefined`. The property `nickname` is optional and was not
 2. The code compiles and runs. A medium pizza costs 12, but the shop wants 10. Find the bug.
 
 ```ts
-type Size = "small" | "medium" | "large";
+type Size = "small" | "medium" | "large"
 
 function price(size: Size): number {
   if (size === "small") {
-    return 8;
+    return 8
   }
-  return 12;
+  return 12
 }
 ```
 
@@ -275,9 +275,9 @@ The function was written when only `small` and `large` existed. When `"medium"` 
 3. What breaks if the requirement changes, and the type changes from `age: number` to `age: string` because some dogs are "about 3"?
 
 ```ts
-type Dog = { name: string; age: string };
-const rex: Dog = { name: "Rex", age: "3" };
-console.log(rex.age + 1);
+type Dog = { name: string, age: string }
+const rex: Dog = { name: "Rex", age: "3" }
+console.log(rex.age + 1)
 ```
 
 <details>

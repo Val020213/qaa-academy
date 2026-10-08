@@ -26,7 +26,7 @@ A third kind is a **logic bug**. The program runs without error but gives a wron
 This code has a type error:
 
 ```ts
-const count: number = "five";
+const count: number = "five"
 ```
 
 TypeScript reports:
@@ -50,18 +50,18 @@ Here is a runtime error. The function reads the owner's name from a JSON text. J
 
 ```ts
 function getDogName(jsonText: string): string {
-  const dog = JSON.parse(jsonText);
-  return dog.owner.name;
+  const dog = JSON.parse(jsonText)
+  return dog.owner.name
 }
 
-console.log(getDogName('{"name":"Rex"}'));
+console.log(getDogName('{"name":"Rex"}'))
 ```
 
 Node prints something like this:
 
 ```text
-return dog.owner.name;
-                 ^
+  return dog.owner.name
+                   ^
 
 TypeError: Cannot read properties of undefined (reading 'name')
     at getDogName (file:///C:/qaa/exercises/01-programming/demo.ts:3:20)
@@ -118,19 +118,19 @@ You forgot `await`. Add it. See lesson 10.
 The line the message points to is where the program broke, and it is not always the line that holds the mistake. Look at this program:
 
 ```ts
-type Dog = { id: number; name: string };
-const dogs: Dog[] = [{ id: 1, name: "Rex" }];
+type Dog = { id: number, name: string }
+const dogs: Dog[] = [{ id: 1, name: "Rex" }]
 
 function getName(id: number): string {
-  const found = dogs.find((dog) => dog.id === id) as Dog;
-  return found.name;
+  const found = dogs.find((dog) => dog.id === id) as Dog
+  return found.name
 }
 
 function printName(id: number): void {
-  console.log(getName(id));
+  console.log(getName(id))
 }
 
-printName(2);
+printName(2)
 ```
 
 The real output, with the long folder names shortened:
@@ -139,7 +139,7 @@ The real output, with the long folder names shortened:
 TypeError: Cannot read properties of undefined (reading 'name')
     at getName (demo.ts:6:16)
     at printName (demo.ts:10:15)
-    at Object.<anonymous> (demo.ts:13:1)
+    at demo.ts:13:1
 ```
 
 Node points to line 6, and line 6 is fine. The mistake is that nobody has a dog with id 2, and line 13 asked for it. The text `as Dog` told TypeScript to trust you, so it hid the `undefined`.
@@ -153,16 +153,16 @@ The `at` lines tell you how to get from the crash back to the source. Node keeps
 A program can fail loudly, with a crash and a message. Or it can fail quietly and print something wrong. Loud is usually better, because you see it. This dog shelter keeps an optional owner for each dog:
 
 ```ts
-type Dog = { name: string; owner?: { name: string } };
+type Dog = { name: string, owner?: { name: string } }
 
 function ownerName(dog: Dog): string {
-  return (dog.owner as { name: string }).name;
+  return (dog.owner as { name: string }).name
 }
 
-const dogs: Dog[] = [{ name: "Rex", owner: { name: "Ana" } }, { name: "Mimi" }];
+const dogs: Dog[] = [{ name: "Rex", owner: { name: "Ana" } }, { name: "Mimi" }]
 
 for (const dog of dogs) {
-  console.log(ownerName(dog));
+  console.log(ownerName(dog))
 }
 ```
 
@@ -171,7 +171,7 @@ It prints `Ana` and then crashes on line 4, but line 4 is not the mistake. Mimi 
 Compare the crash with this "fix" for Mimi:
 
 ```ts
-console.log(`${dog.name} belongs to ${dog.owner?.name}`);
+console.log(`${dog.name} belongs to ${dog.owner?.name}`)
 ```
 
 The `?.` means "if the owner is missing, give `undefined`". The program prints `Mimi belongs to undefined` and does not crash. The error is gone, but the mistake is still there.
@@ -182,19 +182,19 @@ An error is a message from the code, and you must not hide it. This is a common 
 
 ```ts
 async function checkWelcome(): Promise<void> {
-  throw new Error("Expected the welcome text");
+  throw new Error("Expected the welcome text")
 }
 
 async function main(): Promise<void> {
   try {
-    await checkWelcome();
+    await checkWelcome()
   } catch {
     // ignore
   }
-  console.log("test passed");
+  console.log("test passed")
 }
 
-main();
+main()
 ```
 
 It prints `test passed`, although the check failed. The empty `catch` swallowed the error. A test like this can never fail. Use `catch` only when you can do something useful. If you only want to log, write `throw error` at the end of the `catch` block to pass the error on.
@@ -202,7 +202,7 @@ It prints `test passed`, although the check failed. The empty `catch` swallowed 
 ## Practice
 
 1. Create the file `exercises/01-programming/errors-practice.ts`.
-2. Write `const count: number = "five";`. Read the red underline. Then run `pnpm typecheck` and find the same message. Name the file, line, column and code.
+2. Write `const count: number = "five"`. Read the red underline. Then run `pnpm typecheck` and find the same message. Name the file, line, column and code.
 3. Fix it, so the error goes away.
 4. Write a call to `getDogName` as in this lesson, and run it with `node`. Find the first `at` line in your own file.
 5. Open `exercises/01-programming/12-reading-errors.ts`. It has five functions with one bug each.
@@ -234,8 +234,8 @@ You will need something this lesson did not teach: a way to tell Node.js that yo
 1. What does this program print, and why?
 
 ```ts
-const area = Number("5cm") * 5;
-console.log(area, area === area);
+const area = Number("5cm") * 5
+console.log(area, area === area)
 ```
 
 <details><summary>Answer</summary>

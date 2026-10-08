@@ -18,12 +18,12 @@ A **function** is a block of code with a name. You write the steps once and run 
 
 ```ts
 function barkTwice() {
-  console.log("Woof!");
-  console.log("Woof!");
+  console.log("Woof!")
+  console.log("Woof!")
 }
 
-barkTwice();
-barkTwice();
+barkTwice()
+barkTwice()
 ```
 
 This prints:
@@ -37,7 +37,7 @@ Woof!
 
 The first four lines **define** the function. The word `function` starts it, then the name, then `()`, then the steps in `{ }`. Defining does not run it.
 
-The lines `barkTwice();` **call** the function. A call runs the steps. Here it runs them twice.
+The lines `barkTwice()` **call** the function. A call runs the steps. Here it runs them twice.
 
 ## Parameters
 
@@ -45,11 +45,11 @@ A **parameter** is an input of a function: a variable that gets its value when y
 
 ```ts
 function greet(name: string) {
-  console.log(`Hello, ${name}!`);
+  console.log(`Hello, ${name}!`)
 }
 
-greet("Ana");
-greet("Luis");
+greet("Ana")
+greet("Luis")
 ```
 
 This prints:
@@ -69,11 +69,11 @@ A function can give a result back with the word `return`. That result is the **r
 
 ```ts
 function areaOfRectangle(width: number, height: number): number {
-  return width * height;
+  return width * height
 }
 
-const gardenArea = areaOfRectangle(4, 5);
-console.log(gardenArea);
+const gardenArea = areaOfRectangle(4, 5)
+console.log(gardenArea)
 ```
 
 This prints:
@@ -94,12 +94,12 @@ This function calculates the area of a square, but it only prints it. It is call
 
 ```ts
 function areaOfSquare(side: number) {
-  const area = side * side;
-  console.log(area);
+  const area = side * side
+  console.log(area)
 }
 
-const total = areaOfSquare(3) + areaOfSquare(4);
-console.log(total);
+const total = areaOfSquare(3) + areaOfSquare(4)
+console.log(total)
 ```
 
 Because it has no `return`, each call gives back `undefined`, which means "nothing". The third line adds `undefined + undefined`, and the terminal shows:
@@ -116,11 +116,11 @@ The fix is to return the number, and print only at the end:
 
 ```ts
 function areaOfSquare(side: number): number {
-  return side * side;
+  return side * side
 }
 
-const total = areaOfSquare(3) + areaOfSquare(4);
-console.log(total);
+const total = areaOfSquare(3) + areaOfSquare(4)
+console.log(total)
 ```
 
 This prints `25`. A function that returns a value can be used in maths, stored, compared and tested. A function that only prints can only be read by a person.
@@ -129,11 +129,11 @@ The same happens with any function that has no `return`:
 
 ```ts
 function printGreeting() {
-  console.log("Hello");
+  console.log("Hello")
 }
 
-const result = printGreeting();
-console.log(result);
+const result = printGreeting()
+console.log(result)
 ```
 
 This prints:
@@ -152,13 +152,13 @@ A function can use what you learned in lesson 04. This one converts a dog's age 
 ```ts
 function lifeStage(dogAge: number): string {
   if (dogAge < 2) {
-    return "puppy";
+    return "puppy"
   }
-  return "adult";
+  return "adult"
 }
 
-console.log(lifeStage(1));
-console.log(lifeStage(6));
+console.log(lifeStage(1))
+console.log(lifeStage(6))
 ```
 
 This prints:
@@ -181,7 +181,7 @@ If you forget that last `return`, the case where the `if` is false gives back `u
 ```ts
 function isHungry(mood: string): boolean {
   if (mood === "hungry") {
-    return true;
+    return true
   }
 }
 ```
@@ -194,10 +194,10 @@ There is a shorter way to write a function: the **arrow function**, which uses t
 
 ```ts
 const multiply = (a: number, b: number): number => {
-  return a * b;
-};
+  return a * b
+}
 
-console.log(multiply(4, 5));
+console.log(multiply(4, 5))
 ```
 
 This prints:
@@ -214,11 +214,11 @@ A **default parameter** has a value that is used when you give no argument.
 
 ```ts
 function describeSong(title: string, minutes: number = 3): string {
-  return `${title} lasts ${minutes} minutes`;
+  return `${title} lasts ${minutes} minutes`
 }
 
-console.log(describeSong("Yesterday", 2));
-console.log(describeSong("Hey Jude"));
+console.log(describeSong("Yesterday", 2))
+console.log(describeSong("Hey Jude"))
 ```
 
 This prints:
@@ -232,11 +232,11 @@ A default can even use a parameter that comes before it:
 
 ```ts
 function total(price: number, tip: number = price / 10): number {
-  return price + tip;
+  return price + tip
 }
 
-console.log(total(50));
-console.log(total(50, 0));
+console.log(total(50))
+console.log(total(50, 0))
 ```
 
 This prints:
@@ -252,14 +252,14 @@ Give each function one job and a clear name. This idea is called **single respon
 
 ```ts
 function tax(amount: number): number {
-  return amount / 10;
+  return amount / 10
 }
 
 function totalWithTax(amount: number): number {
-  return amount + tax(amount);
+  return amount + tax(amount)
 }
 
-console.log(totalWithTax(100));
+console.log(totalWithTax(100))
 ```
 
 This prints:
@@ -280,12 +280,12 @@ Variables made inside a function exist only while the function runs. This is cal
 
 ```ts
 function secretDemo() {
-  const secret = 1;
-  return secret;
+  const secret = 1
+  return secret
 }
 
-secretDemo();
-console.log(secret);
+secretDemo()
+console.log(secret)
 ```
 
 The last line fails with `ReferenceError: secret is not defined`. Thanks to this, two functions can use the same name without a clash.
@@ -294,13 +294,13 @@ A parameter is also a copy of the value. Changing it does not change the variabl
 
 ```ts
 function addOne(n: number): number {
-  n = n + 1;
-  return n;
+  n = n + 1
+  return n
 }
 
-let x = 5;
-console.log(addOne(x));
-console.log(x);
+let x = 5
+console.log(addOne(x))
+console.log(x)
 ```
 
 This prints:
@@ -351,10 +351,10 @@ You will need something this lesson did not teach: how to find whole hours and t
 
 ```ts
 function f(a: number, b: number = a * 2): number {
-  return a + b;
+  return a + b
 }
 
-console.log(f(1), f(1, 1));
+console.log(f(1), f(1, 1))
 ```
 
 <details>

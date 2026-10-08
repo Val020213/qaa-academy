@@ -6,35 +6,35 @@
 //
 // Replace each "TODO" with real code. Do not edit the checker at the bottom.
 
-type Status = "passed" | "failed" | "skipped";
+type Status = "passed" | "failed" | "skipped"
 
 type TestCase = {
-  id: number;
-  title: string;
-  status: Status;
-};
+  id: number
+  title: string
+  status: Status
+}
 
 // Helpers you can use. Do not change them.
 // wait(ms) pauses for the given number of milliseconds.
 function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 const database: TestCase[] = [
   { id: 1, title: "Login works", status: "passed" },
   { id: 2, title: "Checkout applies discount", status: "failed" },
   { id: 3, title: "Logout clears session", status: "skipped" },
-];
+]
 
 // Simulates a slow request. It resolves with a test case after 30 ms.
 // It rejects (throws) with an Error when the id does not exist.
 async function loadTestCase(id: number): Promise<TestCase> {
-  await wait(30);
-  const found = database.find((testCase) => testCase.id === id);
+  await wait(30)
+  const found = database.find((testCase) => testCase.id === id)
   if (found === undefined) {
-    throw new Error(`Test case ${id} not found`);
+    throw new Error(`Test case ${id} not found`)
   }
-  return found;
+  return found
 }
 
 // ---------------------------------------------------------------
@@ -44,7 +44,7 @@ async function loadTestCase(id: number): Promise<TestCase> {
 // Example: await loadTitle(1) returns "Login works"
 async function loadTitle(id: number): Promise<string> {
   // TODO
-  return "";
+  return ""
 }
 
 // ---------------------------------------------------------------
@@ -54,7 +54,7 @@ async function loadTitle(id: number): Promise<string> {
 // Example: await loadTwoStatuses() returns ["passed", "failed"]
 async function loadTwoStatuses(): Promise<Status[]> {
   // TODO
-  return [];
+  return []
 }
 
 // ---------------------------------------------------------------
@@ -64,7 +64,7 @@ async function loadTwoStatuses(): Promise<Status[]> {
 // Example: await loadTitles([3, 1]) returns ["Logout clears session", "Login works"]
 async function loadTitles(ids: number[]): Promise<string[]> {
   // TODO
-  return ["TODO"];
+  return ["TODO"]
 }
 
 // ---------------------------------------------------------------
@@ -75,7 +75,7 @@ async function loadTitles(ids: number[]): Promise<string[]> {
 // Tip: inside catch, read the message with (error as Error).message
 async function safeLoadTitle(id: number): Promise<string> {
   // TODO
-  return "";
+  return ""
 }
 
 // ---------------------------------------------------------------
@@ -84,31 +84,31 @@ async function safeLoadTitle(id: number): Promise<string> {
 // Example: await addAfterWait(2, 3) returns 5
 async function addAfterWait(a: number, b: number): Promise<number> {
   // TODO
-  return -1;
+  return -1
 }
 
 // ===============================================================
 // Checker. Do not edit below this line.
 // ===============================================================
-let failures = 0;
+let failures = 0
 
 function check(name: string, actual: unknown, expected: unknown): void {
   if (JSON.stringify(actual) === JSON.stringify(expected)) {
-    console.log(`OK    ${name}`);
+    console.log(`OK    ${name}`)
   } else {
-    failures += 1;
-    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
+    failures += 1
+    console.log(`FAIL  ${name} -> got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`)
   }
 }
 
 async function main(): Promise<void> {
-  check("1 loadTitle", await loadTitle(1), "Login works");
-  check("2 loadTwoStatuses", await loadTwoStatuses(), ["passed", "failed"]);
-  check("3 loadTitles", await loadTitles([3, 1]), ["Logout clears session", "Login works"]);
-  check("4 safeLoadTitle", [await safeLoadTitle(2), await safeLoadTitle(99)], ["Checkout applies discount", "error: Test case 99 not found"]);
-  check("5 addAfterWait", await addAfterWait(2, 3), 5);
+  check("1 loadTitle", await loadTitle(1), "Login works")
+  check("2 loadTwoStatuses", await loadTwoStatuses(), ["passed", "failed"])
+  check("3 loadTitles", await loadTitles([3, 1]), ["Logout clears session", "Login works"])
+  check("4 safeLoadTitle", [await safeLoadTitle(2), await safeLoadTitle(99)], ["Checkout applies discount", "error: Test case 99 not found"])
+  check("5 addAfterWait", await addAfterWait(2, 3), 5)
 
-  console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`);
+  console.log(failures === 0 ? "\nAll done. Well done." : `\n${failures} check(s) still failing.`)
 }
 
-void main();
+void main()

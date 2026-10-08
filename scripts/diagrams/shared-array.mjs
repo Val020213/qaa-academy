@@ -6,14 +6,14 @@ const TEXT = {
     state: "after b.push(\"y\")",
     list: "one array",
     caption: "Both names point to the same array.",
-    first: "a", second: "b", assignment: "const b = a;", values: '["x", "y"]',
+    first: "a", second: "b", assignment: "const b = a", values: '["x", "y"]',
   },
   es: {
     title: "Dos nombres, una sola lista",
     state: "después de b.push(\"y\")",
     list: "un solo array",
     caption: "Los dos nombres apuntan al mismo array.",
-    first: "a", second: "b", assignment: "const b = a;", values: '["x", "y"]',
+    first: "a", second: "b", assignment: "const b = a", values: '["x", "y"]',
   },
 }
 

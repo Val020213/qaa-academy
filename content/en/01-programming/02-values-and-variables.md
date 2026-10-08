@@ -17,9 +17,9 @@ In this lesson you store text, numbers and true/false values in variables, and l
 A **value** is a piece of data your program works with. There are three basic kinds. You can try them with `console.log`.
 
 ```ts
-console.log("Rex");
-console.log(3);
-console.log(true);
+console.log("Rex")
+console.log(3)
+console.log(true)
 ```
 
 This prints:
@@ -41,8 +41,8 @@ The third one is a **boolean**. It is either `true` or `false`, and it answers a
 A **variable** is a name for a value.
 
 ```ts
-const dogName = "Rex";
-console.log(dogName);
+const dogName = "Rex"
+console.log(dogName)
 ```
 
 This prints:
@@ -60,22 +60,22 @@ You can use the variable many times. If the value changes, you change it in one 
 A variable keeps the value that was calculated at that moment, not the formula. Look at this program:
 
 ```ts
-let side = 4;
-const area = side * side;
-side = 5;
-console.log(area);
+let side = 4
+const area = side * side
+side = 5
+console.log(area)
 ```
 
-It prints `16`. The line `const area = side * side;` does the maths once: it reads `side`, which is 4, calculates 16, and stores the number 16. After that, `side = 5` changes only `side`, and `area` still holds 16.
+It prints `16`. The line `const area = side * side` does the maths once: it reads `side`, which is 4, calculates 16, and stores the number 16. After that, `side = 5` changes only `side`, and `area` still holds 16.
 
 If you want the new area, you must calculate it again:
 
 ```ts
-let side = 4;
-let area = side * side;
-side = 5;
-area = side * side;
-console.log(area);
+let side = 4
+let area = side * side
+side = 5
+area = side * side
+console.log(area)
 ```
 
 This prints `25`.
@@ -89,9 +89,9 @@ There are two ways to make a variable.
 `let` makes a variable that can change. Use it only when the value must change.
 
 ```ts
-const dogAge = 3;
-dogAge = 4;
-console.log(dogAge);
+const dogAge = 3
+dogAge = 4
+console.log(dogAge)
 ```
 
 The program stops at line 2 with an error that says `Assignment to constant variable`. You cannot give a new value to a `const`. Line 3 never runs.
@@ -99,10 +99,10 @@ The program stops at line 2 with an error that says `Assignment to constant vari
 Now the same idea with `let`:
 
 ```ts
-let dogAge = 3;
-console.log(dogAge);
-dogAge = 4;
-console.log(dogAge);
+let dogAge = 3
+console.log(dogAge)
+dogAge = 4
+console.log(dogAge)
 ```
 
 This prints:
@@ -120,7 +120,7 @@ Why not use `let` everywhere? Because `const` tells the reader the value never c
 
 ## Naming variables
 
-Choose a name that says what the value is for. A good name saves you from writing a comment: `const t = 5 * 7;` says nothing, and `const cookingMinutes = servings * minutesPerServing;` explains itself.
+Choose a name that says what the value is for. A good name saves you from writing a comment: `const t = 5 * 7` says nothing, and `const cookingMinutes = servings * minutesPerServing` explains itself.
 
 Rules:
 
@@ -140,12 +140,12 @@ Bad names: `x`, `data`, `thing2`. They do not tell you what is inside.
 You can do maths with numbers. The signs are `+`, `-`, `*` (times) and `/` (divide).
 
 ```ts
-const side = 6;
-const squareArea = side * side;
-const perimeter = side * 4;
-console.log(squareArea);
-console.log(perimeter);
-console.log(squareArea + perimeter * 2);
+const side = 6
+const squareArea = side * side
+const perimeter = side * 4
+console.log(squareArea)
+console.log(perimeter)
+console.log(squareArea + perimeter * 2)
 ```
 
 This prints:
@@ -161,9 +161,9 @@ Maths follows the usual order: `*` and `/` come before `+` and `-`. Use round br
 `Math.PI` is a ready-made value for the number pi. The area of a circle is pi times the radius times the radius:
 
 ```ts
-const radius = 5;
-console.log(3.14 * radius * radius);
-console.log(Math.PI * radius * radius);
+const radius = 5
+console.log(3.14 * radius * radius)
+console.log(Math.PI * radius * radius)
 ```
 
 This prints:
@@ -178,7 +178,7 @@ Neither answer is "wrong": one uses a short version of pi, and the other is very
 Decimals have a trickier case. Add ten cents and twenty cents:
 
 ```ts
-console.log(0.1 + 0.2);
+console.log(0.1 + 0.2)
 ```
 
 It prints:
@@ -199,8 +199,8 @@ This has two practical consequences:
 - When the number is money, a small error is a problem. Store money in the smallest unit, such as cents, as whole numbers.
 
 ```ts
-const priceInCents = 1999;
-console.log(priceInCents * 3);
+const priceInCents = 1999
+console.log(priceInCents * 3)
 ```
 
 This prints `5997`. You divide by 100 only when you show the price to a person.
@@ -210,9 +210,9 @@ This prints `5997`. You divide by 100 only when you show the price to a person.
 The `+` sign also joins text.
 
 ```ts
-const firstPart = "Rex is ";
-const secondPart = "hungry";
-console.log(firstPart + secondPart);
+const firstPart = "Rex is "
+const secondPart = "hungry"
+console.log(firstPart + secondPart)
 ```
 
 This prints:
@@ -230,9 +230,9 @@ A **template literal** is text between backticks. The backtick is the `` ` `` ke
 Inside a template literal, `${...}` puts the value of a variable into the text.
 
 ```ts
-const dogName = "Rex";
-const dogAge = 3;
-console.log(`${dogName} is ${dogAge} years old`);
+const dogName = "Rex"
+const dogAge = 3
+console.log(`${dogName} is ${dogAge} years old`)
 ```
 
 This prints:
@@ -244,7 +244,7 @@ Rex is 3 years old
 You can also put a calculation inside `${...}`:
 
 ```ts
-console.log(`${dogName} is ${dogAge * 7} in dog years`);
+console.log(`${dogName} is ${dogAge * 7} in dog years`)
 ```
 
 This prints:
@@ -259,13 +259,13 @@ Rex is 21 in dog years
 
 ### A variable keeps its own copy of a value
 
-When you write `const saved = price;`, JavaScript copies the value of `price` into `saved`. The two variables do not stay linked.
+When you write `const saved = price`, JavaScript copies the value of `price` into `saved`. The two variables do not stay linked.
 
 ```ts
-let price = 10;
-const saved = price;
-price = 20;
-console.log(saved, price);
+let price = 10
+const saved = price
+price = 20
+console.log(saved, price)
 ```
 
 This prints:
@@ -281,8 +281,8 @@ This prints:
 Beginners often put quotes around a variable name. Compare these two lines.
 
 ```ts
-console.log("price");
-console.log(price);
+console.log("price")
+console.log(price)
 ```
 
 The first line prints the word `price`, because quotes make text. The second prints the value stored in the variable, here `20`. No quotes means "look up the variable". Quotes mean "this is text".
@@ -324,10 +324,10 @@ You will need something this lesson did not teach: how to print a number with a 
 1. What does this code print, and why?
 
 ```ts
-let score = 10;
-const bonus = score;
-score = score + 5;
-console.log(bonus + score);
+let score = 10
+const bonus = score
+score = score + 5
+console.log(bonus + score)
 ```
 
 <details>
@@ -340,8 +340,8 @@ It prints `25`. The second line copies the value 10 into `bonus`. The third line
 2. This code should print `Hello, Rex`, but it does not. Find the bug.
 
 ```ts
-const dogName = "Rex";
-console.log("Hello, ${dogName}");
+const dogName = "Rex"
+console.log("Hello, ${dogName}")
 ```
 
 <details>

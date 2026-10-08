@@ -33,24 +33,24 @@ Here is a scoreboard of about 20 lines. A game gives points to three players. Th
 
 ```ts
 // Expected: "Winner: Leo with 10 points"
-type Score = { player: string; points: number };
+type Score = { player: string, points: number }
 
-const text = '[{"player":"Mia","points":"9"},{"player":"Leo","points":"10"},{"player":"Zoe","points":"7"}]';
-const scores = JSON.parse(text) as Score[];
+const text = '[{"player":"Mia","points":"9"},{"player":"Leo","points":"10"},{"player":"Zoe","points":"7"}]'
+const scores = JSON.parse(text) as Score[]
 
 function findWinner(table: Score[]): Score {
-  let winner = table[0] as Score;
+  let winner = table[0] as Score
   for (const row of table) {
     if (row.points > winner.points) {
-      winner = row;
+      winner = row
     }
   }
-  return winner;
+  return winner
 }
 
-const winner = findWinner(scores);
-console.log(`Players: ${scores.length}`);
-console.log(`Winner: ${winner.player} with ${winner.points} points`);
+const winner = findWinner(scores)
+console.log(`Players: ${scores.length}`)
+console.log(`Winner: ${winner.player} with ${winner.points} points`)
 ```
 
 It prints:
@@ -66,7 +66,7 @@ Winner: Mia with 9 points
 
 ```ts
   for (const row of table) {
-    console.log("row:", row.player);
+    console.log("row:", row.player)
 ```
 
 The result:
@@ -82,7 +82,7 @@ My prediction was wrong, so I cross the hypothesis out. The loop visits Leo.
 **Second hypothesis: the comparison says "no" for Leo's row.** The experiment: print both numbers and the comparison. I predict that for Leo it shows `true`, because 10 is more than 9.
 
 ```ts
-    console.log(row.player, row.points, winner.points, row.points > winner.points);
+    console.log(row.player, row.points, winner.points, row.points > winner.points)
 ```
 
 The result:
@@ -98,9 +98,9 @@ The prediction failed again. `10 > 9` should be `true`, so my picture of the dat
 **Shrink and test the value.** Two small experiments:
 
 ```ts
-console.log(typeof JSON.parse('{"points":"10"}').points);
-console.log("10" > "9");
-console.log(10 > 9);
+console.log(typeof JSON.parse('{"points":"10"}').points)
+console.log("10" > "9")
+console.log(10 > 9)
 ```
 
 They print:
@@ -116,8 +116,8 @@ Found it. The JSON text has the numbers in quotes, so `points` is text. Text is 
 **Fix one thing.** Convert the text to numbers when you read the data:
 
 ```ts
-const raw = JSON.parse(text) as { player: string; points: string }[];
-const scores: Score[] = raw.map((row) => ({ player: row.player, points: Number(row.points) }));
+const raw = JSON.parse(text) as { player: string, points: string }[]
+const scores: Score[] = raw.map((row) => ({ player: row.player, points: Number(row.points) }))
 ```
 
 It now prints `Winner: Leo with 10 points`.
@@ -171,10 +171,10 @@ You will need something this lesson did not teach: a way to ask Node to stop and
 
 ```ts
 function lastThree(scores: number[]): number[] {
-  return scores.slice(-4);
+  return scores.slice(-4)
 }
 
-console.log(lastThree([5, 8, 2, 9, 7]));
+console.log(lastThree([5, 8, 2, 9, 7]))
 ```
 
 <details><summary>Answer</summary>

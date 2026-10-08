@@ -27,7 +27,9 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  // Playwright starts the app before the tests and stops it at the end.
+  // Locally, Playwright reuses a server that already answers at BASE_URL.
+  // If none answers, it starts the app and stops that server after the tests.
+  // With a nonempty CI value, an existing server makes the run fail.
   webServer: {
     command: `pnpm dev --port ${PORT}`,
     url: BASE_URL,

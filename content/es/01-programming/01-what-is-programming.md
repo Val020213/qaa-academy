@@ -46,10 +46,10 @@ Abre la carpeta del proyecto en VS Code. Crea un archivo nuevo en `exercises/01-
 Escribe esta única línea:
 
 ```ts
-console.log("Hello, world!");
+console.log("Hello, world!")
 ```
 
-`console.log` es una instrucción. Significa: muestra esto en la terminal. El texto entre comillas es lo que muestra. El `;` al final marca dónde termina la instrucción. TypeScript no lo exige: el código funciona igual sin él, y muchos proyectos no lo escriben.
+`console.log` muestra el texto entre comillas en la terminal, y cada instrucción va en su propia línea. TypeScript también acepta un `;` al final de una instrucción, así que lo verás en el código de otras personas, pero este curso no lo escribe.
 
 Ahora abre la terminal de VS Code (Terminal > New Terminal). Ejecuta el archivo:
 
@@ -68,9 +68,9 @@ Hello, world!
 Este archivo es una lista de reproducción:
 
 ```ts
-console.log("Now playing: Blue Monday");
-console.log("Now playing: Yesterday");
-console.log("Now playing: Hey Jude");
+console.log("Now playing: Blue Monday")
+console.log("Now playing: Yesterday")
+console.log("Now playing: Hey Jude")
 ```
 
 Las canciones salen en el mismo orden que las líneas:
@@ -91,8 +91,8 @@ Un **comentario** es una nota para las personas. El analizador lo descarta: no l
 
 ```ts
 // A short routine for a pet shelter
-console.log("Fill the water bowls");
-console.log("Feed the cats"); // the dogs eat later
+console.log("Fill the water bowls")
+console.log("Feed the cats") // the dogs eat later
 ```
 
 La terminal imprime solo esto:
@@ -117,14 +117,14 @@ Node.js lee el archivo completo antes de ejecutar una sola línea. Si una línea
 Cambia la línea 1 de `hello.ts` para que olvide la comilla de cierre:
 
 ```ts
-console.log("Hello, world!);
+console.log("Hello, world!)
 ```
 
 Guarda el archivo y ejecútalo. Las primeras líneas del error se ven así:
 
 ```text
 C:/Users/you/project/exercises/01-programming/hello.ts:1
-console.log("Hello, world!);
+console.log("Hello, world!)
 
 SyntaxError [ERR_INVALID_TYPESCRIPT_SYNTAX]: Expected ',', got '<eof>'
 ```
@@ -142,11 +142,11 @@ El mensaje no siempre es fácil de entender. Aquí dice que la línea terminó d
 Otros errores solo aparecen cuando Node.js llega a la línea que los causa. Aquí tienes una receta, un paso por línea:
 
 ```ts
-console.log("1. Boil the water");
-console.log("2. Add the pasta");
-console.log("3. Drain the water");
-console.log("4. Add the sauce");
-console.log("5. Serve");
+console.log("1. Boil the water")
+console.log("2. Add the pasta")
+console.log("3. Drain the water")
+console.log("4. Add the sauce")
+console.log("5. Serve")
 ```
 
 Si en la línea 4 escribes `console.Log` con L mayúscula, el archivo cumple las reglas de sintaxis y empieza a ejecutarse. Imprime los pasos 1, 2 y 3, y luego se detiene con `TypeError: console.Log is not a function`. Los pasos 4 y 5 nunca se imprimen.
@@ -181,9 +181,9 @@ Vas a necesitar algo que esta lección no enseñó: cómo imprimir una línea en
 1. ¿Qué imprime este archivo?
 
 ```ts
-console.log("Rinse the rice"); // console.log("Add salt");
-// console.log("Boil the rice");
-console.log("Serve");
+console.log("Rinse the rice") // console.log("Add salt")
+// console.log("Boil the rice")
+console.log("Serve")
 ```
 
 <details>
@@ -196,9 +196,9 @@ Imprime `Rinse the rice` y luego `Serve`. En la línea 1, el segundo `console.lo
 2. Un amigo escribe un programa de panadería. Se ejecuta sin error, pero el pastel es un desastre. Encuentra el bug.
 
 ```ts
-console.log("Put the cake in the oven");
-console.log("Heat the oven to 180 degrees");
-console.log("Wait 30 minutes");
+console.log("Put the cake in the oven")
+console.log("Heat the oven to 180 degrees")
+console.log("Wait 30 minutes")
 ```
 
 <details>

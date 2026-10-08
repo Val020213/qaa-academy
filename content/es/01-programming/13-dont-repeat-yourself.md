@@ -18,21 +18,21 @@ Un profesor dice: "La nota mínima para aprobar era 50. Desde hoy es 60". Tres f
 
 ```ts
 function hasPassed(score: number): boolean {
-  return score >= 60;
+  return score >= 60
 }
 
 function describeStudent(name: string, score: number): string {
-  return score >= 60 ? `${name} passed` : `${name} failed`;
+  return score >= 60 ? `${name} passed` : `${name} failed`
 }
 
 function countPassed(scores: number[]): number {
-  let count = 0;
+  let count = 0
   for (const score of scores) {
     if (score >= 50) {
-      count += 1;
+      count += 1
     }
   }
-  return count;
+  return count
 }
 ```
 
@@ -47,29 +47,29 @@ La palabra clave es **conocimiento**: una regla, un valor o un formato. DRY no t
 Para arreglar el ejemplo, dale nombre al número una sola vez y deja que una función sea dueña de la regla. Las otras funciones le preguntan a esa función.
 
 ```ts
-const PASS_MARK = 60;
+const PASS_MARK = 60
 
 function hasPassed(score: number): boolean {
-  return score >= PASS_MARK;
+  return score >= PASS_MARK
 }
 
 function describeStudent(name: string, score: number): string {
-  return hasPassed(score) ? `${name} passed` : `${name} failed`;
+  return hasPassed(score) ? `${name} passed` : `${name} failed`
 }
 
 function countPassed(scores: number[]): number {
-  let count = 0;
+  let count = 0
   for (const score of scores) {
     if (hasPassed(score)) {
-      count += 1;
+      count += 1
     }
   }
-  return count;
+  return count
 }
 
-console.log(hasPassed(55));
-console.log(describeStudent("Mia", 55));
-console.log(`Passed: ${countPassed([55, 40])}`);
+console.log(hasPassed(55))
+console.log(describeStudent("Mia", 55))
+console.log(`Passed: ${countPassed([55, 40])}`)
 ```
 
 Esto imprime:
@@ -99,10 +99,10 @@ Una app de música imprime la línea de una canción en muchos lugares. El forma
 
 ```ts
 function songLine(title: string, minutes: number): string {
-  return `${title} (${minutes} min)`;
+  return `${title} (${minutes} min)`
 }
 
-console.log(songLine("Yellow", 4));
+console.log(songLine("Yellow", 4))
 ```
 
 Esto imprime `Yellow (4 min)`. Si más adelante la app muestra `4:00` en su lugar, cambias una sola función.
@@ -112,41 +112,41 @@ Esto imprime `Yellow (4 min)`. Si más adelante la app muestra `4:00` en su luga
 Construyes el formulario de registro de un refugio de mascotas. Tres campos no deben estar vacíos. En esta versión, cada campo tiene su propio bloque `if`.
 
 ```ts
-const pet = { name: "Rex", species: "", age: "" };
-const errors: string[] = [];
+const pet = { name: "Rex", species: "", age: "" }
+const errors: string[] = []
 
 if (pet.name === "") {
-  errors.push("Name is required");
+  errors.push("Name is required")
 }
 if (pet.species === "") {
-  errors.push("Species is required");
+  errors.push("Species is required")
 }
 if (pet.age === "") {
-  errors.push("Age is required");
+  errors.push("Age is required")
 }
 
-console.log(errors);
+console.log(errors)
 ```
 
 Si el refugio agrega un cuarto campo, `color`, tienes que escribir otro bloque completo. En la versión siguiente los campos son datos:
 
 ```ts
-const pet: Record<string, string> = { name: "Rex", species: "", age: "" };
-const errors: string[] = [];
+const pet: Record<string, string> = { name: "Rex", species: "", age: "" }
+const errors: string[] = []
 
 const required = [
   { field: "name", label: "Name" },
   { field: "species", label: "Species" },
   { field: "age", label: "Age" },
-];
+]
 
 for (const item of required) {
   if (pet[item.field] === "") {
-    errors.push(`${item.label} is required`);
+    errors.push(`${item.label} is required`)
   }
 }
 
-console.log(errors);
+console.log(errors)
 ```
 
 Las dos versiones imprimen el mismo resultado:
@@ -166,7 +166,7 @@ Un trozo de código compartido ata a quienes lo usan: cuando lo cambias, cambian
 Una pizza puede tener como máximo 10 ingredientes. El título de una lista de reproducción puede tener como máximo 10 caracteres. Las dos reglas dicen `10`, y es tentador usar una sola constante:
 
 ```ts
-const LIMIT = 10;
+const LIMIT = 10
 ```
 
 Supón que la pizzería permite 12 ingredientes el mes que viene. Con un solo `LIMIT`, los títulos de las listas también crecen a 12 caracteres, y nadie lo pidió. Dos reglas necesitan dos nombres: `MAX_TOPPINGS` y `MAX_TITLE_LENGTH`. El número es el mismo por casualidad. El conocimiento no.
@@ -177,15 +177,15 @@ Ahora lo contrario. Una función calcula el área de un círculo con `3.14 * rad
 
 ```ts
 function circleArea(radius: number): number {
-  return 3.14 * radius * radius;
+  return 3.14 * radius * radius
 }
 
 function circleLength(radius: number): number {
-  return 2 * 3.1416 * radius;
+  return 2 * 3.1416 * radius
 }
 
-console.log(circleArea(10));
-console.log(circleLength(10));
+console.log(circleArea(10))
+console.log(circleLength(10))
 ```
 
 Imprime `314` y `62.832`. Las dos funciones guardan un solo hecho, el valor de pi, pero guardan dos aproximaciones distintas. El texto no coincide, así que una búsqueda del número completo `3.1416` se saltaría la primera. Usa `Math.PI` en las dos. Entonces `circleArea(10)` da `314.1592653589793`, y las dos funciones concuerdan.
@@ -208,17 +208,17 @@ function formatSong(
   brackets: boolean,
   star: boolean,
 ): string {
-  let text = upper ? title.toUpperCase() : title;
+  let text = upper ? title.toUpperCase() : title
   if (brackets) {
-    text = `[${text}]`;
+    text = `[${text}]`
   }
   if (star) {
-    text = `* ${text}`;
+    text = `* ${text}`
   }
-  return `${text} (${minutes} min)`;
+  return `${text} (${minutes} min)`
 }
 
-console.log(formatSong("Yellow", 4, true, false, true));
+console.log(formatSong("Yellow", 4, true, false, true))
 ```
 
 Imprime `* YELLOW (4 min)`. Pero en la llamada no se entiende qué significan `true, false, true`: tienes que abrir la función para saberlo, y cada nueva necesidad agrega una bandera. Dos funciones pequeñas con nombres claros son más fáciles de leer y de cambiar.
@@ -264,14 +264,14 @@ Las dos reglas se ven iguales pero cambian por razones distintas, así que son c
 2. Encuentra el bug. Un compañero dice: "Bien, la tasa de impuesto tiene una constante". Pero una regla sigue copiada. ¿Cuál es el problema y qué revisarías antes de cambiarlo?
 
 ```ts
-const TAX_RATE = 0.2;
+const TAX_RATE = 0.2
 
 function priceWithTax(price: number): number {
-  return price * (1 + TAX_RATE);
+  return price * (1 + TAX_RATE)
 }
 
 function tip(price: number): number {
-  return price * 0.2;
+  return price * 0.2
 }
 ```
 

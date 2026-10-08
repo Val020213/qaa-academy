@@ -38,16 +38,16 @@ pnpm e2e:ui
 pnpm e2e:headed
 ```
 
-The config uses the dev server on port 5190 if it is already running. If not, it starts one. To use another port, set `SHOP_E2E_PORT`.
+Without a nonempty `CI` value, the config reuses a server that answers on port 5190, or starts one if none answers. With a nonempty `CI` value, it starts its own server and fails if that URL already answers. Playwright stops servers it starts. To use another port, set `SHOP_E2E_PORT`.
 
 ## How authentication works
 
 1. The `setup` project runs first. It runs `global.setup.ts`.
 2. That test signs in through the real login page and saves the cookies to `e2e/.auth/admin.json`.
-3. The `chromium` project loads this file. Every test starts already signed in as admin.
+3. The `chromium` project loads this file by default. Tests that keep this setting start signed in as admin.
 4. Tests that need to be signed out use `test.use({ storageState: { cookies: [], origins: [] } })`.
 
-Never sign out in a test that uses the shared admin session. Signing out deletes the session on the server, and every later test would fail. Log in again with `loginViaApi` first, as the sign out test does.
+Never sign out in a test that uses the shared admin session. Signing out deletes the session on the server, so other tests using that session lose access. Log in again with `loginViaApi` first, as the sign out test does.
 
 ## How data stays independent
 

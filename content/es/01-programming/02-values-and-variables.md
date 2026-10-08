@@ -17,9 +17,9 @@ En esta lección guardas texto, números y valores verdadero/falso en variables,
 Un **valor** es un dato con el que trabaja tu programa. Hay tres tipos básicos. Puedes probarlos con `console.log`.
 
 ```ts
-console.log("Rex");
-console.log(3);
-console.log(true);
+console.log("Rex")
+console.log(3)
+console.log(true)
 ```
 
 Esto imprime:
@@ -41,8 +41,8 @@ El tercero es un *boolean* (booleano). Es `true` (verdadero) o `false` (falso) y
 Una **variable** es un nombre para un valor.
 
 ```ts
-const dogName = "Rex";
-console.log(dogName);
+const dogName = "Rex"
+console.log(dogName)
 ```
 
 Esto imprime:
@@ -60,22 +60,22 @@ Puedes usar la variable muchas veces. Si el valor cambia, lo cambias en un solo 
 Una variable guarda el valor que se calculó en ese momento, no la fórmula. Mira este programa:
 
 ```ts
-let side = 4;
-const area = side * side;
-side = 5;
-console.log(area);
+let side = 4
+const area = side * side
+side = 5
+console.log(area)
 ```
 
-Imprime `16`. La línea `const area = side * side;` hace la cuenta una sola vez: lee `side`, que vale 4, calcula 16 y guarda el número 16. Después, `side = 5` cambia solo `side`, y `area` sigue con 16.
+Imprime `16`. La línea `const area = side * side` hace la cuenta una sola vez: lee `side`, que vale 4, calcula 16 y guarda el número 16. Después, `side = 5` cambia solo `side`, y `area` sigue con 16.
 
 Si quieres el área nueva, debes calcularla de nuevo:
 
 ```ts
-let side = 4;
-let area = side * side;
-side = 5;
-area = side * side;
-console.log(area);
+let side = 4
+let area = side * side
+side = 5
+area = side * side
+console.log(area)
 ```
 
 Esto imprime `25`.
@@ -89,9 +89,9 @@ Hay dos maneras de crear una variable.
 `let` crea una variable que sí puede cambiar. Úsala solo cuando el valor deba cambiar.
 
 ```ts
-const dogAge = 3;
-dogAge = 4;
-console.log(dogAge);
+const dogAge = 3
+dogAge = 4
+console.log(dogAge)
 ```
 
 El programa se detiene en la línea 2 con un error que dice `Assignment to constant variable`. No puedes dar un valor nuevo a una `const`. La línea 3 nunca se ejecuta.
@@ -99,10 +99,10 @@ El programa se detiene en la línea 2 con un error que dice `Assignment to const
 Ahora la misma idea con `let`:
 
 ```ts
-let dogAge = 3;
-console.log(dogAge);
-dogAge = 4;
-console.log(dogAge);
+let dogAge = 3
+console.log(dogAge)
+dogAge = 4
+console.log(dogAge)
 ```
 
 Esto imprime:
@@ -120,7 +120,7 @@ Fíjate en que escribes `let` solo una vez. Para cambiar el valor después, escr
 
 ## Poner nombres a las variables
 
-Elige un nombre que diga para qué sirve el valor. Un buen nombre te ahorra escribir un comentario: `const t = 5 * 7;` no dice nada, y `const cookingMinutes = servings * minutesPerServing;` se entiende sola.
+Elige un nombre que diga para qué sirve el valor. Un buen nombre te ahorra escribir un comentario: `const t = 5 * 7` no dice nada, y `const cookingMinutes = servings * minutesPerServing` se entiende sola.
 
 Reglas:
 
@@ -140,12 +140,12 @@ Malos nombres: `x`, `data`, `thing2`. No te dicen qué hay dentro.
 Puedes hacer cuentas con números. Los signos son `+`, `-`, `*` (por) y `/` (entre).
 
 ```ts
-const side = 6;
-const squareArea = side * side;
-const perimeter = side * 4;
-console.log(squareArea);
-console.log(perimeter);
-console.log(squareArea + perimeter * 2);
+const side = 6
+const squareArea = side * side
+const perimeter = side * 4
+console.log(squareArea)
+console.log(perimeter)
+console.log(squareArea + perimeter * 2)
 ```
 
 Esto imprime:
@@ -161,9 +161,9 @@ Las matemáticas siguen el orden de siempre: `*` y `/` van antes que `+` y `-`. 
 `Math.PI` es un valor ya hecho para el número pi. El área de un círculo es pi por el radio por el radio:
 
 ```ts
-const radius = 5;
-console.log(3.14 * radius * radius);
-console.log(Math.PI * radius * radius);
+const radius = 5
+console.log(3.14 * radius * radius)
+console.log(Math.PI * radius * radius)
 ```
 
 Esto imprime:
@@ -178,7 +178,7 @@ Ninguna respuesta está "mal": una usa una versión corta de pi y la otra está 
 Con decimales hay un caso más delicado. Suma diez centavos y veinte centavos:
 
 ```ts
-console.log(0.1 + 0.2);
+console.log(0.1 + 0.2)
 ```
 
 Imprime:
@@ -199,8 +199,8 @@ Esto tiene dos consecuencias prácticas:
 - Cuando el número es dinero, un error pequeño es un problema. Guarda el dinero en la unidad más pequeña, como los centavos, en números enteros.
 
 ```ts
-const priceInCents = 1999;
-console.log(priceInCents * 3);
+const priceInCents = 1999
+console.log(priceInCents * 3)
 ```
 
 Esto imprime `5997`. Divides entre 100 solo cuando muestras el precio a una persona.
@@ -210,9 +210,9 @@ Esto imprime `5997`. Divides entre 100 solo cuando muestras el precio a una pers
 El signo `+` también une texto.
 
 ```ts
-const firstPart = "Rex is ";
-const secondPart = "hungry";
-console.log(firstPart + secondPart);
+const firstPart = "Rex is "
+const secondPart = "hungry"
+console.log(firstPart + secondPart)
 ```
 
 Esto imprime:
@@ -230,9 +230,9 @@ Un *template literal* (plantilla de texto) es texto entre comillas invertidas. L
 Dentro de un *template literal*, `${...}` pone el valor de una variable dentro del texto.
 
 ```ts
-const dogName = "Rex";
-const dogAge = 3;
-console.log(`${dogName} is ${dogAge} years old`);
+const dogName = "Rex"
+const dogAge = 3
+console.log(`${dogName} is ${dogAge} years old`)
 ```
 
 Esto imprime:
@@ -244,7 +244,7 @@ Rex is 3 years old
 También puedes poner un cálculo dentro de `${...}`:
 
 ```ts
-console.log(`${dogName} is ${dogAge * 7} in dog years`);
+console.log(`${dogName} is ${dogAge * 7} in dog years`)
 ```
 
 Esto imprime:
@@ -259,13 +259,13 @@ Rex is 21 in dog years
 
 ### Una variable guarda su propia copia de un valor
 
-Cuando escribes `const saved = price;`, JavaScript copia el valor de `price` en `saved`. Las dos variables no quedan unidas.
+Cuando escribes `const saved = price`, JavaScript copia el valor de `price` en `saved`. Las dos variables no quedan unidas.
 
 ```ts
-let price = 10;
-const saved = price;
-price = 20;
-console.log(saved, price);
+let price = 10
+const saved = price
+price = 20
+console.log(saved, price)
 ```
 
 Esto imprime:
@@ -281,8 +281,8 @@ Esto imprime:
 Los principiantes suelen poner comillas alrededor del nombre de una variable. Compara estas dos líneas.
 
 ```ts
-console.log("price");
-console.log(price);
+console.log("price")
+console.log(price)
 ```
 
 La primera línea imprime la palabra `price`, porque las comillas crean texto. La segunda imprime el valor guardado en la variable, aquí `20`. Sin comillas significa "busca la variable". Con comillas significa "esto es texto".
@@ -324,10 +324,10 @@ Vas a necesitar algo que esta lección no enseñó: cómo imprimir un número co
 1. ¿Qué imprime este código y por qué?
 
 ```ts
-let score = 10;
-const bonus = score;
-score = score + 5;
-console.log(bonus + score);
+let score = 10
+const bonus = score
+score = score + 5
+console.log(bonus + score)
 ```
 
 <details>
@@ -340,8 +340,8 @@ Imprime `25`. La segunda línea copia el valor 10 en `bonus`. La tercera línea 
 2. Este código debería imprimir `Hello, Rex`, pero no lo hace. Encuentra el bug.
 
 ```ts
-const dogName = "Rex";
-console.log("Hello, ${dogName}");
+const dogName = "Rex"
+console.log("Hello, ${dogName}")
 ```
 
 <details>
